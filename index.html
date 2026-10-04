@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Laila's Math Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@500;700;800&family=JetBrains+Mono:wght@600;700&display=swap">
+<style>
+/* Layout: one centered column on graph paper. Big tap targets, one task per screen, paper-first routine. */
+:root{
+  --bg:#EEF3FB; --grid:#D9E3F4; --card:#FFFFFF; --ink:#1B2540; --mute:#5B6785; --line:#D5DDEC;
+  --blue:#2F5BEA; --blue-ink:#FFFFFF; --star:#F5B700; --good:#12875B; --good-bg:#DDF4E9;
+  --warn:#B5530F; --warn-bg:#FDE9D7; --soft:#E6EDFB;
+  --f-display:'Fredoka',system-ui,sans-serif; --f-body:'Nunito',system-ui,sans-serif; --f-num:'JetBrains Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111827; --grid:#1C2740; --card:#1A2338; --ink:#E9EEFB; --mute:#9CA9C7; --line:#2C3957;
+  --blue:#6F93FF; --blue-ink:#0E1630; --star:#FFCB3D; --good:#4FD39B; --good-bg:#12382B;
+  --warn:#FFAA6B; --warn-bg:#40250F; --soft:#232F4D; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111827; --grid:#1C2740; --card:#1A2338; --ink:#E9EEFB; --mute:#9CA9C7; --line:#2C3957;
+  --blue:#6F93FF; --blue-ink:#0E1630; --star:#FFCB3D; --good:#4FD39B; --good-bg:#12382B;
+  --warn:#FFAA6B; --warn-bg:#40250F; --soft:#232F4D; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0}
+body{background-color:var(--bg);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px;color:var(--ink);font:500 17px/1.5 var(--f-body);padding-inline:16px;padding-block:18px 48px;min-height:100vh}
+#app{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;margin:0;text-wrap:balance;line-height:1.15}
+h1{font-size:1.9rem} h2{font-size:1.4rem} h3{font-size:1.1rem}
+p{margin:0}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column}
+.brand small{color:var(--mute);font-weight:700}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;font-weight:800;font-size:.9rem;min-height:40px}
+.chip.on{border-color:var(--blue);color:var(--blue)}
+.card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--soft);border-radius:12px;padding:12px;text-align:center}
+.stat b{display:block;font-family:var(--f-num);font-size:1.7rem;line-height:1.1}
+.stat span{color:var(--mute);font-weight:800;font-size:.85rem}
+.star{color:var(--star)}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.mode{text-align:left;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px;min-height:150px}
+.mode:hover{border-color:var(--blue)}
+.mode h3{color:var(--blue)}
+.mode span{color:var(--mute);font-size:.95rem}
+.mode.primary{background:var(--blue);border-color:var(--blue)}
+.mode.primary h3,.mode.primary span{color:var(--blue-ink)}
+.btn{background:var(--blue);color:var(--blue-ink);border:0;border-radius:12px;padding:12px 22px;font-weight:800;font-size:1.05rem;min-height:48px}
+.btn.ghost{background:transparent;color:var(--blue);border:2px solid var(--blue)}
+.btn.quiet{background:var(--soft);color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.end{justify-content:flex-end}.row.between{justify-content:space-between}
+.paper{background:var(--warn-bg);color:var(--warn);border-radius:12px;padding:10px 14px;font-weight:800;font-size:.95rem}
+.qtext{font-family:var(--f-num);font-weight:700;font-size:clamp(1.9rem,8vw,2.8rem);line-height:1.25;overflow-wrap:anywhere}
+.qtext.word{font-family:var(--f-body);font-weight:800;font-size:1.35rem;line-height:1.45}
+.pill{background:var(--soft);border-radius:999px;padding:3px 12px;font-weight:800;font-size:.85rem;color:var(--mute)}
+.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.choice{background:var(--card);border:3px solid var(--line);border-radius:14px;padding:16px;font-family:var(--f-num);font-weight:700;font-size:1.6rem;min-height:68px}
+.choice:hover:not(:disabled){border-color:var(--blue)}
+.choice.sel{border-color:var(--blue);background:var(--soft)}
+.choice.bad{border-color:var(--warn);background:var(--warn-bg);opacity:.7}
+.choice.ok{border-color:var(--good);background:var(--good-bg)}
+input.ans{font-family:var(--f-num);font-weight:700;font-size:2rem;width:100%;max-width:260px;padding:10px 14px;border:3px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}
+.fb{border-radius:12px;padding:12px 14px;font-weight:800}
+.fb.good{background:var(--good-bg);color:var(--good)}
+.fb.try{background:var(--warn-bg);color:var(--warn)}
+.steps{background:var(--soft);border-radius:12px;padding:12px 14px 12px 34px;margin:0;display:flex;flex-direction:column;gap:6px}
+.steps li{padding-left:2px}
+.nav{display:flex;gap:6px;flex-wrap:wrap}
+.nav button{width:40px;height:40px;border-radius:10px;border:2px solid var(--line);background:var(--card);font-family:var(--f-num);font-weight:700}
+.nav button.done{background:var(--soft);border-color:var(--blue)}
+.nav button.cur{background:var(--blue);color:var(--blue-ink);border-color:var(--blue)}
+.bigscore{font-family:var(--f-num);font-weight:700;font-size:3.4rem;line-height:1}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.badge{border:2px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:2px;font-size:.88rem}
+.badge b{font-family:var(--f-display);font-weight:600;font-size:1rem}
+.badge.off{opacity:.55;border-style:dashed}
+.badge.on{border-color:var(--star)}
+.bar{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) 52px;gap:10px;align-items:center;font-size:.92rem}
+.bar .track{background:var(--soft);border-radius:6px;height:14px;overflow:hidden}
+.bar .fill{height:100%;background:var(--blue);border-radius:6px}
+.bar .fill.low{background:var(--warn)}
+.bar .fill.cb{background:var(--warn)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--mute);font-size:.8rem;text-transform:uppercase;letter-spacing:.05em}
+.scroll{overflow-x:auto}
+.mute{color:var(--mute)}
+svg text{fill:var(--mute);font-family:var(--f-body);font-size:11px;font-weight:700}
+.sync{font-size:.82rem;font-weight:800;color:var(--mute)}
+.sync.ok{color:var(--good)}
+select,input.txt{font:inherit;padding:8px 12px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);min-height:44px}
+details{border:2px solid var(--line);border-radius:12px;padding:10px 14px}
+summary{cursor:pointer;font-weight:800}
+@media(max-width:480px){.choices{grid-template-columns:1fr 1fr}.card{padding:16px}.bar{grid-template-columns:1fr 1fr 44px}}
+@media(prefers-reduced-motion:no-preference){.btn,.choice,.mode{transition:transform .08s}.btn:active,.choice:active{transform:scale(.98)}}
+</style>
+</head><body>
+<div id="app"></div>
+<script>
+"use strict";
+/* ---------- helpers ---------- */
+const $app=document.getElementById('app');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[ri(0,a.length-1)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+const dg=n=>[n%10,Math.floor(n/10)%10,Math.floor(n/100)];
+const store={
+  get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+const dayKey=ts=>new Date(ts).toLocaleDateString('en-CA');
+const fmtDate=ts=>new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+
+/* ---------- problem types ---------- */
+const TYPES={
+  sub2:{label:'Regroup tens (2-digit)',op:'-',gen(){for(;;){const a=ri(21,99),b=ri(11,a-1);if(dg(a)[0]<dg(b)[0])return[a,b]}}},
+  sub3o:{label:'Regroup ones (3-digit)',op:'-',gen(){for(;;){const a=ri(120,999),b=ri(100,a-1),x=dg(a),y=dg(b);if(x[0]<y[0]&&x[1]>=1&&x[1]-1>=y[1]&&x[2]>=y[2])return[a,b]}}},
+  sub3t:{label:'Regroup tens (3-digit)',op:'-',gen(){for(;;){const a=ri(150,999),b=ri(100,a-1),x=dg(a),y=dg(b);if(x[0]>=y[0]&&x[1]<y[1]&&x[2]-1>=y[2])return[a,b]}}},
+  sub3b:{label:'Regroup ones and tens',op:'-',gen(){for(;;){const a=ri(200,999),b=ri(100,a-1),x=dg(a),y=dg(b);if(x[0]<y[0]&&x[1]>=1&&x[1]-1<y[1]&&x[2]-1>=y[2])return[a,b]}}},
+  subz:{label:'Subtract across zeros',op:'-',gen(){for(;;){const a=ri(2,9)*100+pick([0,0,ri(1,6)]),b=ri(100,a-1),x=dg(a),y=dg(b);if(x[1]===0&&x[0]<y[0]&&x[2]-1>=y[2])return[a,b]}}},
+  add3:{label:'Add with regrouping',op:'+',gen(){for(;;){const a=ri(120,899),b=ri(100,999-a),x=dg(a),y=dg(b);if(x[0]+y[0]>=10||x[1]+y[1]>=10)return[a,b]}}},
+  word:{label:'Word problems',op:'?',gen(){return[0,0]}}
+};
+const TYPE_KEYS=Object.keys(TYPES);
+const NAMES=['Maya','Eli','Nora','Sam','Ava','Leo','Zoe','Ben'];
+const SUBW=[
+  (a,b,n)=>`${n} collected ${a} shells at the beach and gave ${b} shells to a friend. How many shells does ${n} have now?`,
+  (a,b)=>`There were ${a} books on the library shelves. Students borrowed ${b} of them. How many books are left on the shelves?`,
+  (a,b)=>`A farm stand had ${a} apples. It sold ${b} apples today. How many apples are left?`,
+  (a,b,n)=>`${n} needs ${a} points to win a game and has ${b} points so far. How many more points does ${n} need?`
+];
+const ADDW=[
+  (a,b,n)=>`${n} read ${a} pages last week and ${b} pages this week. How many pages did ${n} read in all?`,
+  (a,b)=>`A bakery made ${a} muffins in the morning and ${b} muffins in the afternoon. How many muffins did it make?`,
+  (a,b)=>`The zoo had ${a} visitors on Saturday and ${b} visitors on Sunday. How many visitors came in all?`
+];
+const smallerBigger=q=>{const x=dg(q.a),y=dg(q.b);return[0,1,2].reduce((s,i)=>s+Math.abs(x[i]-y[i])*10**i,0)};
+const forgotReduce=q=>{const x=dg(q.a),y=dg(q.b);return[0,1,2].reduce((s,i)=>s+(x[i]+(x[i]<y[i]?10:0)-y[i])*10**i,0)};
+const noCarry=q=>{const x=dg(q.a),y=dg(q.b);return[0,1,2].reduce((s,i)=>s+((x[i]+y[i])%10)*10**i,0)};
+function makeQ(type,fmt){
+  let t=type,op=TYPES[type].op,a,b;
+  if(type==='word'){t=pick(['sub2','sub3o','sub3t','sub3b','subz','add3','add3']);op=TYPES[t].op}
+  [a,b]=TYPES[t].gen();
+  const ans=op==='-'?a-b:a+b;
+  const n=pick(NAMES);
+  const text=type==='word'?(op==='-'?pick(SUBW):pick(ADDW))(a,b,n):`${a} ${op==='-'?'−':'+'} ${b} = ?`;
+  const q={type,op,a,b,ans,text,fmt};
+  const err=(op==='-'?[smallerBigger(q),forgotReduce(q)]:[noCarry(q)]);
+  const pool=[...err,ans+10,ans-10,ans+1,ans-1,ans+100,ans-100].filter(v=>v>=0&&v<=1000&&v!==ans);
+  const ds=[...new Set(pool)].slice(0,3);
+  q.choices=shuffle([ans,...ds]);
+  return q;
+}
+function classify(q,g){
+  const v=Number(g);
+  if(!Number.isFinite(v))return'other';
+  if(q.op==='-'){if(v===smallerBigger(q))return'smaller';if(v===forgotReduce(q))return'reduce'}
+  else if(v===noCarry(q))return'carry';
+  if([1,10,100].includes(Math.abs(v-q.ans)))return'slip';
+  return'other';
+}
+const ERR_LABEL={smaller:'Subtracted the smaller digit from the bigger one',reduce:'Regrouped, but forgot to take 1 away from the next place',carry:'Forgot to carry when adding',slip:'Off by one fact (1, 10 or 100 away)',blank:'Left blank',other:'Other mistakes'};
+const PLACE=['ones','tens','hundreds'],ONE=['one','ten','hundred'];
+function steps(q){
+  const t=dg(q.a),y=dg(q.b),out=[],nd=String(q.a).length;
+  if(q.op==='-'){
+    for(let i=0;i<nd;i++){
+      const P=PLACE[i][0].toUpperCase()+PLACE[i].slice(1);
+      if(t[i]<y[i]){
+        let j=i+1;while(j<3&&t[j]===0)j++;
+        const before=t[i];
+        let s=`${P}: ${before} is smaller than ${y[i]}, so regroup. `;
+        if(j>i+1){
+          const zs=[];for(let k=i+1;k<j;k++)zs.push(PLACE[k]);
+          s+=`The ${zs.join(' and ')} ${zs.length>1?'are':'is'} 0, so take 1 ${ONE[j]} from the ${PLACE[j]} place (${t[j]} → ${t[j]-1}). The zero${zs.length>1?'s turn':' turns'} into 9${zs.length>1?'s':''} and the ${PLACE[i]} get 10 more. `;
+          t[j]--;for(let k=i+1;k<j;k++)t[k]=9;
+        }else{
+          s+=`Take 1 ${ONE[j]} from the ${PLACE[j]} place (${t[j]} → ${t[j]-1}) and add 10 to the ${PLACE[i]}. `;
+          t[j]--;
+        }
+        t[i]+=10;
+        s+=`Now ${t[i]} − ${y[i]} = ${t[i]-y[i]}.`;
+        out.push(s);
+      }else out.push(`${P}: ${t[i]} − ${y[i]} = ${t[i]-y[i]}.`);
+    }
+    out.push(`So ${q.a} − ${q.b} = ${q.ans}.`);
+  }else{
+    let c=0;
+    for(let i=0;i<nd;i++){
+      const P=PLACE[i][0].toUpperCase()+PLACE[i].slice(1),s=t[i]+y[i]+c;
+      out.push(`${P}: ${t[i]} + ${y[i]}${c?' + 1 carried':''} = ${s}.`+(s>=10?` Write ${s%10} and carry 1 ${ONE[i+1]||'thousand'}.`:''));
+      c=s>=10?1:0;
+    }
+    if(c)out.push('Write the carried 1 in the thousands place.');
+    out.push(`So ${q.a} + ${q.b} = ${q.ans}.`);
+  }
+  return out;
+}
+
+/* ---------- state ---------- */
+const S={
+  sessions:[],
+  settings:Object.assign({pin:'1234',examLen:12},store.get('lmath.settings',{})),
+  home:store.get('lmath.home',null),
+  view:'home',tab:'progress',unlocked:false,pinErr:false,
+  sync:'local'
+};
+let run=null,db=null;
+const pending=new Set(store.get('lmath.pending',[]));
+S.sessions=store.get('lmath.sessions',[]);
+let dbSessions=null;
+
+function mergedSessions(){
+  const byId=new Map();
+  (dbSessions||[]).forEach(s=>byId.set(s.id,s));
+  store.get('lmath.sessions',[]).forEach(s=>{if(!byId.has(s.id)&&(dbSessions===null||pending.has(s.id)))byId.set(s.id,s)});
+  return[...byId.values()].sort((a,b)=>b.ts-a.ts);
+}
+function refreshSessions(){S.sessions=mergedSessions()}
+function saveLocalCopy(){store.set('lmath.sessions',S.sessions.slice(0,300));store.set('lmath.pending',[...pending])}
+
+const FB_CONFIG={apiKey:"AIzaSyBAAlH6P0UmkgMhB1FDXyLNZHQTO-XpKzk",authDomain:"lailas-math-lab.firebaseapp.com",projectId:"lailas-math-lab",storageBucket:"lailas-math-lab.firebasestorage.app",messagingSenderId:"239119121120",appId:"1:239119121120:web:d01dd2cf1d3bdc4285ae85"};
+async function loadFirestore(){
+  const V='10.12.2',B='https://www.gstatic.com/firebasejs/'+V+'/';
+  const [A,F]=await Promise.all([import(B+'firebase-app.js'),import(B+'firebase-firestore.js')]);
+  const fs=F.getFirestore(A.initializeApp(FB_CONFIG));
+  return{
+    recent:(n,ok,err)=>F.onSnapshot(F.query(F.collection(fs,'sessions'),F.orderBy('ts','desc'),F.limit(n)),ok,err),
+    save:s=>F.setDoc(F.doc(fs,'sessions',s.id),s)
+  };
+}
+async function initDb(){
+  try{db=await loadFirestore()}catch(e){db=null}
+  if(!db){S.sync='local';render();return}
+  try{
+    db.recent(500,snap=>{
+      S.sync='live';
+      dbSessions=snap.docs.map(d=>Object.assign({id:d.id},d.data()));
+      dbSessions.forEach(s=>pending.delete(s.id));
+      refreshSessions();saveLocalCopy();
+      store.get('lmath.sessions',[]).filter(s=>pending.has(s.id)&&!dbSessions.some(d=>d.id===s.id)).forEach(pushSession);
+      if(S.view!=='run')render();
+    },()=>{S.sync='local';render()});
+  }catch(e){S.sync='local';render()}
+}
+function pushSession(s){
+  if(!db)return;
+  db.save(s).then(()=>{pending.delete(s.id);saveLocalCopy()}).catch(()=>{S.sync='local';render()});
+}
+function saveSession(s){
+  s.id='s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  S.sessions.unshift(s);
+  if(dbSessions)dbSessions.unshift(s);
+  pending.add(s.id);saveLocalCopy();
+  pushSession(s);
+}
+
+/* ---------- derived stats ---------- */
+function stats(){
+  const ss=S.sessions,stars=ss.reduce((n,s)=>n+(s.stars||0),0);
+  const days=new Set(ss.map(s=>dayKey(s.ts)));
+  let streak=0;const d=new Date();
+  if(!days.has(dayKey(d)))d.setDate(d.getDate()-1);
+  while(days.has(dayKey(d))){streak++;d.setDate(d.getDate()-1)}
+  const items=ss.flatMap(s=>(s.items||[]).map(i=>Object.assign({ts:s.ts,mode:s.mode},i)));
+  return{stars,streak,items,sessions:ss.length};
+}
+function typeAcc(items,limit){
+  const m={};TYPE_KEYS.forEach(k=>m[k]={n:0,c:0});
+  const per={};
+  items.forEach(i=>{per[i.t]=(per[i.t]||0)+1;if(per[i.t]>limit||!m[i.t])return;m[i.t].n++;if(i.ok)m[i.t].c++});
+  return m;
+}
+const pct=s=>s.total?Math.round(100*s.correct/s.total):0;
+function badges(st){
+  const exams=S.sessions.filter(s=>s.mode==='exam').sort((a,b)=>a.ts-b.ts);
+  const zeroOk=st.items.filter(i=>i.t==='subz'&&i.ok).length;
+  const regOk=st.items.filter(i=>['sub2','sub3o','sub3t','sub3b'].includes(i.t)&&i.ok).length;
+  const big=exams.filter(s=>pct(s)>=85).length;
+  const jump=exams.some((s,i)=>i>0&&pct(s)-pct(exams[i-1])>=10);
+  return[
+    {n:'First Steps',d:'Finish your first session',on:st.sessions>=1},
+    {n:'3-Day Streak',d:'Practice 3 days in a row',on:st.streak>=3},
+    {n:'7-Day Streak',d:'Practice 7 days in a row',on:st.streak>=7},
+    {n:'Borrow Boss',d:'20 regrouping problems right',on:regOk>=20},
+    {n:'Zero Hero',d:'8 across-zeros problems right',on:zeroOk>=8},
+    {n:'Exam Ready',d:'Score 85%+ on 3 exams',on:big>=3},
+    {n:'Comeback',d:'Raise an exam score by 10 points',on:jump},
+    {n:'Star Collector',d:'Earn 150 stars',on:st.stars>=150}
+  ];
+}
+
+/* ---------- run setup ---------- */
+function planTypes(mode,n){
+  if(mode==='smart'){
+    const acc=typeAcc(stats().items,20);
+    const w=TYPE_KEYS.map(k=>{const a=acc[k];return a.n<3?2:0.5+3*(1-a.c/a.n)});
+    const out=[];
+    for(let i=0;i<n;i++){let r=Math.random()*w.reduce((x,y)=>x+y,0),k=0;while(r>w[k]&&k<w.length-1){r-=w[k];k++}out.push(TYPE_KEYS[k])}
+    return out;
+  }
+  const base=['sub2','sub3o','sub3t','sub3b','subz','subz','add3','word','sub3b','word','sub3t','word'];
+  let out=shuffle(base);
+  while(out.length<n)out=out.concat(shuffle(base));
+  return mode==='exam'?out.slice(0,n):shuffle(base).slice(0,n);
+}
+function start(mode){
+  const n=mode==='exam'?Number(S.settings.examLen)||12:10;
+  const types=planTypes(mode,n);
+  const fmts=shuffle(types.map((_,i)=>i%2?'mc':'type'));
+  const qs=types.map((t,i)=>makeQ(t,fmts[i]));
+  run={mode,qs,i:0,t0:Date.now(),answers:qs.map(()=>''),review:false,
+    st:qs.map(()=>({tries:0,hint:false,done:false,ok:false,wrong:[],err:null,msg:null,given:''}))};
+  S.view='run';render();
+}
+
+/* ---------- views ---------- */
+function topbar(){
+  const syncTxt=S.sync==='live'?'Progress saved for both homes':'Saved on this device only';
+  return`<div class="top"><div class="brand"><h1>Laila's Math Lab</h1><small class="sync ${S.sync==='live'?'ok':''}">${syncTxt}</small></div>
+  <div class="chips">${S.home?`<button class="chip" data-act="rehome">${esc(S.home)}</button>`:''}<button class="chip" data-act="parent">Parent area</button></div></div>`;
+}
+function homePicker(){
+  return`<section class="card"><h2>Where are you practicing today?</h2><p class="mute">This lets Mom and Dad see where each session happened.</p>
+  <div class="row">${["Dad's home","Mom's home","Traveling"].map(h=>`<button class="btn ghost" data-act="sethome" data-v="${esc(h)}">${esc(h)}</button>`).join('')}</div></section>`;
+}
+function homeView(){
+  const st=stats();
+  if(!S.home||S.view==='pickhome')return topbar()+homePicker();
+  const last=S.sessions[0];
+  return topbar()+`
+  <section class="card"><h2>Hi, Laila!</h2>
+    <div class="stats"><div class="stat"><b><span class="star">★</span> ${st.stars}</b><span>stars</span></div>
+    <div class="stat"><b>${st.streak}</b><span>day streak</span></div>
+    <div class="stat"><b>${st.sessions}</b><span>sessions</span></div></div>
+    <div class="paper">Paper first: always do the work on your paper, then type or tap your answer.</div>
+  </section>
+  <section class="modes">
+    <button class="mode primary" data-act="start" data-v="smart"><h3>Smart Practice</h3><span>10 questions picked from what you need most. Hints help you.</span></button>
+    <button class="mode" data-act="start" data-v="guided"><h3>Guided Practice</h3><span>10 questions with a hint and a second try. No pressure.</span></button>
+    <button class="mode" data-act="start" data-v="exam"><h3>Practice Exam</h3><span>${Number(S.settings.examLen)||12} questions, no hints, just like the real test.</span></button>
+  </section>
+  ${last?`<p class="mute">Last time: ${esc(modeName(last.mode))}, ${last.correct} of ${last.total} right on ${fmtDate(last.ts)}.</p>`:''}
+  <section class="card"><h3>Badges</h3><div class="badges">${badges(st).map(b=>`<div class="badge ${b.on?'on':'off'}"><b>${b.on?'★ ':''}${b.n}</b><span>${b.d}</span></div>`).join('')}</div></section>`;
+}
+const modeName=m=>({smart:'Smart Practice',guided:'Guided Practice',exam:'Practice Exam'}[m]||m);
+
+function answerArea(q,st,exam,val){
+  if(q.fmt==='mc'){
+    return`<div class="choices">${q.choices.map(c=>{
+      let cls='choice';
+      if(exam){if(String(c)===val)cls+=' sel'}
+      else{if(st.wrong.includes(String(c)))cls+=' bad';if(st.done&&c===q.ans)cls+=' ok'}
+      const dis=!exam&&(st.done||st.wrong.includes(String(c)))?'disabled':'';
+      return`<button class="${cls}" data-act="pick" data-v="${c}" ${dis}>${c}</button>`}).join('')}</div>`;
+  }
+  const dis=!exam&&st.done?'disabled':'';
+  return`<div class="row"><input class="ans" id="ans" type="text" inputmode="numeric" autocomplete="off" aria-label="Your answer" value="${esc(val)}" ${dis}></div>`;
+}
+function runView(){
+  const r=run,q=r.qs[r.i],st=r.st[r.i],exam=r.mode==='exam',N=r.qs.length;
+  if(exam&&r.review){
+    const un=r.answers.filter(a=>a==='').length;
+    return`<div class="top"><h2>Check your answers</h2><button class="chip" data-act="home">Exit</button></div>
+    <section class="card"><p>${un?`You have <b>${un}</b> question${un>1?'s':''} without an answer. Tap a number to go back.`:'Every question has an answer. Tap a number to change one, or turn it in.'}</p>
+    <div class="nav">${r.qs.map((_,i)=>`<button data-act="goto" data-v="${i}" class="${r.answers[i]!==''?'done':''}" aria-label="Question ${i+1}">${i+1}</button>`).join('')}</div>
+    <div class="row between"><button class="btn quiet" data-act="goto" data-v="${N-1}">Back</button><button class="btn" data-act="submitExam">Turn in exam</button></div></section>`;
+  }
+  const val=exam?r.answers[r.i]:'';
+  let body=`<div class="row between"><span class="pill">Question ${r.i+1} of ${N}</span><span class="pill">${esc(modeName(r.mode))}</span></div>
+  <div class="paper">Paper first: write your work on your paper. Then ${q.fmt==='mc'?'tap':'type'} your answer.</div>
+  <p class="qtext ${q.type==='word'?'word':''}">${esc(q.text)}</p>`;
+  body+=answerArea(q,st,exam,val);
+  if(!exam){
+    if(st.msg==='right')body+=`<div class="fb good">${st.ok?'Correct! Nice work.':'Correct, and you learned something on the way.'}</div>`;
+    if(st.msg==='retry')body+=`<div class="fb try">Not yet. Read the steps and try again.</div>`;
+    if(st.msg==='reveal')body+=`<div class="fb try">The answer is ${q.ans}. Read the steps so it clicks next time.</div>`;
+    if(st.hint||st.msg==='reveal'){const s=steps(q);body+=`<ol class="steps">${(st.msg==='reveal'||st.done?s:s.slice(0,-1)).map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`}
+    const last=r.i===N-1;
+    body+=`<div class="row between"><div class="row">${st.done?'':`<button class="btn quiet" data-act="hint">Show a hint</button>`}${q.fmt==='type'&&!st.done?`<button class="btn" data-act="check">Check answer</button>`:''}</div>
+    ${st.done?`<button class="btn" data-act="next">${last?'See my results':'Next question'}</button>`:''}</div>`;
+  }else{
+    body+=`<div class="nav" aria-label="Questions">${r.qs.map((_,i)=>`<button data-act="goto" data-v="${i}" class="${i===r.i?'cur':r.answers[i]!==''?'done':''}">${i+1}</button>`).join('')}</div>
+    <div class="row between"><button class="btn quiet" data-act="prev" ${r.i===0?'disabled':''}>Back</button>
+    <button class="btn" data-act="next">${r.i===N-1?'Review answers':'Next'}</button></div>`;
+  }
+  return`<div class="top"><h2>${exam?'Practice Exam':esc(modeName(r.mode))}</h2><button class="chip" data-act="home">Exit</button></div><section class="card">${body}</section>`;
+}
+function resultsView(){
+  const s=run.result,p=pct(s),exam=s.mode==='exam';
+  const msg=p>=90?'Amazing work! You really know this.':p>=75?'Strong work. A little more practice and it will be even better.':'Good effort. Every try builds the skill. Keep going.';
+  const missed=run.qs.map((q,i)=>({q,it:s.items[i]})).filter(x=>!x.it.ok);
+  return`<div class="top"><h2>All done!</h2><button class="chip" data-act="home">Home</button></div>
+  <section class="card"><div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
+  <div><div class="bigscore"><span class="star">★</span> +${s.stars}</div><span class="mute">stars earned</span></div></div>
+  <p>${msg}</p>
+  ${missed.length?`<h3>Let's look at ${missed.length===1?'this one':'these'}</h3>${missed.map(({q,it})=>`<details><summary>${esc(q.type==='word'?`${q.a} ${q.op==='-'?'−':'+'} ${q.b}`:q.text.replace(' = ?',''))} = ${q.ans}${it.given!==''&&it.given!==undefined?` <span class="mute">(you wrote ${esc(it.given)})</span>`:''}</summary><ol class="steps">${steps(q).map(x=>`<li>${esc(x)}</li>`).join('')}</ol></details>`).join('')}`:'<div class="fb good">No misses. Perfect!</div>'}
+  <div class="row"><button class="btn" data-act="start" data-v="${exam?'smart':s.mode}">${exam?'Practice what I missed':'Go again'}</button><button class="btn ghost" data-act="home">Back to home</button></div></section>`;
+}
+
+/* parent area */
+function parentView(){
+  const bar=`<div class="top"><h2>Parent area</h2><button class="chip" data-act="home">Close</button></div>`;
+  if(!S.unlocked){
+    return bar+`<section class="card"><h3>Enter parent PIN</h3><div class="row"><input class="txt" id="pin" type="password" inputmode="numeric" maxlength="8" autocomplete="off" aria-label="Parent PIN" style="width:140px"><button class="btn" data-act="unlock">Open</button></div>
+    ${S.pinErr?'<div class="fb try">That PIN is not right. Try again.</div>':'<p class="mute">The starting PIN is 1234. Change it under Settings.</p>'}</section>`;
+  }
+  const tabs=`<div class="tabs">${[['progress','Progress'],['log','Practice log'],['settings','Settings']].map(([k,l])=>`<button class="chip ${S.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</div>`;
+  return bar+tabs+(S.tab==='progress'?progressTab():S.tab==='log'?logTab():settingsTab());
+}
+function chart(){
+  const pts=S.sessions.slice(0,30).reverse();
+  if(pts.length<2)return`<p class="mute">The chart appears after two sessions.</p>`;
+  const W=640,H=230,L=34,R=14,T=14,B=30,x=i=>L+(W-L-R)*(i/(pts.length-1)),y=p=>T+(H-T-B)*(1-p/100);
+  let g='';
+  [0,25,50,75,100].forEach(v=>g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`);
+  g+=`<line x1="${L}" x2="${W-R}" y1="${y(80)}" y2="${y(80)}" stroke="var(--good)" stroke-width="1.5" stroke-dasharray="5 4"/><text x="${W-R}" y="${y(80)-5}" text-anchor="end" style="fill:var(--good)">80% goal</text>`;
+  const path=pts.map((s,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${y(pct(s)).toFixed(1)}`).join(' ');
+  g+=`<path d="${path}" fill="none" stroke="var(--blue)" stroke-width="2.5"/>`;
+  pts.forEach((s,i)=>{const e=s.mode==='exam';g+=`<circle cx="${x(i).toFixed(1)}" cy="${y(pct(s)).toFixed(1)}" r="${e?6:4.5}" fill="${e?'var(--blue)':'var(--card)'}" stroke="var(--blue)" stroke-width="2.5"/>`});
+  g+=`<text x="${L}" y="${H-8}">${fmtDate(pts[0].ts)}</text><text x="${W-R}" y="${H-8}" text-anchor="end">${fmtDate(pts[pts.length-1].ts)}</text>`;
+  return`<div class="scroll"><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Score history chart" style="min-width:420px">${g}</svg></div><p class="mute">Filled dots are practice exams. Hollow dots are practice sessions.</p>`;
+}
+function progressTab(){
+  const st=stats();
+  if(!S.sessions.length)return`<section class="card"><h3>No sessions yet</h3><p class="mute">Once Laila finishes a session, her scores, mistake patterns and practice days show up here for both homes.</p></section>`;
+  const acc=typeAcc(st.items,40);
+  const errs={};st.items.filter(i=>!i.ok&&i.err).forEach(i=>errs[i.err]=(errs[i.err]||0)+1);
+  const errRows=Object.entries(errs).sort((a,b)=>b[1]-a[1]);
+  const maxE=errRows.length?errRows[0][1]:1;
+  const weak=TYPE_KEYS.filter(k=>acc[k].n>=3).sort((a,b)=>acc[a].c/acc[a].n-acc[b].c/acc[b].n)[0];
+  const insight=weak&&acc[weak].c/acc[weak].n<0.85?`Needs the most work: ${TYPES[weak].label.toLowerCase()} (${Math.round(100*acc[weak].c/acc[weak].n)}% right).`:'No clear weak spot yet. Keep practicing.';
+  return`<section class="card"><h3>Score history</h3>${chart()}</section>
+  <section class="card"><h3>Accuracy by skill</h3><p><b>${esc(insight)}</b></p>
+  ${TYPE_KEYS.map(k=>{const a=acc[k],p=a.n?Math.round(100*a.c/a.n):null;return`<div class="bar"><span>${TYPES[k].label}</span><span class="track"><span class="fill ${p!==null&&p<70?'low':''}" style="display:block;width:${p||0}%"></span></span><span class="num">${p===null?'–':p+'%'}</span></div>`}).join('')}</section>
+  <section class="card"><h3>Mistake patterns</h3>${errRows.length?errRows.map(([k,n])=>`<div class="bar"><span>${ERR_LABEL[k]||k}</span><span class="track"><span class="fill cb" style="display:block;width:${Math.round(100*n/maxE)}%"></span></span><span class="num">${n}</span></div>`).join(''):'<p class="mute">No mistakes recorded yet.</p>'}
+  <p class="mute">Share this pattern with her teacher so school and home practice target the same step.</p></section>`;
+}
+function logTab(){
+  if(!S.sessions.length)return`<section class="card"><p class="mute">No sessions yet.</p></section>`;
+  return`<section class="card"><div class="scroll"><table><thead><tr><th>Date</th><th>Mode</th><th>Score</th><th>Minutes</th><th>Where</th></tr></thead><tbody>${S.sessions.slice(0,60).map(s=>`<tr><td>${new Date(s.ts).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</td><td>${esc(modeName(s.mode))}</td><td class="num">${s.correct}/${s.total} (${pct(s)}%)</td><td class="num">${Math.max(1,Math.round((s.secs||0)/60))}</td><td>${esc(s.home||'')}</td></tr>`).join('')}</tbody></table></div></section>`;
+}
+function settingsTab(){
+  return`<section class="card"><h3>Settings</h3>
+  <label class="row">Exam length <select id="examLen">${[10,11,12,13,14,15].map(n=>`<option ${Number(S.settings.examLen)===n?'selected':''}>${n}</option>`).join('')}</select> questions</label>
+  <label class="row">New parent PIN <input class="txt" id="newPin" type="password" inputmode="numeric" maxlength="8" placeholder="leave blank to keep" style="width:190px"></label>
+  <div class="row"><button class="btn" data-act="saveSettings">Save settings</button><span id="saved" class="mute"></span></div>
+  <p class="mute">Settings are saved on this device. Set the same PIN and exam length on each computer.</p></section>`;
+}
+
+/* ---------- render + events ---------- */
+function render(){
+  let h;
+  if(S.view==='run')h=runView();
+  else if(S.view==='results')h=resultsView();
+  else if(S.view==='parent')h=parentView();
+  else h=homeView();
+  $app.innerHTML=h;
+  const a=document.getElementById('ans');
+  if(a&&!a.disabled)a.focus({preventScroll:true});
+  const p=document.getElementById('pin');if(p)p.focus({preventScroll:true});
+}
+function finish(){
+  const exam=run.mode==='exam';
+  const items=run.qs.map((q,i)=>{
+    const st=run.st[i];
+    if(exam){
+      const g=run.answers[i],ok=g!==''&&Number(g)===q.ans;
+      return{t:q.type==='word'?wordKind(q):q.type,ok,err:ok?null:g===''?'blank':classify(q,g),given:g};
+    }
+    return{t:q.type==='word'?wordKind(q):q.type,ok:st.ok,err:st.ok?null:(st.err||null),given:st.given};
+  });
+  const correct=items.filter(i=>i.ok).length;
+  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.round((Date.now()-run.t0)/1000),stars:exam?correct*2+5:correct+3,items:items.map(i=>({t:i.t,ok:i.ok,err:i.err}))};
+  saveSession(sess);
+  run.result=Object.assign({},sess,{items});S.view='results';render();
+}
+const wordKind=q=>'word';
+function guidedSubmit(val){
+  const q=run.qs[run.i],st=run.st[run.i];
+  if(st.done)return;
+  val=String(val).trim();if(val==='')return;
+  st.tries++;st.given=val;
+  if(Number(val)===q.ans){st.done=true;st.ok=st.tries===1&&!st.hint;st.msg='right'}
+  else{
+    if(!st.err)st.err=classify(q,val);
+    st.wrong.push(val);st.hint=true;
+    if(st.tries>=2){st.done=true;st.ok=false;st.msg='reveal'}else st.msg='retry';
+  }
+  render();
+}
+document.addEventListener('input',e=>{
+  if(e.target.id==='ans'&&run&&run.mode==='exam')run.answers[run.i]=e.target.value.replace(/[^0-9]/g,'');
+  if(e.target.id==='ans')e.target.value=e.target.value.replace(/[^0-9]/g,'');
+});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  if(e.target.id==='ans'&&run){e.preventDefault();if(run.mode==='exam')act('next');else guidedSubmit(e.target.value)}
+  if(e.target.id==='pin')act('unlock');
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
+  act(b.dataset.act,b.dataset.v);
+});
+function act(a,v){
+  const r=run;
+  switch(a){
+    case'sethome':S.home=v;store.set('lmath.home',v);S.view='home';render();break;
+    case'rehome':S.view='pickhome';render();break;
+    case'start':start(v);break;
+    case'home':S.view='home';S.unlocked=false;run=null;render();break;
+    case'parent':S.view='parent';S.pinErr=false;render();break;
+    case'tab':S.tab=v;render();break;
+    case'unlock':{const el=document.getElementById('pin');if(el&&el.value===String(S.settings.pin)){S.unlocked=true;S.pinErr=false}else S.pinErr=true;render();break}
+    case'saveSettings':{
+      const n=Number(document.getElementById('examLen').value),np=document.getElementById('newPin').value.trim();
+      S.settings.examLen=n;if(/^\d{4,8}$/.test(np))S.settings.pin=np;
+      store.set('lmath.settings',S.settings);
+      render();const s=document.getElementById('saved');if(s)s.textContent=np&&!/^\d{4,8}$/.test(np)?'Saved. PIN must be 4 to 8 digits, so it was not changed.':'Saved.';break}
+    case'pick':
+      if(r.mode==='exam'){r.answers[r.i]=v;render()}else guidedSubmit(v);break;
+    case'check':{const el=document.getElementById('ans');guidedSubmit(el?el.value:'');break}
+    case'hint':r.st[r.i].hint=true;render();break;
+    case'prev':if(r.i>0){r.i--;render()}break;
+    case'goto':r.i=Number(v);r.review=false;render();break;
+    case'next':
+      if(r.mode==='exam'){if(r.i<r.qs.length-1){r.i++;render()}else{r.review=true;render()}}
+      else if(r.i<r.qs.length-1){r.i++;render()}else finish();
+      break;
+    case'submitExam':finish();break;
+  }
+}
+render();
+initDb();
+</script>
+</body></html>
