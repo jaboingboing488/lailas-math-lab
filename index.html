@@ -58,6 +58,9 @@ button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid
 .qtext{font-family:var(--f-num);font-weight:700;font-size:clamp(1.9rem,8vw,2.8rem);line-height:1.25;overflow-wrap:anywhere}
 .qtext.word{font-family:var(--f-body);font-weight:800;font-size:1.35rem;line-height:1.45}
 .pill{background:var(--soft);border-radius:999px;padding:3px 12px;font-weight:800;font-size:.85rem;color:var(--mute)}
+.stack{display:inline-grid;align-self:flex-start;font-family:var(--f-num);font-weight:700;font-size:clamp(2rem,9vw,3rem);line-height:1.3;border-bottom:4px solid var(--ink);padding:0 4px 4px 4px;min-width:5ch}
+.stack>div{display:flex;justify-content:space-between;gap:1.2ch}
+.stack>div:first-child{justify-content:flex-end}
 .choices{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .choice{background:var(--card);border:3px solid var(--line);border-radius:14px;padding:16px;font-family:var(--f-num);font-weight:700;font-size:1.6rem;min-height:68px}
 .choice:hover:not(:disabled){border-color:var(--blue)}
@@ -125,8 +128,10 @@ const TYPES={
   sub3t:{label:'Regroup tens (3-digit)',op:'-',gen(){for(;;){const a=ri(150,999),b=ri(100,a-1),x=dg(a),y=dg(b);if(x[0]>=y[0]&&x[1]<y[1]&&x[2]-1>=y[2])return[a,b]}}},
   sub3b:{label:'Regroup ones and tens',op:'-',gen(){for(;;){const a=ri(200,999),b=ri(100,a-1),x=dg(a),y=dg(b);if(x[0]<y[0]&&x[1]>=1&&x[1]-1<y[1]&&x[2]-1>=y[2])return[a,b]}}},
   subz:{label:'Subtract across zeros',op:'-',gen(){for(;;){const a=ri(2,9)*100+pick([0,0,ri(1,6)]),b=ri(100,a-1),x=dg(a),y=dg(b);if(x[1]===0&&x[0]<y[0]&&x[2]-1>=y[2])return[a,b]}}},
+  sub32:{label:'3-digit minus 2-digit',op:'-',gen(){for(;;){const a=ri(101,999),b=ri(11,99),x=dg(a),y=dg(b);if(a>b&&(x[0]<y[0]||x[1]<y[1]))return[a,b]}}},
   add3:{label:'Add with regrouping',op:'+',gen(){for(;;){const a=ri(120,899),b=ri(100,999-a),x=dg(a),y=dg(b);if(x[0]+y[0]>=10||x[1]+y[1]>=10)return[a,b]}}},
-  word:{label:'Word problems',op:'?',gen(){return[0,0]}}
+  word:{label:'Word problems',op:'?',gen(){return[0,0]}},
+  miss:{label:'Find the missing number',op:'?',gen(){return[0,0]}}
 };
 const TYPE_KEYS=Object.keys(TYPES);
 const NAMES=['Maya','Eli','Nora','Sam','Ava','Leo','Zoe','Ben'];
@@ -145,13 +150,19 @@ const smallerBigger=q=>{const x=dg(q.a),y=dg(q.b);return[0,1,2].reduce((s,i)=>s+
 const forgotReduce=q=>{const x=dg(q.a),y=dg(q.b);return[0,1,2].reduce((s,i)=>s+(x[i]+(x[i]<y[i]?10:0)-y[i])*10**i,0)};
 const noCarry=q=>{const x=dg(q.a),y=dg(q.b);return[0,1,2].reduce((s,i)=>s+((x[i]+y[i])%10)*10**i,0)};
 function makeQ(type,fmt){
-  let t=type,op=TYPES[type].op,a,b;
-  if(type==='word'){t=pick(['sub2','sub3o','sub3t','sub3b','subz','add3','add3']);op=TYPES[t].op}
+  const SUBK=['sub2','sub3o','sub3t','sub3b','subz','sub32'];
+  let t=type,form=null,a,b;
+  if(type==='word')t=pick([...SUBK,'add3','add3']);
+  if(type==='miss'){form=pick(['addend','minuend','start']);t=form==='start'?'add3':pick(SUBK)}
+  const op=TYPES[t].op;
   [a,b]=TYPES[t].gen();
   const ans=op==='-'?a-b:a+b;
   const n=pick(NAMES);
-  const text=type==='word'?(op==='-'?pick(SUBW):pick(ADDW))(a,b,n):`${a} ${op==='-'?'−':'+'} ${b} = ?`;
-  const q={type,op,a,b,ans,text,fmt};
+  let text;
+  if(type==='word')text=(op==='-'?pick(SUBW):pick(ADDW))(a,b,n);
+  else if(type==='miss')text=form==='addend'?`${b} + ? = ${a}`:form==='minuend'?`${a} − ? = ${b}`:`? − ${b} = ${a}`;
+  else text=`${a} ${op==='-'?'−':'+'} ${b} = ?`;
+  const q={type,kind:type==='word'?t:type,op,a,b,ans,text,fmt,form};
   const err=(op==='-'?[smallerBigger(q),forgotReduce(q)]:[noCarry(q)]);
   const pool=[...err,ans+10,ans-10,ans+1,ans-1,ans+100,ans-100].filter(v=>v>=0&&v<=1000&&v!==ans);
   const ds=[...new Set(pool)].slice(0,3);
@@ -161,14 +172,20 @@ function makeQ(type,fmt){
 function classify(q,g){
   const v=Number(g);
   if(!Number.isFinite(v))return'other';
-  if(q.op==='-'){if(v===smallerBigger(q))return'smaller';if(v===forgotReduce(q))return'reduce'}
+  if(q.op==='-'){const sb=smallerBigger(q),fr=forgotReduce(q);if(v===sb&&v===fr)return'regroup';if(v===sb)return'smaller';if(v===fr)return'reduce'}
   else if(v===noCarry(q))return'carry';
   if([1,10,100].includes(Math.abs(v-q.ans)))return'slip';
   return'other';
 }
-const ERR_LABEL={smaller:'Subtracted the smaller digit from the bigger one',reduce:'Regrouped, but forgot to take 1 away from the next place',carry:'Forgot to carry when adding',slip:'Off by one fact (1, 10 or 100 away)',blank:'Left blank',other:'Other mistakes'};
+const ERR_LABEL={regroup:'Regrouping step went wrong (smaller-from-bigger or forgot to take 1 away)',smaller:'Subtracted the smaller digit from the bigger one',reduce:'Regrouped, but forgot to take 1 away from the next place',carry:'Forgot to carry when adding',slip:'Off by one fact (1, 10 or 100 away)',blank:'Left blank',other:'Other mistakes'};
 const PLACE=['ones','tens','hundreds'],ONE=['one','ten','hundred'];
 function steps(q){
+  const s=coreSteps(q);
+  if(!q.form)return s;
+  const intro=q.form==='start'?`Think: ? − ${q.b} = ${q.a}, so add: ${q.a} + ${q.b}.`:q.form==='addend'?`Think: ${q.b} + ? = ${q.a}, so subtract: ${q.a} − ${q.b}.`:`Think: ${q.a} − ? = ${q.b}, so subtract: ${q.a} − ${q.b}.`;
+  return[intro,...s];
+}
+function coreSteps(q){
   const t=dg(q.a),y=dg(q.b),out=[],nd=String(q.a).length;
   if(q.op==='-'){
     for(let i=0;i<nd;i++){
@@ -275,7 +292,10 @@ function stats(){
 function typeAcc(items,limit){
   const m={};TYPE_KEYS.forEach(k=>m[k]={n:0,c:0});
   const per={};
-  items.forEach(i=>{per[i.t]=(per[i.t]||0)+1;if(per[i.t]>limit||!m[i.t])return;m[i.t].n++;if(i.ok)m[i.t].c++});
+  items.forEach(i=>{
+    const ks=new Set([i.t]);if(i.k&&i.k!=='word')ks.add(i.k);
+    ks.forEach(k=>{per[k]=(per[k]||0)+1;if(per[k]>limit||!m[k])return;m[k].n++;if(i.ok)m[k].c++});
+  });
   return m;
 }
 const pct=s=>s.total?Math.round(100*s.correct/s.total):0;
@@ -301,12 +321,13 @@ function badges(st){
 function planTypes(mode,n){
   if(mode==='smart'){
     const acc=typeAcc(stats().items,20);
-    const w=TYPE_KEYS.map(k=>{const a=acc[k];return a.n<3?2:0.5+3*(1-a.c/a.n)});
+    const PRIOR={sub2:3,sub3o:3,sub3t:3,sub3b:3,subz:3,sub32:3,add3:1,word:1.5,miss:1.5};
+    const w=TYPE_KEYS.map(k=>{const a=acc[k];return a.n<3?(PRIOR[k]||2):0.5+3*(1-a.c/a.n)});
     const out=[];
     for(let i=0;i<n;i++){let r=Math.random()*w.reduce((x,y)=>x+y,0),k=0;while(r>w[k]&&k<w.length-1){r-=w[k];k++}out.push(TYPE_KEYS[k])}
     return out;
   }
-  const base=['sub2','sub3o','sub3t','sub3b','subz','subz','add3','word','sub3b','word','sub3t','word'];
+  const base=['sub2','sub3o','sub3t','sub3b','subz','sub32','add3','word','miss','sub3b','word','sub3t'];
   let out=shuffle(base);
   while(out.length<n)out=out.concat(shuffle(base));
   return mode==='exam'?out.slice(0,n):shuffle(base).slice(0,n);
@@ -376,7 +397,7 @@ function runView(){
   const val=exam?r.answers[r.i]:'';
   let body=`<div class="row between"><span class="pill">Question ${r.i+1} of ${N}</span><span class="pill">${esc(modeName(r.mode))}</span></div>
   <div class="paper">Paper first: write your work on your paper. Then ${q.fmt==='mc'?'tap':'type'} your answer.</div>
-  <p class="qtext ${q.type==='word'?'word':''}">${esc(q.text)}</p>`;
+  ${qHtml(q,exam)}`;
   body+=answerArea(q,st,exam,val);
   if(!exam){
     if(st.msg==='right')body+=`<div class="fb good">${st.ok?'Correct! Nice work.':'Correct, and you learned something on the way.'}</div>`;
@@ -393,6 +414,11 @@ function runView(){
   }
   return`<div class="top"><h2>${exam?'Practice Exam':esc(modeName(r.mode))}</h2><button class="chip" data-act="home">Exit</button></div><section class="card">${body}</section>`;
 }
+const qLabel=q=>q.type==='word'?`${q.a} ${q.op==='-'?'−':'+'} ${q.b} = ${q.ans}`:q.text.replace('?',q.ans);
+function qHtml(q,exam){
+  if(!exam&&q.type!=='word'&&q.type!=='miss')return`<div class="stack" role="img" aria-label="${esc(q.text)}"><div>${q.a}</div><div><span>${q.op==='-'?'−':'+'}</span><span>${q.b}</span></div></div><p class="mute num">${esc(q.text)}</p>`;
+  return`<p class="qtext ${q.type==='word'?'word':''}">${esc(q.text)}</p>`;
+}
 function resultsView(){
   const s=run.result,p=pct(s),exam=s.mode==='exam';
   const msg=p>=90?'Amazing work! You really know this.':p>=75?'Strong work. A little more practice and it will be even better.':'Good effort. Every try builds the skill. Keep going.';
@@ -401,7 +427,7 @@ function resultsView(){
   <section class="card"><div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
   <div><div class="bigscore"><span class="star">★</span> +${s.stars}</div><span class="mute">stars earned</span></div></div>
   <p>${msg}</p>
-  ${missed.length?`<h3>Let's look at ${missed.length===1?'this one':'these'}</h3>${missed.map(({q,it})=>`<details><summary>${esc(q.type==='word'?`${q.a} ${q.op==='-'?'−':'+'} ${q.b}`:q.text.replace(' = ?',''))} = ${q.ans}${it.given!==''&&it.given!==undefined?` <span class="mute">(you wrote ${esc(it.given)})</span>`:''}</summary><ol class="steps">${steps(q).map(x=>`<li>${esc(x)}</li>`).join('')}</ol></details>`).join('')}`:'<div class="fb good">No misses. Perfect!</div>'}
+  ${missed.length?`<h3>Let's look at ${missed.length===1?'this one':'these'}</h3>${missed.map(({q,it})=>`<details><summary>${esc(qLabel(q))}${it.given!==''&&it.given!==undefined?` <span class="mute">(you wrote ${esc(it.given)})</span>`:''}</summary><ol class="steps">${steps(q).map(x=>`<li>${esc(x)}</li>`).join('')}</ol></details>`).join('')}`:'<div class="fb good">No misses. Perfect!</div>'}
   <div class="row"><button class="btn" data-act="start" data-v="${exam?'smart':s.mode}">${exam?'Practice what I missed':'Go again'}</button><button class="btn ghost" data-act="home">Back to home</button></div></section>`;
 }
 
@@ -473,16 +499,15 @@ function finish(){
     const st=run.st[i];
     if(exam){
       const g=run.answers[i],ok=g!==''&&Number(g)===q.ans;
-      return{t:q.type==='word'?wordKind(q):q.type,ok,err:ok?null:g===''?'blank':classify(q,g),given:g};
+      return{t:q.type,k:q.kind,ok,err:ok?null:g===''?'blank':classify(q,g),given:g};
     }
-    return{t:q.type==='word'?wordKind(q):q.type,ok:st.ok,err:st.ok?null:(st.err||null),given:st.given};
+    return{t:q.type,k:q.kind,ok:st.ok,err:st.ok?null:(st.err||null),given:st.given};
   });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.round((Date.now()-run.t0)/1000),stars:exam?correct*2+5:correct+3,items:items.map(i=>({t:i.t,ok:i.ok,err:i.err}))};
+  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.round((Date.now()-run.t0)/1000),stars:exam?correct*2+5:correct+3,items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,err:i.err}))};
   saveSession(sess);
   run.result=Object.assign({},sess,{items});S.view='results';render();
 }
-const wordKind=q=>'word';
 function guidedSubmit(val){
   const q=run.qs[run.i],st=run.st[run.i];
   if(st.done)return;
