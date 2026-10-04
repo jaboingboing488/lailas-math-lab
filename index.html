@@ -369,7 +369,7 @@ function badges(st){
   const regOk=st.items.filter(i=>['sub2','sub3o','sub3t','sub3b','sub32'].includes(i.t)&&i.ok).length;
   const big=exams.filter(s=>pct(s)>=85).length;
   const jump=exams.some((s,i)=>i>0&&pct(s)-pct(exams[i-1])>=10);
-  const perfect=S.sessions.some(s=>s.mode!=='exam'&&s.total===10&&s.correct===10);
+  const perfect=S.sessions.some(s=>s.mode!=='exam'&&s.total===10&&s.correct===10&&(s.items||[]).every(i=>i.ok&&!i.h));
   return[
     {l:'M',n:'First Kick',d:'Finish your first session',on:st.sessions>=1},
     {l:'A',n:'Hat Trick',d:'Practice 3 days in a row',on:st.streak>=3},
@@ -378,7 +378,7 @@ function badges(st){
     {l:'S',n:'Zero Hero',d:'Get 8 across-zeros problems right',on:zeroOk>=8},
     {l:'T',n:'Match Ready',d:'Score 85% or more on 3 exams',on:big>=3},
     {l:'A',n:'Comeback',d:'Raise an exam score by 10 points',on:jump},
-    {l:'R',n:'Lucky 13',d:'A perfect practice session (13 stars!)',on:perfect}
+    {l:'R',n:'Lucky 13',d:'A perfect practice session with no hints (13 stars!)',on:perfect}
   ];
 }
 /* ---------- run setup ---------- */
@@ -586,7 +586,7 @@ function runView(){
   ${qHtml(q,exam)}`;
   body+=answerArea(q,st,exam,val);
   if(!exam){
-    if(st.msg==='right')body+=`<div class="fb good">${esc(st.cheer||'Goal!')} ${st.ok?'Correct!':'Correct, and you learned something on the way.'}</div>`;
+    if(st.msg==='right')body+=`<div class="fb good">${esc(st.cheer||'Goal!')} ${st.helped?'Correct, and you learned something on the way.':'Correct!'}</div>`;
     if(st.msg==='retry')body+=`<div class="fb try">Not yet. Read the steps and try again.</div>`;
     if(st.msg==='reveal')body+=`<div class="fb try">The answer is ${q.ans}. Read the steps so it clicks next time.</div>`;
     if(st.hint||st.msg==='reveal'){const s=steps(q);body+=`<ol class="steps">${(st.msg==='reveal'||st.done?s:s.slice(0,-1)).map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`}
@@ -616,6 +616,7 @@ function resultsView(){
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
   <div><div class="bigscore"><span style="color:var(--gold)">★</span> +${s.stars}</div><span class="mute">stars earned</span></div></div>
   ${podiumSvg(p)}
+  ${s.items.filter(i=>i.ok&&i.h).length?`<p class="mute">${s.items.filter(i=>i.ok&&i.h).length} of your right answers used a hint or a second try.</p>`:''}
   <p>${msg}</p>
   ${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
   <section class="spark"><b>Science spark</b><p>${esc(fact)}</p></section>
@@ -650,13 +651,14 @@ function progressTab(){
   const st=stats();
   if(!S.sessions.length)return`<section class="card"><h3>No sessions yet</h3><p class="mute">Once Laila finishes a session, her scores, mistake patterns and practice days show up here for both homes.</p></section>`;
   const acc=typeAcc(st.items,40);
-  const errs={};st.items.filter(i=>!i.ok&&i.err).forEach(i=>errs[i.err]=(errs[i.err]||0)+1);
+  const errs={};st.items.filter(i=>i.err).forEach(i=>errs[i.err]=(errs[i.err]||0)+1);
   const errRows=Object.entries(errs).sort((a,b)=>b[1]-a[1]);
   const maxE=errRows.length?errRows[0][1]:1;
   const weak=TYPE_KEYS.filter(k=>acc[k].n>=3).sort((a,b)=>acc[a].c/acc[a].n-acc[b].c/acc[b].n)[0];
   const insight=weak&&acc[weak].c/acc[weak].n<0.85?`Needs the most work: ${TYPES[weak].label.toLowerCase()} (${Math.round(100*acc[weak].c/acc[weak].n)}% right).`:'No clear weak spot yet. Keep practicing.';
   return`<section class="card"><h3>Score history</h3>${chart()}</section>
   <section class="card"><h3>Accuracy by skill</h3><p><b>${esc(insight)}</b></p>
+  <div class="bar"><span>Right with no hint</span><span class="track2"><span class="fill" style="width:${Math.round(100*st.items.filter(i=>i.ok&&!i.h).length/Math.max(1,st.items.length))}%"></span></span><span class="num">${Math.round(100*st.items.filter(i=>i.ok&&!i.h).length/Math.max(1,st.items.length))}%</span></div>
   ${TYPE_KEYS.map(k=>{const a=acc[k],p=a.n?Math.round(100*a.c/a.n):null;return`<div class="bar"><span>${TYPES[k].label}</span><span class="track2"><span class="fill ${p!==null&&p<70?'low':''}" style="width:${p||0}%"></span></span><span class="num">${p===null?'–':p+'%'}</span></div>`}).join('')}</section>
   <section class="card"><h3>Mistake patterns</h3>${errRows.length?errRows.map(([k,n])=>`<div class="bar"><span>${ERR_LABEL[k]||k}</span><span class="track2"><span class="fill low" style="width:${Math.round(100*n/maxE)}%"></span></span><span class="num">${n}</span></div>`).join(''):'<p class="mute">No mistakes recorded yet.</p>'}
   <p class="mute">Share this pattern with her teacher so school and home practice target the same step.</p></section>`;
@@ -698,10 +700,10 @@ function finish(){
       const g=run.answers[i],ok=g!==''&&Number(g)===q.ans;
       return{t:q.type,k:q.kind,ok,err:ok?null:g===''?'blank':classify(q,g),given:g};
     }
-    return{t:q.type,k:q.kind,ok:st.ok,err:st.ok?null:(st.err||null),given:st.given};
+    return{t:q.type,k:q.kind,ok:st.ok,h:st.helped?1:0,err:st.err||null,given:st.given};
   });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.round((Date.now()-run.t0)/1000),stars:exam?correct*2+5:correct+3,items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,err:i.err}))};
+  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.round((Date.now()-run.t0)/1000),stars:exam?correct*2+5:correct+3,items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,h:i.h||0,err:i.err}))};
   saveSession(sess);
   const now=before+sess.stars;
   const unlocked=ITEMS.filter(it=>it.at>before&&it.at<=now).map(it=>it.name);
@@ -713,7 +715,7 @@ function guidedSubmit(val){
   if(st.done)return;
   val=String(val).trim();if(val==='')return;
   st.tries++;st.given=val;
-  if(Number(val)===q.ans){st.done=true;st.ok=st.tries===1&&!st.hint;st.msg='right';st.cheer=pick(CHEERS)}
+  if(Number(val)===q.ans){st.done=true;st.ok=true;st.helped=st.tries>1||st.hint;st.msg='right';st.cheer=pick(CHEERS)}
   else{
     if(!st.err)st.err=classify(q,val);
     st.wrong.push(val);st.hint=true;
