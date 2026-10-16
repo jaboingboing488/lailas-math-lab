@@ -8,7 +8,7 @@ service cloud.firestore {
         && d.id is string && d.id == id && d.id.size() <= 24
         && d.ts is number && d.ts > 1700000000000
         && d.ts < request.time.toMillis() + 86400000
-        && d.mode in ['smart','guided','exam']
+        && d.mode in ['smart','guided','exam','spell']
         && d.home is string && d.home.size() <= 20
         && d.total is int && d.total >= 1 && d.total <= 20
         && d.correct is int && d.correct >= 0 && d.correct <= d.total

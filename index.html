@@ -170,6 +170,64 @@ th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);white
 th{color:var(--mute);font-size:.76rem;text-transform:uppercase;letter-spacing:.06em}
 .chart text{fill:var(--mute);font-family:var(--f-ui);font-size:11px;font-weight:700}
 select,input.txt{font:inherit;padding:8px 14px;border:0;border-radius:14px;background:var(--card2);color:var(--ink);box-shadow:inset 0 0 0 2px var(--line);min-height:44px}
+/* chips, skills, spelling */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border-radius:999px;padding:8px 14px;font-weight:800;font-size:.9rem;min-height:40px;background:var(--card2);color:var(--mute);box-shadow:inset 0 0 0 2px var(--line)}
+.chip.on{background:var(--accent);color:var(--accent-ink);box-shadow:none}
+.skills{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.skill{background:var(--card);border-radius:20px;padding:14px 16px;text-align:left;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow);min-height:84px;min-width:0}
+.skill b{font-size:1rem;line-height:1.25}
+.skill .track2{background:var(--accent-soft);border-radius:8px;height:8px;overflow:hidden}
+.skill .fill{display:block;height:100%;background:var(--accent);border-radius:8px}
+.skill .fill.low{background:var(--warn)}
+.skill small{color:var(--mute);font-weight:700}
+.arr{display:grid;gap:4px;align-self:flex-start;padding:4px 0}
+.arr i{width:14px;height:14px;border-radius:50%;background:var(--accent)}
+.wchips{display:flex;flex-wrap:wrap;gap:8px}
+.wchip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:7px 14px;font-weight:700;background:var(--card2);box-shadow:inset 0 0 0 2px var(--line);min-height:40px}
+.wchip i{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.wchip i.m{background:var(--good)} .wchip i.l{background:var(--gold)} .wchip i.t{background:var(--warn)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--mute);font-weight:700}
+.legend span{display:inline-flex;align-items:center;gap:5px}.legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.bigword{font-size:clamp(2.4rem,11vw,3.6rem);font-weight:800;letter-spacing:.04em;text-align:center;padding:14px 8px;background:var(--accent-soft);border-radius:22px;overflow-wrap:anywhere}
+.bigword b{color:var(--accent)}
+.dashes{font-family:var(--f-num);font-size:2rem;letter-spacing:.3em;text-align:center;color:var(--mute);padding:10px 0;overflow-wrap:anywhere}
+input.ans.w{font-family:var(--f-ui);max-width:460px;font-size:1.6rem;letter-spacing:.03em}
+.lts{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.lt{width:clamp(30px,8.6vw,46px);height:clamp(40px,11vw,56px);border-radius:12px;display:grid;place-items:center;font-family:var(--f-num);font-weight:800;font-size:clamp(1.3rem,5.5vw,1.9rem);background:var(--card2);box-shadow:inset 0 0 0 2px var(--line)}
+.lt.blank{background:transparent;box-shadow:inset 0 -4px 0 var(--mute)}
+.lt.cur{box-shadow:inset 0 -4px 0 var(--accent);background:var(--accent-soft)}
+.lt.good{background:var(--good-bg);color:var(--good);box-shadow:inset 0 0 0 2px var(--good)}
+.lt.bad{background:var(--warn-bg);color:var(--warn);box-shadow:inset 0 0 0 2px var(--warn)}
+button.lt{cursor:pointer;padding:0}
+.tiles{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.tile{min-width:56px;height:60px;border-radius:16px;font-family:var(--f-num);font-weight:800;font-size:1.7rem;background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 0 0 2px var(--line)}
+.tile:hover:not(:disabled){box-shadow:inset 0 0 0 3px var(--accent)}
+.tile:disabled{opacity:.25;cursor:default}
+.tile.bad{background:var(--warn-bg);color:var(--warn);opacity:.55}
+.tile.hintt{box-shadow:inset 0 0 0 4px var(--gold)}
+.diff{font-family:var(--f-num);font-weight:700;font-size:1.3rem;display:flex;flex-direction:column;gap:4px;overflow-wrap:anywhere}
+.diff .x{color:var(--warn);text-decoration:underline wavy}
+.diff .m{color:var(--good);background:var(--good-bg);border-radius:4px;padding:0 2px}
+.diff small{font-family:var(--f-ui);color:var(--mute);font-size:.8rem;text-transform:uppercase;letter-spacing:.06em}
+.choices.w .choice{font-family:var(--f-ui);font-size:1.3rem}
+.chk{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-weight:700}
+.chk .y{color:var(--good)}.chk .n{color:var(--warn)}
+textarea.txt{font:inherit;padding:12px 14px;border:0;border-radius:14px;background:var(--card2);color:var(--ink);box-shadow:inset 0 0 0 2px var(--line);width:100%;min-height:76px;resize:vertical}
+.hunt{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:2px;touch-action:none;user-select:none;-webkit-user-select:none}
+.hc{aspect-ratio:1;display:grid;place-items:center;border-radius:7px;background:var(--card2);font-family:var(--f-num);font-weight:800;font-size:clamp(.78rem,3.3vw,1.2rem);cursor:pointer}
+.hc.sel{background:var(--accent);color:var(--accent-ink)}
+.hc.f0{background:rgba(255,45,120,.4)}.hc.f1{background:rgba(142,92,255,.42)}.hc.f2{background:rgba(255,154,60,.5)}.hc.f3{background:rgba(58,182,255,.45)}.hc.f4{background:rgba(39,194,138,.45)}.hc.f5{background:rgba(255,210,77,.55)}
+.hc.hintc{box-shadow:inset 0 0 0 3px var(--gold)}
+.hw{border-radius:12px;padding:6px 12px;font-weight:700;background:var(--card2);box-shadow:inset 0 0 0 2px var(--line);font-size:.95rem}
+.hw.on{text-decoration:line-through;background:var(--good-bg);color:var(--good);box-shadow:none}
+.hwl{display:flex;flex-wrap:wrap;gap:8px}
+.hwl.clues{flex-direction:column}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media(prefers-reduced-motion:reduce){.shake{animation:none}}
+.tabbar .tab{font-size:.66rem}
+@media(max-width:480px){.tab svg{width:24px;height:24px}.huntcard{padding-inline:10px}.hunt{gap:1px}}
 @media(max-width:480px){.card{padding:16px}.bar{grid-template-columns:1fr 1fr 44px}.hero{grid-template-columns:96px 1fr}.hero .av{width:96px;height:104px}}
 </style>
 </head><body>
@@ -200,9 +258,34 @@ const TYPES={
   sub32:{label:'3-digit minus 2-digit',op:'-',gen(){for(;;){const a=ri(101,999),b=ri(11,99),x=dg(a),y=dg(b);if(a>b&&(x[0]<y[0]||x[1]<y[1]))return[a,b]}}},
   add3:{label:'Add with regrouping',op:'+',gen(){for(;;){const a=ri(120,899),b=ri(100,999-a),x=dg(a),y=dg(b);if(x[0]+y[0]>=10||x[1]+y[1]>=10)return[a,b]}}},
   word:{label:'Word problems',op:'?',gen(){return[0,0]}},
-  miss:{label:'Find the missing number',op:'?',gen(){return[0,0]}}
+  miss:{label:'Find the missing number',op:'?',gen(){return[0,0]}},
+  mulA:{label:'Times 2, 5 and 10',op:'×',gen(){const a=pick([2,5,10]),b=ri(1,10);return pick([[a,b],[b,a]])}},
+  mulB:{label:'Times 3 and 4',op:'×',gen(){const a=pick([3,4]),b=ri(2,10);return pick([[a,b],[b,a]])}},
+  mulC:{label:'Times 6, 7, 8 and 9',op:'×',gen(){const a=pick([6,7,8,9]),b=ri(2,10);return pick([[a,b],[b,a]])}},
+  mulD:{label:'Mixed times facts',op:'×',gen(){return Math.random()<.12?[pick([0,1]),ri(0,10)]:[ri(2,10),ri(2,10)]}},
+  mul10:{label:'Times multiples of 10',op:'×',gen(){const a=ri(2,9),b=ri(1,9)*10;return pick([[a,b],[b,a]])}},
+  mulmiss:{label:'Missing factor',op:'?',gen(){return[0,0]}},
+  mulword:{label:'Equal groups word problems',op:'?',gen(){return[0,0]}}
 };
 const TYPE_KEYS=Object.keys(TYPES);
+const GROUPS=[
+  {k:'sub',label:'Subtraction',types:['sub2','sub3o','sub3t','sub3b','subz','sub32']},
+  {k:'add',label:'Addition',types:['add3']},
+  {k:'mul',label:'Multiplication',types:['mulA','mulB','mulC','mulD','mul10','mulmiss','mulword']},
+  {k:'word',label:'Word problems',types:['word']},
+  {k:'miss',label:'Missing number',types:['miss']}
+];
+const SKILL_SECTIONS=[['Subtraction',GROUPS[0].types],['Addition',GROUPS[1].types],['Multiplication',GROUPS[2].types],['Problem solving',['word','miss']]];
+const opSym=op=>op==='-'?'−':op==='×'?'×':'+';
+const wordish=q=>q.type==='word'||q.type==='mulword';
+const missish=q=>q.type==='miss'||q.type==='mulmiss';
+const MULW=[
+  (a,b,n)=>`${n} has ${a} bags with ${b} apples in each bag. How many apples does ${n} have in all?`,
+  (a,b)=>`There are ${a} rows of chairs with ${b} chairs in each row. How many chairs are there?`,
+  (a,b)=>`A soccer team does ${b} passing drills each day for ${a} days. How many drills is that in all?`,
+  (a,b,n)=>`${n} puts ${b} stickers on each of ${a} pages. How many stickers are on the pages?`,
+  (a,b)=>`Each pack has ${b} pencils. How many pencils are in ${a} packs?`
+];
 const NAMES=['Maya','Eli','Nora','Sam','Ava','Leo','Zoe','Ben'];
 const SUBW=[
   (a,b,n)=>`${n} collected ${a} shells at the beach and gave ${b} shells to a friend. How many shells does ${n} have now?`,
@@ -218,7 +301,21 @@ const ADDW=[
 const smallerBigger=q=>{const x=dg(q.a),y=dg(q.b);return[0,1,2].reduce((s,i)=>s+Math.abs(x[i]-y[i])*10**i,0)};
 const forgotReduce=q=>{const x=dg(q.a),y=dg(q.b);return[0,1,2].reduce((s,i)=>s+(x[i]+(x[i]<y[i]?10:0)-y[i])*10**i,0)};
 const noCarry=q=>{const x=dg(q.a),y=dg(q.b);return[0,1,2].reduce((s,i)=>s+((x[i]+y[i])%10)*10**i,0)};
+function makeMul(type,fmt){
+  const n=pick(NAMES);
+  let a,b,ans,text,form=null,prod=0;
+  if(type==='mulmiss'){a=ri(2,9);b=ri(2,10);prod=a*b;ans=b;form='mf';text=pick([`${a} × ? = ${prod}`,`? × ${a} = ${prod}`])}
+  else if(type==='mulword'){a=ri(2,9);b=ri(2,10);ans=a*b;text=pick(MULW)(a,b,n)}
+  else{[a,b]=TYPES[type].gen();ans=a*b;text=`${a} × ${b} = ?`}
+  const q={type,kind:type,op:'×',a,b,ans,text,fmt,form,prod};
+  const pool=type==='mulmiss'?[prod-a,ans+1,ans-1,ans+2,ans-2,prod+a,a]
+    :[...(type==='mul10'?[ans/10]:[]),a+b,ans+a,ans-a,ans+b,ans-b,ans+10,ans-10,ans+1,ans-1,ans+2,ans+3].filter(v=>v!==undefined);
+  const ds=[...new Set(pool.filter(v=>v>=0&&v<=1000&&v!==ans))].slice(0,3);
+  q.choices=shuffle([ans,...ds]);
+  return q;
+}
 function makeQ(type,fmt){
+  if(type==='mulmiss'||type==='mulword'||TYPES[type].op==='×')return makeMul(type,fmt);
   const SUBK=['sub2','sub3o','sub3t','sub3b','subz','sub32'];
   let t=type,form=null,a,b;
   if(type==='word')t=pick([...SUBK,'add3','add3']);
@@ -241,20 +338,60 @@ function makeQ(type,fmt){
 function classify(q,g){
   const v=Number(g);
   if(!Number.isFinite(v))return'other';
+  if(q.op==='×'){
+    if(q.type==='mulmiss'){if([q.prod-q.a,q.prod+q.a,q.prod].includes(v))return'wrongop'}
+    else{
+      if(v===q.a+q.b)return'wrongop';
+      if(q.type==='mul10'&&(v===q.ans/10||v===q.ans*10))return'zeros';
+      if([q.ans+q.a,q.ans-q.a,q.ans+q.b,q.ans-q.b].includes(v))return'neighbor';
+    }
+    return[1,10,100].includes(Math.abs(v-q.ans))?'slip':'other';
+  }
   if(q.op==='-'){const sb=smallerBigger(q),fr=forgotReduce(q);if(v===sb&&v===fr)return'regroup';if(v===sb)return'smaller';if(v===fr)return'reduce'}
   else if(v===noCarry(q))return'carry';
   if([1,10,100].includes(Math.abs(v-q.ans)))return'slip';
   return'other';
 }
-const ERR_LABEL={regroup:'Regrouping step went wrong (smaller-from-bigger or forgot to take 1 away)',smaller:'Subtracted the smaller digit from the bigger one',reduce:'Regrouped, but forgot to take 1 away from the next place',carry:'Forgot to carry when adding',slip:'Off by one fact (1, 10 or 100 away)',blank:'Left blank',other:'Other mistakes'};
+const ERR_LABEL={regroup:'Regrouping step went wrong (smaller-from-bigger or forgot to take 1 away)',smaller:'Subtracted the smaller digit from the bigger one',reduce:'Regrouped, but forgot to take 1 away from the next place',carry:'Forgot to carry when adding',slip:'Off by one fact (1, 10 or 100 away)',wrongop:'Used the wrong operation (added or subtracted instead)',neighbor:'Skip counting was one group too many or too few',zeros:'Lost or added a zero',blank:'Left blank',other:'Other mistakes'};
 const PLACE=['ones','tens','hundreds'],ONE=['one','ten','hundred'];
 function steps(q){
   const s=coreSteps(q);
-  if(!q.form)return s;
+  if(!q.form||q.op==='×')return s;
   const intro=q.form==='start'?`Think: ? − ${q.b} = ${q.a}, so add: ${q.a} + ${q.b}.`:q.form==='addend'?`Think: ${q.b} + ? = ${q.a}, so subtract: ${q.a} − ${q.b}.`:`Think: ${q.a} − ? = ${q.b}, so subtract: ${q.a} − ${q.b}.`;
   return[intro,...s];
 }
+/* hint=true leaves out the final number so a hint helps without giving the answer away */
+function mulSteps(q,hint){
+  const{a,b}=q;
+  if(q.type==='mulmiss'){
+    const cs=[];for(let k=1;k<=q.ans;k++)cs.push(q.a*k);
+    const head=`Think: ${q.a} × ? = ${q.prod}. How many ${q.a}s make ${q.prod}?`;
+    return hint?[head,`Count by ${q.a}s until you reach ${q.prod}: ${cs.slice(0,2).join(', ')}, ...`]
+      :[head,`Count by ${q.a}s until you reach ${q.prod}: ${cs.join(', ')}.`,`You counted ${q.ans} numbers, so ? = ${q.ans}.`,`Check: ${q.a} × ${q.ans} = ${q.prod}.`];
+  }
+  const out=[];
+  if(q.type==='mul10'){
+    const t=a%10===0&&a>=10?a:b,s=t===a?b:a,k=t/10;
+    out.push(`Think of ${t} as ${k} ${k===1?'ten':'tens'}.`,`${s} × ${k} = ${s*k}, so you have ${s*k} tens.`);
+    if(!hint)out.push(`${s*k} tens is ${q.ans}. Put a zero on the end of ${s*k}.`);
+  }else{
+    out.push(`Picture ${a} groups with ${b} in each group.`);
+    if(a===0||b===0)out.push('Any number times 0 is 0.');
+    else if(a===1||b===1)out.push('Any number times 1 stays the same.');
+    else if(a===9||b===9){const o=a===9?b:a;out.push(`9s trick: ${o} × 10 = ${o*10}, then take away ${o}.`+(hint?'':` ${o*10} − ${o} = ${q.ans}.`))}
+    else if(a===2||b===2){const o=a===2?b:a;out.push(`Doubles: ${o} + ${o}`+(hint?'.':` = ${q.ans}.`))}
+    else{
+      const big=Math.max(a,b),sm=Math.min(a,b),cs=[];for(let k=1;k<=sm;k++)cs.push(big*k);
+      out.push(`Skip count by ${big}s, ${sm} times: `+(hint?cs.slice(0,-1).join(', ')+', ...':cs.join(', ')+'.'));
+    }
+  }
+  if(!hint)out.push(`So ${a} × ${b} = ${q.ans}.`);
+  return out;
+}
+const hintSteps=q=>q.op==='×'?mulSteps(q,true):steps(q).slice(0,-1);
+const arrayHtml=q=>q.op==='×'&&q.type!=='mulmiss'&&q.type!=='mul10'&&q.a>0&&q.b>0&&q.a<=10&&q.b<=10?`<div class="arr" style="grid-template-columns:repeat(${q.b},14px)" role="img" aria-label="${q.a} rows of ${q.b}">${'<i></i>'.repeat(q.a*q.b)}</div><p class="mute">${q.a} rows of ${q.b}</p>`:'';
 function coreSteps(q){
+  if(q.op==='×')return mulSteps(q);
   const t=dg(q.a),y=dg(q.b),out=[],nd=String(q.a).length;
   if(q.op==='-'){
     for(let i=0;i<nd;i++){
@@ -295,10 +432,12 @@ const S={
   sessions:[],
   settings:Object.assign({pin:'1234',examLen:12,examTimer:true},store.get('lmath.settings',{})),
   home:store.get('lmath.home',null),
-  view:'home',tab:'progress',unlocked:false,pinErr:false,
+  view:'home',tab:'progress',unlocked:false,pinErr:false,psub:'math',from:'home',
+  topics:store.get('lmath.topics',['sub','add','word','miss']),
+  splist:store.get('lmath.splist','u3w1'),huntClues:false,
   sync:'local'
 };
-let run=null,db=null;
+let run=null,sp=null,db=null;
 const pending=new Set(store.get('lmath.pending',[]));
 S.sessions=store.get('lmath.sessions',[]);
 let dbSessions=null;
@@ -332,7 +471,7 @@ async function initDb(){
       dbSessions.forEach(s=>pending.delete(s.id));
       refreshSessions();saveLocalCopy();
       store.get('lmath.sessions',[]).filter(s=>pending.has(s.id)&&!dbSessions.some(d=>d.id===s.id)).forEach(pushSession);
-      if(S.view!=='run')render();
+      if(S.view!=='run'&&S.view!=='sprun')render();
     },()=>{S.sync='local';render()});
   }catch(e){S.sync='local';render()}
 }
@@ -349,13 +488,15 @@ function saveSession(s){
 }
 
 /* ---------- derived stats ---------- */
+const mathSess=()=>S.sessions.filter(s=>s.mode!=='spell');
+const spellSess=()=>S.sessions.filter(s=>s.mode==='spell');
 function stats(){
   const ss=S.sessions,stars=ss.reduce((n,s)=>n+(s.stars||0),0);
   const days=new Set(ss.map(s=>dayKey(s.ts)));
   let streak=0;const d=new Date();
   if(!days.has(dayKey(d)))d.setDate(d.getDate()-1);
   while(days.has(dayKey(d))){streak++;d.setDate(d.getDate()-1)}
-  const items=ss.flatMap(s=>(s.items||[]).map(i=>Object.assign({ts:s.ts,mode:s.mode},i)));
+  const items=mathSess().flatMap(s=>(s.items||[]).map(i=>Object.assign({ts:s.ts,mode:s.mode},i)));
   return{stars,streak,items,sessions:ss.length};
 }
 function typeAcc(items,limit){
@@ -374,7 +515,8 @@ function badges(st){
   const regOk=st.items.filter(i=>['sub2','sub3o','sub3t','sub3b','sub32'].includes(i.t)&&i.ok).length;
   const big=exams.filter(s=>pct(s)>=85).length;
   const jump=exams.some((s,i)=>i>0&&pct(s)-pct(exams[i-1])>=10);
-  const perfect=S.sessions.some(s=>s.mode!=='exam'&&s.total===10&&s.correct===10&&(s.items||[]).every(i=>i.ok&&!i.h));
+  const mulOk=st.items.filter(i=>/^mul/.test(i.t)&&i.ok).length;
+  const perfect=S.sessions.some(s=>s.mode!=='exam'&&s.mode!=='spell'&&s.total===10&&s.correct===10&&(s.items||[]).every(i=>i.ok&&!i.h));
   return[
     {l:'M',n:'First Kick',d:'Finish your first session',on:st.sessions>=1},
     {l:'A',n:'Hat Trick',d:'Practice 3 days in a row',on:st.streak>=3},
@@ -383,30 +525,38 @@ function badges(st){
     {l:'S',n:'Zero Hero',d:'Get 8 across-zeros problems right',on:zeroOk>=8},
     {l:'T',n:'Match Ready',d:'Score 85% or more on 3 exams',on:big>=3},
     {l:'A',n:'Comeback',d:'Raise an exam score by 10 points',on:jump},
-    {l:'R',n:'Lucky 13',d:'A perfect practice session with no hints (13 stars!)',on:perfect}
+    {l:'R',n:'Lucky 13',d:'A perfect practice session with no hints (13 stars!)',on:perfect},
+    {l:'X',n:'Times Titan',d:'Get 20 multiplication problems right',on:mulOk>=20}
   ];
 }
 /* ---------- run setup ---------- */
+const PRIOR={sub2:3,sub3o:3,sub3t:3,sub3b:3,subz:3,sub32:3,add3:1,word:1.5,miss:1.5,mulA:2,mulB:2,mulC:2,mulD:2,mul10:2,mulmiss:1.5,mulword:1.5};
+const WEIGHT={sub3b:2,sub3t:2,word:2};
+function activeTypes(){
+  const on=GROUPS.filter(g=>S.topics.includes(g.k)).flatMap(g=>g.types);
+  return on.length?on:['sub2'];
+}
 function planTypes(mode,n){
+  const act=activeTypes();
   if(mode==='smart'){
     const acc=typeAcc(stats().items,20);
-    const PRIOR={sub2:3,sub3o:3,sub3t:3,sub3b:3,subz:3,sub32:3,add3:1,word:1.5,miss:1.5};
-    const w=TYPE_KEYS.map(k=>{const a=acc[k];return a.n<3?(PRIOR[k]||2):0.5+3*(1-a.c/a.n)});
+    const w=act.map(k=>{const a=acc[k];return a.n<3?(PRIOR[k]||2):0.5+3*(1-a.c/a.n)});
     const out=[];
-    for(let i=0;i<n;i++){let r=Math.random()*w.reduce((x,y)=>x+y,0),k=0;while(r>w[k]&&k<w.length-1){r-=w[k];k++}out.push(TYPE_KEYS[k])}
+    for(let i=0;i<n;i++){let r=Math.random()*w.reduce((x,y)=>x+y,0),k=0;while(r>w[k]&&k<w.length-1){r-=w[k];k++}out.push(act[k])}
     return out;
   }
-  const base=['sub2','sub3o','sub3t','sub3b','subz','sub32','add3','word','miss','sub3b','word','sub3t'];
+  const base=act.flatMap(k=>Array(WEIGHT[k]||1).fill(k));
   let out=shuffle(base);
   while(out.length<n)out=out.concat(shuffle(base));
-  return mode==='exam'?out.slice(0,n):shuffle(base).slice(0,n);
+  return out.slice(0,n);
 }
-function start(mode){
-  const n=mode==='exam'?Number(S.settings.examLen)||12:10;
-  const types=planTypes(mode,n);
+function start(mode,skill){
+  const n=skill?10:mode==='exam'?Number(S.settings.examLen)||12:10;
+  const types=skill?Array(n).fill(skill):planTypes(mode,n);
   const fmts=shuffle(types.map((_,i)=>i%2?'mc':'type'));
   const qs=types.map((t,i)=>makeQ(t,fmts[i]));
-  run={mode,qs,i:0,t0:Date.now(),answers:qs.map(()=>''),review:false,used:qs.map(()=>0),tickAt:Date.now(),started:mode!=='exam'||!timerOn(),
+  S.from='math';
+  run={mode,skill:skill||null,qs,i:0,t0:Date.now(),answers:qs.map(()=>''),review:false,used:qs.map(()=>0),tickAt:Date.now(),started:mode!=='exam'||!timerOn(),
     st:qs.map(()=>({tries:0,hint:false,done:false,ok:false,wrong:[],err:null,msg:null,given:''}))};
   S.view='run';render();
 }
@@ -496,6 +646,16 @@ const ICON={
   ball:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><polygon points="12,7 16,10 14.5,14.5 9.5,14.5 8,10" fill="currentColor"/><path d="M12 7V2.5M16 10l4.5-1.5M14.5 14.5l3 4M9.5 14.5l-3 4M8 10 3.5 8.5" stroke="currentColor" stroke-width="1.6"/></svg>',
   trophy:'<svg viewBox="0 0 24 24"><path d="M7 3h10v5a5 5 0 0 1-10 0zM4 4h3v3a3 3 0 0 1-3-3zm16 0h-3v3a3 3 0 0 0 3-3zM11 13h2v4h3v3H8v-3h3z" fill="currentColor"/></svg>',
   chev:'<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  math:'<svg viewBox="0 0 24 24"><path d="M5 7h6M8 4v6M14 8h6M5 17h6M14.5 15l5 5M19.5 15l-5 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
+  spell:'<svg viewBox="0 0 24 24"><text x="12" y="18" text-anchor="middle" font-size="16" font-weight="800" fill="currentColor" font-family="-apple-system,Inter,sans-serif">Ab</text></svg>',
+  speaker:'<svg viewBox="0 0 24 24" width="20" height="20" style="margin-right:8px;vertical-align:-4px"><path d="M4 9v6h4l5 4V5L8 9zM16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  cards:'<svg viewBox="0 0 24 24"><rect x="4" y="5" width="13" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 3h10a2.5 2.5 0 0 1 2.5 2.5V17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M7.5 11h6M7.5 15h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  puzzle:'<svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4z" fill="currentColor"/><path d="M13 13h7v7h-7z" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="2.5 2.5"/></svg>',
+  shuffle:'<svg viewBox="0 0 24 24"><path d="M3 7h4c4 0 6 10 11 10h3M3 17h4c1.6 0 2.8-1 3.8-2.4M14 9.4C15 8 16.2 7 18 7h3M18 4l3 3-3 3M18 14l3 3-3 3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  search:'<svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>',
+  quote:'<svg viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H11l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="currentColor"/></svg>',
+  pencil:'<svg viewBox="0 0 24 24"><path d="M4 20l1-5L16 4l4 4L9 19zM14 6l4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>',
+  check:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M7.5 12.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   next:'<svg class="go" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 };
 
@@ -523,13 +683,338 @@ setInterval(()=>{
   if(l===0){render();setTimeout(()=>{if(run&&run.i===i&&!run.review&&S.view==='run')act('next')},1500)}
 },1000);
 
+/* ---------- spelling: word lists and sentences ---------- */
+const UNIT3=[
+  {id:'u3w1',name:'Week 1',note:'Words with ar and or',words:['alarm','author','carnivore','carton','charted','dormant','forgotten','import','march','ornament','pardon','report']},
+  {id:'u3w2',name:'Week 2',note:'Words with er, ir and ur',words:['caterpillar','circus','dangerous','jersey','nerve','occur','return','serve','stir','summer','thirteen','turtle']},
+  {id:'u3w3',name:'Week 3',note:'Test week of November 4',words:['after','button','challenge','collect','elbow','forgive','hunger','lesson','mention','problematic','projection','suddenly']}
+];
+const SENT={
+  alarm:'The loud alarm woke everyone up at seven o\'clock.',author:'My favorite author wrote a book about a brave dog.',carnivore:'A lion is a carnivore because it eats meat.',
+  carton:'Dad poured milk from the carton into my glass.',charted:'We charted the weather on a graph every day this week.',dormant:'The volcano has been dormant for a hundred years.',
+  forgotten:'I had forgotten my lunch, so Mom brought it to school.',import:'Stores import bananas from far away.',march:'The band will march down Main Street in the parade.',
+  ornament:'We hung a shiny ornament on the tree.',pardon:'Pardon me, may I please get by?',report:'I wrote a report about the planet Mars.',
+  caterpillar:'The caterpillar munched on a green leaf.',circus:'We saw clowns and acrobats at the circus.',dangerous:'It is dangerous to run near the pool.',
+  jersey:'She wore her soccer jersey to the big game.',nerve:'A nerve sends messages from your hand to your brain.',occur:'Rainbows occur when sunlight shines through rain.',
+  return:'Please return your library books on Friday.',serve:'Mia will serve the volleyball over the net.',stir:'Stir the batter slowly so it does not spill.',
+  summer:'We go swimming every day in the summer.',thirteen:'My cousin turns thirteen next month.',turtle:'The turtle hid inside its shell.',
+  after:'We play soccer after school.',button:'I sewed a new button on my coat.',challenge:'Learning to ride a bike was a big challenge.',
+  collect:'I collect shells every time we visit the beach.',elbow:'She bumped her elbow on the desk.',forgive:'Please forgive me for being late.',
+  hunger:'Hunger made my stomach growl.',lesson:'Today\'s math lesson was about subtraction.',mention:'Did she mention what time the game starts?',
+  problematic:'A leaky boat is problematic.',projection:'The projection on the wall showed a map of space.',suddenly:'Suddenly, the lights went out.'
+};
+const SP_GAMES={
+  test:{name:'Practice Test',d:'Hear each word and a sentence, then type it. No hints, like the real test.',ic:'trophy',lead:1},
+  cards:{name:'Look, Cover, Write',d:'Study a word, cover it, then write it from memory.',ic:'cards'},
+  fill:{name:'Complete the Word',d:'Tap the missing letters.',ic:'puzzle'},
+  scramble:{name:'Unscramble',d:'Put the mixed-up letters in order.',ic:'shuffle'},
+  hunt:{name:'Word Hunt',d:'Find the hidden words in the letter grid.',ic:'search'},
+  sent:{name:'Fill the Sentence',d:'Hear a sentence and type the missing word.',ic:'quote'},
+  write:{name:'Write a Sentence',d:'Use the word in a sentence of your own.',ic:'pencil'},
+  spot:{name:'Spot the Right Spelling',d:'Pick the word that is spelled correctly.',ic:'check'}
+};
+const SP_ERR={blank:'Left blank',missing:'Left out a letter',extra:'Added an extra letter',swap:'Swapped two letters',vowel:'Wrong vowel',otherl:'Wrong letter'};
+const customLists=()=>store.get('lmath.lists',[]);
+const spLists=()=>UNIT3.concat(customLists());
+const allWords=()=>[...new Set(spLists().flatMap(l=>l.words))];
+const sentOf=w=>SENT[w]||null;
+const blankSent=w=>{const s=sentOf(w);return s?s.replace(new RegExp('\\b'+w+'\\b','i'),'_____'):null};
+const gameOf=s=>(s.items&&s.items[0]&&s.items[0].g)||'';
+function wordStats(){
+  const m={};
+  spellSess().slice().sort((a,b)=>b.ts-a.ts).forEach(s=>(s.items||[]).forEach(i=>{if(i.w)(m[i.w]=m[i.w]||[]).push({ok:!!i.ok,h:!!i.h})}));
+  return m;
+}
+function wordLevel(att){
+  if(!att||!att.length)return'n';
+  const clean=a=>a.ok&&!a.h;
+  if(att.length>=2&&clean(att[0])&&clean(att[1]))return'm';
+  if(!att[0].ok||att.slice(0,3).filter(a=>!clean(a)).length>=2)return't';
+  return'l';
+}
+function trickyWords(){const st=wordStats();return shuffle(allWords().filter(w=>wordLevel(st[w])==='t')).slice(0,12)}
+function spPick(id){
+  let w;
+  if(id==='tricky')w=trickyWords();
+  else if(id==='all')w=shuffle(allWords()).slice(0,12);
+  else w=(spLists().find(l=>l.id===id)||UNIT3[0]).words;
+  return shuffle(w).slice(0,20);
+}
+function spErr(g,w){
+  g=String(g).trim().toLowerCase();
+  if(!g)return'blank';
+  if(g.length<w.length)return'missing';
+  if(g.length>w.length)return'extra';
+  const d=[...w].map((_,i)=>i).filter(i=>g[i]!==w[i]);
+  if(d.length===2&&d[1]===d[0]+1&&g[d[0]]===w[d[1]]&&g[d[1]]===w[d[0]])return'swap';
+  if(d.length&&d.every(i=>'aeiou'.includes(w[i])&&'aeiou'.includes(g[i])))return'vowel';
+  return'otherl';
+}
+function lcsMask(a,b){
+  const n=a.length,m=b.length,d=Array.from({length:n+1},()=>Array(m+1).fill(0));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)d[i][j]=a[i]===b[j]?d[i+1][j+1]+1:Math.max(d[i+1][j],d[i][j+1]);
+  const ma=Array(n).fill(false),mb=Array(m).fill(false);let i=0,j=0;
+  while(i<n&&j<m){if(a[i]===b[j]){ma[i]=mb[j]=true;i++;j++}else if(d[i+1][j]>=d[i][j+1])i++;else j++}
+  return[ma,mb];
+}
+function diffHtml(g,w){
+  g=String(g).trim().toLowerCase();const[ma,mb]=lcsMask(g,w);
+  const mine=[...g].map((c,i)=>ma[i]?esc(c):`<span class="x">${esc(c)}</span>`).join('')||'(nothing)';
+  return`<div class="diff"><div><small>You wrote</small><br>${mine}</div><div><small>Correct</small><br>${[...w].map((c,i)=>mb[i]?esc(c):`<span class="m">${esc(c)}</span>`).join('')}</div></div>`;
+}
+const patWord=w=>esc(w).replace(/(ar|or|er|ir|ur)/g,'<b>$1</b>');
+function misspell(w){
+  const V='aeiou',RC=['ar','or','er','ir','ur'];
+  const idx=(s,f)=>[...s].map((_,i)=>i).filter(i=>f(i));
+  const ops=[
+    s=>{const m=s.match(/ar|or|er|ir|ur/);return m?s.replace(m[0],pick(RC.filter(x=>x!==m[0]))):s},
+    s=>{const i=ri(1,s.length-2);return s.slice(0,i)+s[i+1]+s[i]+s.slice(i+2)},
+    s=>{const m=s.match(/(.)\1/);return m?s.replace(m[0],m[1]):s},
+    s=>{const c=idx(s,i=>i>0&&!V.includes(s[i])&&s[i]!==s[i-1]);if(!c.length)return s;const i=pick(c);return s.slice(0,i+1)+s[i]+s.slice(i+1)},
+    s=>{const c=idx(s,i=>i>0&&V.includes(s[i]));if(!c.length)return s;const i=pick(c);return s.slice(0,i)+pick([...V].filter(x=>x!==s[i]))+s.slice(i+1)},
+    s=>{const i=ri(1,s.length-2);return s.slice(0,i)+s.slice(i+1)}
+  ];
+  const out=new Set();
+  for(let t=0;t<120&&out.size<3;t++){const v=pick(ops)(w);if(v!==w&&v.length>=3)out.add(v)}
+  for(let k=0;out.size<3&&k<10;k++)out.add(w+pick('eiosy'));
+  return[...out];
+}
+
+/* ---------- spelling: read aloud ---------- */
+const canSpeak=()=>'speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined';
+let voice=null;
+function pickVoice(){
+  if(voice)return voice;
+  try{const vs=speechSynthesis.getVoices().filter(v=>/^en[-_]US/i.test(v.lang));
+    voice=vs.find(v=>/samantha|ava|allison|zira|jenny|aria|google us/i.test(v.name))||vs[0]||null}catch(e){}
+  return voice;
+}
+function say(...parts){
+  if(!canSpeak())return;
+  try{
+    const ss=window.speechSynthesis;ss.cancel();
+    parts.forEach((t,k)=>{if(!t)return;const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=k===1?.9:.8;const v=pickVoice();if(v)u.voice=v;ss.speak(u)});
+  }catch(e){}
+}
+function autoSay(){if(!sp||(sp.game!=='test'&&sp.game!=='sent'))return;const w=sp.items[sp.i].w;say(w,sentOf(w),w)}
+
+/* ---------- spelling: games ---------- */
+const VOW='aeiou',CON='bcdfghjklmnprstvwy';
+function fillOpts(ch){
+  const same=VOW.includes(ch)?VOW:CON,other=VOW.includes(ch)?CON:VOW;
+  return shuffle([ch,...shuffle([...same].filter(c=>c!==ch)).slice(0,2),...shuffle([...other].filter(c=>c!==ch)).slice(0,1)]);
+}
+function fillInit(w){
+  const L=w.length,k=Math.max(1,Math.min(3,Math.round(L/4)));
+  const wt=i=>(VOW.includes(w[i])?3:1)+(w[i]===w[i-1]||w[i]===w[i+1]?2:0);
+  const pool=[...Array(L).keys()].slice(1),pickIdx=[];
+  while(pickIdx.length<k&&pool.length){
+    const tot=pool.reduce((s,i)=>s+wt(i),0);let r=Math.random()*tot,j=0;
+    while(j<pool.length-1&&r>wt(pool[j])){r-=wt(pool[j]);j++}
+    pickIdx.push(pool.splice(j,1)[0]);
+  }
+  pickIdx.sort((a,b)=>a-b);
+  return{blanks:pickIdx,filled:[],opts:fillOpts(w[pickIdx[0]]),badTiles:[]};
+}
+function fillTap(it,ch){
+  if(it.done)return;
+  const need=it.w[it.blanks[it.filled.length]];
+  if(ch===need){
+    it.filled.push(ch);it.badTiles=[];
+    if(it.filled.length===it.blanks.length){it.done=true;it.ok=true;it.helped=it.tries>0||it.hint;it.msg='right';it.cheer=pick(CHEERS)}
+    else it.opts=fillOpts(it.w[it.blanks[it.filled.length]]);
+  }else{it.tries++;it.badTiles.push(ch);if(it.tries>=3)it.hint=true}
+}
+function scrInit(w){
+  const ids=[...w].map((_,i)=>i);let order=shuffle(ids);
+  for(let k=0;k<30&&order.map(i=>w[i]).join('')===w;k++)order=shuffle(ids);
+  return{order,slots:Array(w.length).fill(null),locked:Array(w.length).fill(false),wrongs:0};
+}
+function scrCheck(it){
+  const g=it.slots.map(id=>it.w[id]).join('');
+  if(g===it.w){it.done=true;it.ok=true;it.helped=it.hint||it.wrongs>=2;it.msg='right';it.cheer=pick(CHEERS)}
+  else{it.wrongs++;it.msg='retry'}
+}
+function scrPlace(it,id){
+  if(it.done||it.slots.includes(id))return;
+  const i=it.slots.indexOf(null);if(i<0)return;
+  it.slots[i]=id;it.msg=null;
+  if(!it.slots.includes(null))scrCheck(it);
+}
+function scrPlaceChar(it,ch){const id=it.order.find(x=>it.w[x]===ch&&!it.slots.includes(x));if(id!==undefined)scrPlace(it,id)}
+function scrClear(it,i){if(it.done||it.locked[i])return;it.slots[i]=null;it.msg=null}
+function scrBack(it){for(let i=it.slots.length-1;i>=0;i--)if(it.slots[i]!==null&&!it.locked[i]){scrClear(it,i);return}}
+function scrHint(it){
+  if(it.done)return;
+  it.hint=true;
+  let i=-1;for(let k=0;k<it.w.length;k++){if(it.slots[k]===null||it.w[it.slots[k]]!==it.w[k]){i=k;break}}
+  if(i<0)return;
+  it.slots[i]=null;
+  let id=it.order.find(x=>it.w[x]===it.w[i]&&!it.slots.includes(x));
+  if(id===undefined){
+    const j=it.slots.findIndex((x,k)=>x!==null&&!it.locked[k]&&it.w[x]===it.w[i]&&it.w[x]!==it.w[k]);
+    if(j>=0){id=it.slots[j];it.slots[j]=null}
+  }
+  if(id===undefined)return;
+  it.slots[i]=id;it.locked[i]=true;it.msg=null;
+  if(!it.slots.includes(null))scrCheck(it);
+}
+function spTyped(it,val){
+  val=String(val).trim();if(!val)return;
+  it.tries++;it.given=val;
+  if(val.toLowerCase()===it.w){it.done=true;it.ok=true;it.helped=it.tries>1||it.hint;it.msg='right';it.cheer=pick(CHEERS)}
+  else if(it.tries>=2){it.done=true;it.ok=false;it.msg='reveal'}
+  else it.msg='retry';
+}
+function sentCheck(it,val){
+  val=String(val).trim();if(!val)return;
+  it.tries++;it.given=val;
+  const n=val.split(/\s+/).filter(Boolean).length;
+  it.chk=[[new RegExp('\\b'+it.w+'\\b','i').test(val),`Uses the word "${it.w}" spelled just right`],[/^[A-Z]/.test(val),'Starts with a capital letter'],[/[.!?]["')]*$/.test(val),'Ends with a . or ! or ?'],[n>=4,'Has at least 4 words']];
+  if(it.chk.every(c=>c[0])){it.done=true;it.ok=true;it.helped=it.tries>1||it.hint;it.msg='right';it.cheer=pick(CHEERS)}
+  else it.msg='retry';
+}
+function spotTap(it,v){
+  if(it.done||it.wrong.includes(v))return;
+  it.tries++;
+  if(v===it.w){it.done=true;it.ok=true;it.helped=it.tries>1||it.hint;it.msg='right';it.cheer=pick(CHEERS)}
+  else{it.wrong.push(v);if(it.tries>=2){it.done=true;it.ok=false;it.msg='reveal'}else it.msg='retry'}
+}
+function spInit(game,w){
+  const it={w,tries:0,hint:false,done:false,ok:false,val:'',msg:null,given:''};
+  if(game==='cards')it.phase='look';
+  if(game==='fill')Object.assign(it,fillInit(w));
+  if(game==='scramble')Object.assign(it,scrInit(w));
+  if(game==='spot'){it.opts=shuffle([w,...misspell(w)]);it.wrong=[];it.gone=null}
+  return it;
+}
+function startSpell(game,words){
+  words=words||spPick(S.splist);
+  if(!words.length)return;
+  S.from='spell';
+  sp={game,words,i:0,t0:Date.now(),items:game==='hunt'?[]:words.map(w=>spInit(game,w)),hunt:game==='hunt'?huntGen(words):null};
+  if(game==='hunt'&&!sp.hunt){sp=null;return}
+  S.view='sprun';render();autoSay();
+}
+
+/* word hunt */
+const HUNT_DIRS=[[0,1],[1,0],[1,1]],DIRS8=[[0,1],[1,1],[1,0],[1,-1],[0,-1],[-1,-1],[-1,0],[-1,1]];
+function huntGen(words){
+  const base=Math.max(10,...words.map(w=>w.length));
+  for(let extra=0;extra<4;extra++){
+    const N=base+extra;
+    for(let attempt=0;attempt<40;attempt++){
+      const g=Array.from({length:N},()=>Array(N).fill('')),placed=[];let ok=true;
+      for(const w of [...words].sort((a,b)=>b.length-a.length)){
+        let done=false;
+        for(let t=0;t<400&&!done;t++){
+          const d=pick(HUNT_DIRS),r=ri(0,N-1-d[0]*(w.length-1)),c=ri(0,N-1-d[1]*(w.length-1));
+          const cells=[...w].map((_,k)=>[r+d[0]*k,c+d[1]*k]);
+          if(cells.every(([y,x],k)=>g[y][x]===''||g[y][x]===w[k])){cells.forEach(([y,x],k)=>{g[y][x]=w[k]});placed.push({w,cells,found:false,h:0,color:0});done=true}
+        }
+        if(!done){ok=false;break}
+      }
+      if(ok){
+        for(let y=0;y<N;y++)for(let x=0;x<N;x++)if(g[y][x]==='')g[y][x]=String.fromCharCode(97+ri(0,25));
+        placed.sort((a,b)=>words.indexOf(a.w)-words.indexOf(b.w));
+        return{N,g,words:placed,cellColor:{},mark:null,hintCell:null,msg:null,done:false,clue:S.huntClues};
+      }
+    }
+  }
+  return null;
+}
+function huntLine(a,b){
+  const dr=b[0]-a[0],dc=b[1]-a[1];
+  if(!dr&&!dc)return[a];
+  if(dr&&dc&&Math.abs(dr)!==Math.abs(dc))return null;
+  const n=Math.max(Math.abs(dr),Math.abs(dc)),sr=Math.sign(dr),sc=Math.sign(dc);
+  return Array.from({length:n+1},(_,k)=>[a[0]+sr*k,a[1]+sc*k]);
+}
+function huntSnap(a,p){
+  const dr=p[0]-a[0],dc=p[1]-a[1];if(!dr&&!dc)return[a];
+  const k=Math.round(Math.atan2(dr,dc)/(Math.PI/4)),d=DIRS8[((k%8)+8)%8];
+  const len=Math.max(0,Math.round((dr*d[0]+dc*d[1])/(d[0]*d[0]+d[1]*d[1]))),N=sp.hunt.N,out=[];
+  for(let i=0;i<=len;i++){const r=a[0]+d[0]*i,c=a[1]+d[1]*i;if(r<0||c<0||r>=N||c>=N)break;out.push([r,c])}
+  return out;
+}
+function huntTry(cells){
+  const h=sp.hunt,str=cells.map(([r,c])=>h.g[r][c]).join(''),rev=[...str].reverse().join('');
+  const w=h.words.find(x=>!x.found&&(x.w===str||x.w===rev));
+  if(!w)return false;
+  w.found=true;w.color=(h.words.filter(x=>x.found).length-1)%6;
+  cells.forEach(([r,c])=>{h.cellColor[r+','+c]=w.color});
+  h.msg=pick(CHEERS)+' You found '+w.w+'.';h.hintCell=null;
+  if(h.words.every(x=>x.found)){h.done=true;h.msg='You found every word!'}
+  return true;
+}
+let drag=null;
+function cellAt(e){const el=document.elementFromPoint(e.clientX,e.clientY),c=el&&el.closest?el.closest('.hc'):null;return c?[Number(c.dataset.r),Number(c.dataset.c)]:null}
+function paintSel(cells){
+  document.querySelectorAll('.hc.sel').forEach(x=>x.classList.remove('sel'));
+  cells.forEach(([r,c])=>{const el=document.querySelector(`.hc[data-r="${r}"][data-c="${c}"]`);if(el)el.classList.add('sel')});
+}
+function huntEnd(){
+  if(!drag)return;
+  const d=drag,h=sp&&sp.hunt;drag=null;if(!h)return;
+  const miss='Not one of the words. Try again!';
+  if(d.cells.length>1){h.mark=null;h.msg=huntTry(d.cells)?h.msg:miss}
+  else if(h.mark&&!(h.mark[0]===d.start[0]&&h.mark[1]===d.start[1])){
+    const line=huntLine(h.mark,d.start);h.mark=null;
+    h.msg=line&&line.length>1?(huntTry(line)?h.msg:miss):null;
+  }else{h.mark=h.mark?null:d.start;h.msg=h.mark?'Now tap the last letter of the word.':null}
+  render();
+}
+document.addEventListener('pointerdown',e=>{
+  if(!sp||sp.game!=='hunt'||S.view!=='sprun'||sp.hunt.done)return;
+  const p=cellAt(e);if(!p)return;
+  drag={start:p,cells:[p]};paintSel(drag.cells);
+});
+document.addEventListener('pointermove',e=>{
+  if(!drag)return;const p=cellAt(e);if(!p)return;
+  drag.cells=huntSnap(drag.start,p);paintSel(drag.cells);
+});
+document.addEventListener('pointerup',huntEnd);
+document.addEventListener('pointercancel',()=>{drag=null;paintSel([])});
+
+function finishSpell(){
+  const g=sp.game,before=stats().stars;
+  const items=g==='hunt'?sp.hunt.words.map(x=>({w:x.w,ok:x.found,h:x.h||0,err:null,given:''}))
+    :sp.items.map(it=>{
+      if(g==='test'){const ok=it.val.trim().toLowerCase()===it.w;return{w:it.w,ok,h:0,err:ok?null:spErr(it.val,it.w),given:it.val.trim()}}
+      const ok=!!it.ok;
+      return{w:it.w,ok,h:it.helped?1:0,err:!ok&&(g==='cards'||g==='sent')&&it.given?spErr(it.given,it.w):null,given:it.given||''};
+    });
+  const correct=items.filter(i=>i.ok).length;
+  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-sp.t0)/1000)),stars:g==='test'?correct*2+5:correct+3,
+    items:items.map(i=>({t:'sp',g,w:i.w,ok:i.ok,h:i.h,err:i.err}))};
+  saveSession(sess);
+  const now=before+sess.stars;
+  const unlocked=ITEMS.filter(it=>it.at>before&&it.at<=now).map(it=>it.name);
+  const stop=STOPS.filter(p=>p.at>0&&p.at>before&&p.at<=now).map(p=>p.n);
+  sp.result=Object.assign({},sess,{items,unlocked,stop});
+  S.view='spresults';render();
+}
+function spBadges(){
+  const ss=spellSess(),st=wordStats();
+  const days=new Set(ss.map(s=>dayKey(s.ts))).size;
+  const mastered=allWords().filter(w=>wordLevel(st[w])==='m').length;
+  return[
+    {l:'W',n:'First Words',d:'Finish your first spelling activity',on:ss.length>=1},
+    {l:'O',n:'On Fire',d:'Practice spelling on 3 different days',on:days>=3},
+    {l:'R',n:'Ready for Test Day',d:'Spell every word right on a Practice Test',on:ss.some(s=>gameOf(s)==='test'&&s.correct===s.total)},
+    {l:'D',n:'Word Detective',d:'Find every word in a Word Hunt',on:ss.some(s=>gameOf(s)==='hunt'&&s.correct===s.total)},
+    {l:'S',n:'Super Speller',d:'Master 12 words (right 2 times in a row with no help)',on:mastered>=12}
+  ];
+}
+
 /* ---------- views ---------- */
-const modeName=m=>({smart:'Smart Practice',guided:'Guided Practice',exam:'Practice Exam'}[m]||m);
+const modeName=m=>({smart:'Smart Practice',guided:'Guided Practice',exam:'Practice Exam',spell:'Spelling'}[m]||m);
+const sessName=s=>s.mode==='spell'?'Spelling: '+((SP_GAMES[gameOf(s)]||{}).name||'practice'):modeName(s.mode);
 const syncPill=()=>`<span class="pill plain"><i class="dot ${S.sync==='live'?'':'off'}"></i>${S.sync==='live'?'Synced':'This device only'}</span>`;
 function nav(title,right){return`<div class="navbar">${syncPill()}<span class="mid">${esc(title)}</span>${right||'<span></span>'}</div>`}
 function tabbar(on){
   const t=(k,l)=>`<button class="tab ${on===k?'on':''}" data-act="nav" data-v="${k}" aria-label="${l}">${ICON[k]}<span>${l}</span></button>`;
-  return`<nav class="tabbar" aria-label="Main"><div>${t('home','Home')}${t('closet','Closet')}${t('parent','Parent')}</div></nav>`;
+  return`<nav class="tabbar" aria-label="Main"><div>${t('home','Home')}${t('math','Math')}${t('spell','Spelling')}${t('closet','Closet')}${t('parent','Parent')}</div></nav>`;
 }
 function homePicker(){
   return`<section class="card"><h2>Where are you practicing today?</h2><p class="mute">This helps Mom and Dad see where each session happened.</p>
@@ -541,25 +1026,71 @@ function homeView(){
   const st=stats(),av=getAv(),last=S.sessions[0];
   let idx=0;STOPS.forEach((p,i)=>{if(st.stars>=p.at)idx=i});
   const nextTxt=idx<STOPS.length-1?`Next stop: ${STOPS[idx+1].n}, only ${STOPS[idx+1].at-st.stars} more stars`:'You reached Neptune! Amazing.';
-  const m=(k,ic,t,d,lead)=>`<button class="mode ${lead?'lead':''}" data-act="start" data-v="${k}"><span class="ic">${ICON[ic]}</span><span><h3>${t}</h3><span class="d">${d}</span></span>${ICON.next}</button>`;
+  const m=(k,ic,t,d,lead)=>`<button class="mode ${lead?'lead':''}" data-act="nav" data-v="${k}"><span class="ic">${ICON[ic]}</span><span><h3>${t}</h3><span class="d">${d}</span></span>${ICON.next}</button>`;
   const fact=FACTS[Math.floor(Date.now()/86400000)%FACTS.length];
+  const wst=wordStats(),cur=spLists().find(l=>l.id===S.splist)||UNIT3[0];
+  const mastered=cur.words.filter(w=>wordLevel(wst[w.toLowerCase()])==='m').length;
+  const lastMath=mathSess()[0];
   return home+`
   <section class="hero"><div class="av">${avatarSvg(av)}</div>
     <div class="who"><h2>Hi, Laila!</h2><span>${st.streak?`${st.streak}-day winning streak`:'Ready for kickoff?'}</span></div>
     <div class="stats"><div class="stat"><b class="num">${st.stars}</b><span>stars</span></div><div class="stat"><b class="num">${st.streak}</b><span>day streak</span></div><div class="stat"><b class="num">${st.sessions}</b><span>sessions</span></div></div>
     <div class="journey">${journeySvg(st.stars)}<p>${nextTxt}</p></div></section>
-  <div class="sect">Practice</div>
+  <div class="sect">Pick a subject</div>
+  <section class="modes">
+    ${m('math','math','Math',lastMath?`Last time: ${lastMath.correct} of ${lastMath.total} right on ${fmtDate(lastMath.ts)}`:'Pick a skill or play a mix. Add, subtract and multiply.',true)}
+    ${m('spell','spell','Spelling',`${esc(cur.name)}: ${mastered} of ${cur.words.length} words mastered`)}
+  </section>
+  ${last?`<p class="mute" style="padding-inline:6px">Last activity: ${esc(sessName(last))}, ${last.correct} of ${last.total} on ${fmtDate(last.ts)}.</p>`:''}
+  <section class="spark"><b>Science spark</b><p>${esc(fact)}</p></section>
+  <div class="sect">Your math bracelet</div>
+  <section class="card"><div class="bracelet">${badges(st).map(b=>`<div class="bead ${b.on?'':'off'}" title="${esc(b.n)}">${b.l}</div>`).join('')}</div>
+    <div class="dl">${badges(st).map(b=>`<div class="${b.on?'':'off'}"><b>${b.on?'★ ':''}${esc(b.n)}</b><span>${esc(b.d)}</span></div>`).join('')}</div></section>
+  <div class="sect">Your spelling bracelet</div>
+  <section class="card"><div class="bracelet">${spBadges().map(b=>`<div class="bead ${b.on?'':'off'}" title="${esc(b.n)}">${b.l}</div>`).join('')}</div>
+    <div class="dl">${spBadges().map(b=>`<div class="${b.on?'':'off'}"><b>${b.on?'★ ':''}${esc(b.n)}</b><span>${esc(b.d)}</span></div>`).join('')}</div></section>
+  ${tabbar('home')}`;
+}
+
+function mathView(){
+  const st=stats(),acc=typeAcc(st.items,20);
+  const m=(k,ic,t,d,lead)=>`<button class="mode ${lead?'lead':''}" data-act="start" data-v="${k}"><span class="ic">${ICON[ic]}</span><span><h3>${t}</h3><span class="d">${d}</span></span>${ICON.next}</button>`;
+  const chips=GROUPS.map(g=>`<button class="chip ${S.topics.includes(g.k)?'on':''}" aria-pressed="${S.topics.includes(g.k)}" data-act="topic" data-v="${g.k}">${g.label}</button>`).join('');
+  const skill=k=>{const a=acc[k],p=a.n?Math.round(100*a.c/a.n):null;
+    return`<button class="skill" data-act="skill" data-v="${k}"><b>${esc(TYPES[k].label)}</b><span class="track2"><span class="fill ${p!==null&&p<70?'low':''}" style="width:${p||0}%"></span></span><small>${p===null?'Not tried yet':p+'% right'}</small></button>`};
+  return nav('Math')+`<div class="largehead"><h1>Math</h1><p class="mute">Pick one skill to practice, or play a mix.</p></div>
+  <div class="sect">Practice one skill</div>
+  ${SKILL_SECTIONS.map(([t,ks])=>`<div class="sect" style="padding-top:0;color:var(--accent)">${t}</div><section class="skills">${ks.map(skill).join('')}</section>`).join('')}
+  <div class="sect">Mixed practice</div>
+  <section class="card"><h3>What should the mix include?</h3><div class="chips">${chips}</div><p class="mute">Smart Practice, Guided Practice and the Practice Exam use these topics. School tests so far are add and subtract, so multiplication starts off.</p></section>
   <section class="modes">
     ${m('smart','rocket','Smart Practice','10 questions picked just for you. Hints help.',true)}
     ${m('guided','ball','Guided Practice','10 questions with hints and a second try.')}
     ${m('exam','trophy','Practice Exam',`${Number(S.settings.examLen)||12} questions, no hints${timerOn()?`, ${fmtT(EXAM_SECS)} each`:''}. Match day!`)}
   </section>
-  ${last?`<p class="mute" style="padding-inline:6px">Last time: ${esc(modeName(last.mode))}, ${last.correct} of ${last.total} right on ${fmtDate(last.ts)}.</p>`:''}
-  <section class="spark"><b>Science spark</b><p>${esc(fact)}</p></section>
-  <div class="sect">Your math bracelet</div>
-  <section class="card"><div class="bracelet">${badges(st).map(b=>`<div class="bead ${b.on?'':'off'}" title="${esc(b.n)}">${b.l}</div>`).join('')}</div>
-    <div class="dl">${badges(st).map(b=>`<div class="${b.on?'':'off'}"><b>${b.on?'★ ':''}${esc(b.n)}</b><span>${esc(b.d)}</span></div>`).join('')}</div></section>
-  ${tabbar('home')}`;
+  ${tabbar('math')}`;
+}
+
+function spellView(){
+  const lists=spLists(),st=wordStats();
+  if(!['all','tricky'].includes(S.splist)&&!lists.some(l=>l.id===S.splist))S.splist=UNIT3[0].id;
+  const sel=S.splist,cur=lists.find(l=>l.id===sel);
+  const words=sel==='tricky'?trickyWords():sel==='all'?allWords():cur.words;
+  const opts=[...lists.map(l=>[l.id,l.name]),['all','All words'],['tricky','Tricky words']];
+  const mastered=words.filter(w=>wordLevel(st[w])==='m').length;
+  const note=sel==='tricky'?'Words that need more practice, picked from everything Laila has tried.':sel==='all'?'A mix from every list. Each activity picks 12 words.':cur.note;
+  const chips=words.length?words.map(w=>`<button class="wchip" data-act="sayword" data-v="${esc(w)}" aria-label="Hear ${esc(w)}"><i class="${wordLevel(st[w])==='n'?'':wordLevel(st[w])}"></i>${esc(w)}</button>`).join(''):'<p class="mute">No tricky words yet. Practice a list first and the words she misses will show up here.</p>';
+  const game=(k,g)=>`<button class="mode ${g.lead?'lead':''}" ${words.length?'':'disabled'} data-act="spstart" data-v="${k}"><span class="ic">${ICON[g.ic]}</span><span><h3>${g.name}</h3><span class="d">${g.d}</span></span>${ICON.next}</button>`;
+  return nav('Spelling')+`<div class="largehead"><h1>Spelling</h1><p class="mute">Choose a word list, then choose how to practice.</p></div>
+  <div class="seg wrap">${opts.map(([k,l])=>`<button class="${sel===k?'on':''}" data-act="splist" data-v="${esc(k)}">${esc(l)}</button>`).join('')}</div>
+  <section class="card"><div class="row between"><h3>${sel==='tricky'?'Tricky words':sel==='all'?'All words':esc(cur.name)}</h3><span class="pill">${mastered} of ${words.length} mastered</span></div>
+    <p class="mute">${esc(note)} Tap a word to hear it.</p>
+    <div class="wchips">${chips}</div>
+    <div class="legend"><span><i style="background:var(--line)"></i>New</span><span><i style="background:var(--warn)"></i>Tricky</span><span><i style="background:var(--gold)"></i>Learning</span><span><i style="background:var(--good)"></i>Mastered</span></div></section>
+  <div class="sect">Practice these words</div>
+  <section class="modes">${Object.entries(SP_GAMES).map(([k,g])=>game(k,g)).join('')}</section>
+  <p class="mute" style="padding-inline:6px">A word is mastered after two clean tries in a row. Hints and second tries count as learning, not mastered.</p>
+  ${tabbar('spell')}`;
 }
 
 function closetView(){
@@ -588,10 +1119,10 @@ function answerArea(q,st,exam,val,locked){
   const dis=(exam?locked:st.done)?'disabled':'';
   return`<div class="row"><input class="ans" id="ans" type="text" inputmode="numeric" autocomplete="off" aria-label="Your answer" value="${esc(val)}" ${dis}></div>`;
 }
-const qLabel=q=>q.type==='word'?`${q.a} ${q.op==='-'?'−':'+'} ${q.b} = ${q.ans}`:q.text.replace('?',q.ans);
+const qLabel=q=>wordish(q)?`${q.a} ${opSym(q.op)} ${q.b} = ${q.ans}`:q.text.replace('?',q.ans);
 function qHtml(q,exam){
-  if(!exam&&q.type!=='word'&&q.type!=='miss')return`<div class="stack" role="img" aria-label="${esc(q.text)}"><div>${q.a}</div><div><span>${q.op==='-'?'−':'+'}</span><span>${q.b}</span></div></div><p class="mute num">${esc(q.text)}</p>`;
-  return`<p class="qtext ${q.type==='word'?'word':''}">${esc(q.text)}</p>`;
+  if(!exam&&!wordish(q)&&!missish(q))return`<div class="stack" role="img" aria-label="${esc(q.text)}"><div>${q.a}</div><div><span>${opSym(q.op)}</span><span>${q.b}</span></div></div><p class="mute num">${esc(q.text)}</p>`;
+  return`<p class="qtext ${wordish(q)?'word':''}">${esc(q.text)}</p>`;
 }
 function raceTrack(r,f){
   return`<div class="track"><div class="lane"><i style="width:${Math.round(f*100)}%"></i></div><div class="kart" style="left:calc((100% - 56px)*${f.toFixed(3)})">${kartSvg(getAv())}</div>
@@ -599,7 +1130,7 @@ function raceTrack(r,f){
 }
 function runView(){
   const r=run,q=r.qs[r.i],st=r.st[r.i],exam=r.mode==='exam',N=r.qs.length;
-  const top=`<div class="navbar"><button class="back" data-act="home">${ICON.chev}Exit</button><span class="mid">${esc(modeName(r.mode))}</span><span style="min-width:64px"></span></div>`;
+  const top=`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Exit</button><span class="mid">${esc(r.skill?TYPES[r.skill].label:modeName(r.mode))}</span><span style="min-width:64px"></span></div>`;
   if(exam&&!r.started)return top+`<section class="card"><h2>Ready for match day?</h2><p>${N} questions. You get ${fmtT(EXAM_SECS)} for each one, and the timer starts when you tap Start. Get your paper and pencil ready.</p><p class="mute">When time runs out on a question, it moves to the next one by itself.</p><div class="row"><button class="btn" data-act="begin">Start</button></div></section>`;
   if(exam&&r.review){
     const un=r.answers.filter(a=>a==='').length;
@@ -620,7 +1151,7 @@ function runView(){
     if(st.msg==='right')body+=`<div class="fb good">${esc(st.cheer||'Goal!')} ${st.helped?'Correct, and you learned something on the way.':'Correct!'}</div>`;
     if(st.msg==='retry')body+=`<div class="fb try">Not yet. Read the steps and try again.</div>`;
     if(st.msg==='reveal')body+=`<div class="fb try">The answer is ${q.ans}. Read the steps so it clicks next time.</div>`;
-    if(st.hint||st.msg==='reveal'){const s=steps(q);body+=`<ol class="steps">${(st.msg==='reveal'||st.done?s:s.slice(0,-1)).map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`}
+    if(st.hint||st.msg==='reveal'){const s=st.msg==='reveal'||st.done?steps(q):hintSteps(q);body+=`<ol class="steps">${s.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>${arrayHtml(q)}`}
     const last=r.i===N-1;
     body+=`<div class="row between"><div class="row">${st.done?'':`<button class="btn quiet" data-act="hint">Show a hint</button>`}${q.fmt==='type'&&!st.done?`<button class="btn" data-act="check">Check answer</button>`:''}</div>
     ${st.done?`<button class="btn" data-act="next">${last?'See my results':'Next question'}</button>`:''}</div>`;
@@ -642,7 +1173,7 @@ function resultsView(){
   const missed=run.qs.map((q,i)=>({q,it:s.items[i]})).filter(x=>!x.it.ok);
   const fact=FACTS[Math.floor(Math.random()*FACTS.length)];
   const wins=[...(s.unlocked||[]).map(n=>`New in your closet: ${n}`),...(s.stop||[]).map(n=>`Your rocket reached ${n}!`)];
-  return`<div class="navbar"><button class="back" data-act="home">${ICON.chev}Home</button><span class="mid">Full time!</span><span style="min-width:64px"></span></div>`+`
+  return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Full time!</span><span style="min-width:64px"></span></div>`+`
   <section class="card"><h2>${exam?'Final whistle!':'Great session!'}</h2>
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
   <div><div class="bigscore"><span style="color:var(--gold)">★</span> +${s.stars}</div><span class="mute">stars earned</span></div></div>
@@ -653,7 +1184,133 @@ function resultsView(){
   ${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
   <section class="spark"><b>Science spark</b><p>${esc(fact)}</p></section>
   ${missed.length?`<h3>Let's look at ${missed.length===1?'this one':'these'}</h3>${missed.map(({q,it})=>`<details><summary>${esc(qLabel(q))}${it.given!==''&&it.given!==undefined?` <span class="mute">(you wrote ${esc(it.given)})</span>`:''}</summary><ol class="steps" style="margin-top:10px">${steps(q).map(x=>`<li>${esc(x)}</li>`).join('')}</ol></details>`).join('')}`:'<div class="fb good">No misses. Perfect!</div>'}
-  <div class="row"><button class="btn" data-act="start" data-v="${exam?'smart':s.mode}">${exam?'Practice what I missed':'Play again'}</button><button class="btn tint" data-act="home">Back to home</button></div></section>`;
+  <div class="row"><button class="btn" data-act="${run.skill?'skill':'start'}" data-v="${run.skill||(exam?'smart':s.mode)}">${exam?'Practice what I missed':'Play again'}</button><button class="btn tint" data-act="exit">Done</button></div></section>`;
+}
+
+/* spelling run screens */
+const hearBtn=(label,a)=>canSpeak()?`<button class="btn tint" data-act="${a||'sphear'}">${ICON.speaker}${label||'Hear it'}</button>`:'';
+function typedFb(it){
+  if(it.msg==='right')return`<div class="fb good">${esc(it.cheer||'Nice!')} ${it.helped?'Right, with a little help.':'Spelled right!'}</div>`;
+  if(it.msg==='retry')return`<div class="fb try">Not quite. Look at the letters, then try again.</div>${diffHtml(it.given,it.w)}`;
+  if(it.msg==='reveal')return`<div class="fb try">The word is <b>${esc(it.w)}</b>. Look at the letters you missed.</div>${diffHtml(it.given,it.w)}`;
+  return'';
+}
+const spInput=(val,ph)=>`<div class="row"><input class="ans w" id="spin" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Type your answer" placeholder="${esc(ph||'')}" value="${esc(val||'')}"></div>`;
+/* each game returns [body html, action buttons shown until the word is done] */
+const SPB={
+  test(it){
+    const clue=blankSent(it.w);
+    return[`<p class="mute">Listen to the word and the sentence, then type the word. No hints, just like the real test.</p>
+      <div class="row">${canSpeak()?hearBtn('Hear it'):`<div class="fb try">This browser can't read aloud. Clue: ${esc(clue||'ask a grown-up to say the word.')}</div>`}</div>${spInput(it.val)}`,''];
+  },
+  cards(it){
+    const s=sentOf(it.w);
+    if(it.phase==='look'&&!it.done)return[`<p class="mute">Look at the word. Say it. Spell it out loud: ${it.w.length} letters.</p><div class="bigword">${patWord(it.w)}</div>
+      <div class="row">${hearBtn('Hear it')}${s?hearBtn('Hear a sentence','sphears'):''}</div>`,`<button class="btn" data-act="spcover">Cover it and write</button>`];
+    return[`<p class="mute">${it.done?'':'The word is covered. Write it from memory.'}</p>
+      ${it.done?`<div class="bigword">${patWord(it.w)}</div>`:`<div class="dashes" aria-label="${it.w.length} letters">${[...it.w].map(()=>'•').join(' ')}</div>${spInput('')}`}
+      ${typedFb(it)}`,`<button class="btn" data-act="spcheck">Check</button><button class="btn quiet" data-act="sppeek">Peek again</button>`];
+  },
+  fill(it){
+    const ord=new Map(it.blanks.map((b,k)=>[b,k])),b=blankSent(it.w);
+    const letters=[...it.w].map((ch,i)=>{
+      if(!ord.has(i))return`<span class="lt">${esc(ch)}</span>`;
+      const k=ord.get(i);
+      return k<it.filled.length?`<span class="lt good">${esc(ch)}</span>`:`<span class="lt ${k===it.filled.length?'cur':'blank'}" aria-label="missing letter"></span>`;
+    }).join('');
+    const need=it.done?'':it.w[it.blanks[it.filled.length]];
+    const tiles=it.done?'':it.opts.map(c=>`<button class="tile ${it.badTiles.includes(c)?'bad':''} ${it.hint&&c===need?'hintt':''}" data-act="sptile" data-v="${c}" ${it.badTiles.includes(c)?'disabled':''}>${c}</button>`).join('');
+    return[`<p class="mute">Tap the letter that belongs in the empty box.</p><div class="lts">${letters}</div>
+      ${b?`<p class="mute">Clue: ${esc(b)}</p>`:''}<div class="row">${hearBtn('Hear it')}</div>
+      ${it.done?`<div class="fb good">${esc(it.cheer||'Nice!')} ${it.helped?'Done, with a little help.':'Spelled right!'}</div>`:`<div class="tiles">${tiles}</div>`}`,`<button class="btn quiet" data-act="sphint">Hint</button>`];
+  },
+  scramble(it){
+    const full=!it.slots.includes(null),b=blankSent(it.w);
+    const slots=it.slots.map((id,i)=>{
+      if(id===null)return`<span class="lt blank" aria-label="empty"></span>`;
+      const ch=it.w[id],good=it.done||it.locked[i]||(full&&ch===it.w[i]),bad=full&&!it.done&&ch!==it.w[i];
+      return`<button class="lt ${good?'good':bad?'bad':''}" data-act="spslot" data-v="${i}" aria-label="Letter ${i+1}: ${ch}. Tap to take out" ${it.done||it.locked[i]?'disabled':''}>${esc(ch)}</button>`;
+    }).join('');
+    const tiles=it.order.map(id=>`<button class="tile" data-act="sptile" data-v="${id}" ${it.slots.includes(id)||it.done?'disabled':''}>${esc(it.w[id])}</button>`).join('');
+    return[`<p class="mute">Tap the letters in the right order to spell the word. You can also type on a keyboard.</p><div class="lts">${slots}</div>
+      <div class="tiles">${tiles}</div>${b?`<p class="mute">Clue: ${esc(b)}</p>`:''}<div class="row">${hearBtn('Hear it')}</div>
+      ${it.msg==='retry'?`<div class="fb try">Almost! Green letters are in the right spot. Tap a letter to take it out.</div>`:''}
+      ${it.done?`<div class="fb good">${esc(it.cheer||'Nice!')} ${it.helped?'Solved, with a little help.':'Solved!'}</div>`:''}`,`<button class="btn quiet" data-act="sphint">Hint</button>`];
+  },
+  sent(it){
+    const b=blankSent(it.w);
+    return[`<p class="mute">${b?'Type the missing word.':'Listen, then type the word.'}</p><p class="qtext word">${esc(b||'Listen and type the word.')}</p>
+      <div class="row">${hearBtn('Hear it')}</div>${it.hint&&!it.done?`<p class="mute num">Starts with <b>${esc(it.w[0])}</b>, ${it.w.length} letters</p>`:''}
+      ${it.done?'':spInput('')}${typedFb(it)}`,`<button class="btn" data-act="spcheck">Check</button><button class="btn quiet" data-act="sphint">Hint</button>`];
+  },
+  write(it){
+    const ex=sentOf(it.w);
+    return[`<p class="mute">Write a sentence of your own that uses this word. Read it out loud when you finish.</p><div class="bigword">${esc(it.w)}</div>
+      <div class="row">${hearBtn('Hear it')}</div>
+      ${it.hint&&ex?`<div class="spark"><b>Example</b><p>${esc(ex)}</p></div>`:''}
+      ${it.done?'':`<div class="row"><input class="ans w" id="spin" type="text" autocomplete="off" autocapitalize="sentences" autocorrect="off" spellcheck="false" aria-label="Your sentence" placeholder="Type your sentence" style="max-width:none;font-size:1.2rem" value="${esc(it.msg==='retry'?it.given:'')}"></div>`}
+      ${it.chk&&it.msg!=='skipped'?`<ul class="chk">${it.chk.map(([y,t])=>`<li class="${y?'y':'n'}">${y?'✓':'○'} ${esc(t)}</li>`).join('')}</ul>`:''}
+      ${it.msg==='right'?`<div class="fb good">${esc(it.cheer||'Nice!')} Great sentence!</div>`:''}
+      ${it.msg==='skipped'?`<div class="fb try">No problem. We will see this word again soon.</div>`:''}`,
+      `<button class="btn" data-act="spcheck">Check</button><button class="btn quiet" data-act="sphint">Show an example</button><button class="btn quiet" data-act="spskip">Skip</button>`];
+  },
+  spot(it){
+    return[`<p class="qtext word">Which one is spelled right?</p><div class="choices w">${it.opts.map(o=>{
+      let cls='choice';if(it.wrong.includes(o))cls+=' bad';if(it.done&&o===it.w)cls+=' ok';
+      const dis=it.done||it.wrong.includes(o)||it.gone===o;
+      return`<button class="${cls}" data-act="spopt" data-v="${esc(o)}" ${dis?'disabled':''} ${it.gone===o?'style="visibility:hidden"':''}>${esc(o)}</button>`}).join('')}</div>
+      <div class="row">${hearBtn('Hear it')}</div>
+      ${it.msg==='right'?`<div class="fb good">${esc(it.cheer||'Nice!')} ${it.helped?'Right, on the second look.':'Spelled right!'}</div>`:''}
+      ${it.msg==='retry'?`<div class="fb try">Not that one. Look closely at every letter and try again.</div>`:''}
+      ${it.msg==='reveal'?`<div class="fb try">The right spelling is <b>${esc(it.w)}</b>.</div>`:''}`,`<button class="btn quiet" data-act="sphint">Hint</button>`];
+  }
+};
+function huntView(){
+  const h=sp.hunt,N=h.N,left=h.words.filter(x=>!x.found).length;
+  const grid=`<div class="hunt" style="--n:${N}" role="application" aria-label="Word search grid">`+h.g.map((row,r)=>row.map((ch,c)=>{
+    const k=h.cellColor[r+','+c],cls=['hc'];
+    if(k!==undefined)cls.push('f'+k);
+    if(h.mark&&h.mark[0]===r&&h.mark[1]===c)cls.push('sel');
+    if(h.hintCell&&h.hintCell[0]===r&&h.hintCell[1]===c)cls.push('hintc');
+    return`<div class="${cls.join(' ')}" data-r="${r}" data-c="${c}">${ch.toUpperCase()}</div>`}).join('')).join('')+`</div>`;
+  const list=h.words.map(x=>h.clue
+    ?`<div class="hw ${x.found?'on':''}">${esc(x.found?x.w:(blankSent(x.w)||'A word with '+x.w.length+' letters'))}</div>`
+    :`<span class="hw ${x.found?'on':''}">${esc(x.w)}</span>`).join('');
+  return`<section class="card huntcard"><div class="row between"><span class="pill">${h.words.length-left} of ${h.words.length} found</span>
+    <button class="chip ${h.clue?'on':''}" data-act="hclue" aria-pressed="${h.clue}">Clue mode</button></div>
+  <p class="mute">Drag across a word, or tap its first letter and then its last letter. Words go across, down, or diagonally down. They are never backward.</p>
+  ${grid}
+  <div class="fb ${h.done?'good':'try'}" style="${h.msg?'':'display:none'}" role="status">${esc(h.msg||'')}</div>
+  <div class="hwl ${h.clue?'clues':''}">${list}</div>
+  <div class="row">${h.done?`<button class="btn" data-act="hfinish">See my results</button>`:`<button class="btn quiet" data-act="hhint">Hint</button><button class="btn quiet" data-act="hfinish">I'm done</button>`}</div></section>`;
+}
+function spRunView(){
+  const r=sp,G=SP_GAMES[r.game];
+  const top=`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Exit</button><span class="mid">${esc(G.name)}</span><span style="min-width:64px"></span></div>`;
+  if(r.game==='hunt')return top+huntView();
+  const N=r.items.length,it=r.items[r.i],test=r.game==='test',last=r.i===N-1;
+  const okN=r.items.filter(x=>x.ok).length,f=(r.i+(it.done?1:0))/N;
+  const[body,btns]=SPB[r.game](it);
+  const showBtns=!it.done&&btns;
+  const next=test?`<button class="btn" data-act="spnext">${last?'Turn in test':'Next word'}</button>`:it.done?`<button class="btn" data-act="spnext">${last?'See my results':'Next word'}</button>`:'';
+  const head=`<div class="row between"><span class="pill">Word ${r.i+1} of ${N}</span>${test?'':`<span class="score pill plain">Right <span class="num">${okN}</span></span>`}</div>${raceTrack(r,f)}`;
+  return top+`<section class="card">${head}${body}<div class="row between"><div class="row">${test?'':showBtns?btns:''}</div>${next}</div></section>`;
+}
+function spResultsView(){
+  const s=sp.result,p=pct(s),test=sp.game==='test';
+  const msg=p>=90?'Amazing spelling! You really know these words.':p>=75?'Strong work. A little more practice and every word will stick.':'Good effort. Every try builds the skill. Keep going.';
+  const missed=s.items.filter(i=>!i.ok),helped=s.items.filter(i=>i.ok&&i.h).length;
+  const wins=[...(s.unlocked||[]).map(n=>`New in your closet: ${n}`),...(s.stop||[]).map(n=>`Your rocket reached ${n}!`)];
+  const fact=FACTS[Math.floor(Math.random()*FACTS.length)];
+  return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Great job!</span><span style="min-width:64px"></span></div>
+  <section class="card"><h2>${test?'Test complete!':'Nice practice!'}</h2>
+  <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
+  <div><div class="bigscore"><span style="color:var(--gold)">★</span> +${s.stars}</div><span class="mute">stars earned</span></div></div>
+  ${helped?`<p class="mute">${helped} of your right words used a hint or a second try.</p>`:''}
+  <p>${msg}</p>${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
+  <section class="spark"><b>Science spark</b><p>${esc(fact)}</p></section>
+  ${missed.length?`<h3>Words to look at again</h3>${missed.map(i=>`<div class="card" style="box-shadow:inset 0 0 0 1px var(--line);padding:14px">${i.given?diffHtml(i.given,i.w):`<div class="diff"><div><small>Word</small><br>${esc(i.w)}</div></div>`}${i.err?`<p class="mute">${esc(SP_ERR[i.err]||'')}</p>`:''}</div>`).join('')}`:'<div class="fb good">Every word right. Perfect!</div>'}
+  <div class="row">${missed.length?`<button class="btn" data-act="spagain" data-v="missed">Practice my missed words</button>`:''}<button class="btn ${missed.length?'tint':''}" data-act="spagain" data-v="same">Play again</button><button class="btn tint" data-act="exit">Done</button></div></section>`;
 }
 
 /* parent area */
@@ -664,10 +1321,29 @@ function parentView(){
     ${S.pinErr?'<div class="fb try">That PIN is not right. Try again.</div>':'<p class="mute">The starting PIN is 1234. Change it under Settings.</p>'}</section>`+tabbar('parent');
   }
   const seg=`<div class="seg">${[['progress','Progress'],['log','Practice log'],['settings','Settings']].map(([k,l])=>`<button class="${S.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</div>`;
-  return head+seg+(S.tab==='progress'?progressTab():S.tab==='log'?logTab():settingsTab())+tabbar('parent');
+  const sub=S.tab==='progress'?`<div class="seg">${[['math','Math'],['spell','Spelling']].map(([k,l])=>`<button class="${S.psub===k?'on':''}" data-act="psub" data-v="${k}">${l}</button>`).join('')}</div>`:'';
+  return head+seg+sub+(S.tab==='progress'?(S.psub==='spell'?spellProgress():progressTab()):S.tab==='log'?logTab():settingsTab())+tabbar('parent');
 }
-function chart(){
-  const pts=S.sessions.slice(0,30).reverse();
+function spellProgress(){
+  const ss=spellSess();
+  if(!ss.length)return`<section class="card"><h3>No spelling sessions yet</h3><p class="mute">Once Laila finishes a spelling activity, her word progress shows up here for both homes.</p></section>`;
+  const st=wordStats(),lists=spLists(),items=ss.flatMap(s=>s.items||[]);
+  const lvl=w=>wordLevel(st[w]);
+  const byGame=Object.keys(SP_GAMES).map(k=>{const a=items.filter(i=>i.g===k);return{k,n:a.length,c:a.filter(i=>i.ok&&!i.h).length}}).filter(x=>x.n);
+  const errs={};items.filter(i=>i.err).forEach(i=>errs[i.err]=(errs[i.err]||0)+1);
+  const errRows=Object.entries(errs).sort((a,b)=>b[1]-a[1]),maxE=errRows.length?errRows[0][1]:1;
+  const tricky=allWords().filter(w=>lvl(w)==='t');
+  const bar=(label,p,right,low)=>`<div class="bar"><span>${label}</span><span class="track2"><span class="fill ${low?'low':''}" style="width:${p}%"></span></span><span class="num">${right}</span></div>`;
+  return`<section class="card"><h3>Score history</h3>${chart(ss)}</section>
+  <section class="card"><h3>Words mastered</h3><p class="mute">Mastered means spelled right with no help two times in a row.</p>
+  ${lists.map(l=>{const m=l.words.filter(w=>lvl(w)==='m').length,t=l.words.filter(w=>lvl(w)==='n').length;return bar(esc(l.name),Math.round(100*m/l.words.length),m+'/'+l.words.length)+(t===l.words.length?'':'')}).join('')}</section>
+  <section class="card"><h3>Words that need work</h3>${tricky.length?`<div class="wchips">${tricky.map(w=>{const a=st[w];return`<span class="wchip"><i class="t"></i>${esc(w)} <span class="mute num">${a.filter(x=>x.ok&&!x.h).length}/${a.length}</span></span>`}).join('')}</div><p class="mute">The numbers show clean tries out of all tries. The Tricky words list on the Spelling page practices these.</p>`:'<p class="mute">No tricky words right now.</p>'}</section>
+  <section class="card"><h3>Clean tries by activity</h3>${byGame.map(x=>bar(esc(SP_GAMES[x.k].name),Math.round(100*x.c/x.n),Math.round(100*x.c/x.n)+'%',x.c/x.n<.7)).join('')}</section>
+  <section class="card"><h3>Mistake patterns</h3>${errRows.length?errRows.map(([k,n])=>bar(esc(SP_ERR[k]||k),Math.round(100*n/maxE),n,true)).join(''):'<p class="mute">No typed mistakes recorded yet.</p>'}
+  <p class="mute">Share this with her teacher so school and home practice target the same kind of mistake.</p></section>`;
+}
+function chart(list){
+  const pts=(list||mathSess()).slice(0,30).reverse();
   if(pts.length<2)return`<p class="mute">The chart appears after two sessions.</p>`;
   const W=640,H=230,L=34,R=14,T=14,B=30,x=i=>L+(W-L-R)*(i/(pts.length-1)),y=p=>T+(H-T-B)*(1-p/100);
   let g='';
@@ -697,7 +1373,7 @@ function progressTab(){
 }
 function logTab(){
   if(!S.sessions.length)return`<section class="card"><p class="mute">No sessions yet.</p></section>`;
-  return`<section class="card"><div class="scroll"><table><thead><tr><th>Date</th><th>Mode</th><th>Score</th><th>Minutes</th><th>Where</th></tr></thead><tbody>${S.sessions.slice(0,60).map(s=>`<tr><td>${new Date(s.ts).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</td><td>${esc(modeName(s.mode))}</td><td class="num">${s.correct}/${s.total} (${pct(s)}%)</td><td class="num">${Math.max(1,Math.round((s.secs||0)/60))}</td><td>${esc(s.home||'')}</td></tr>`).join('')}</tbody></table></div></section>`;
+  return`<section class="card"><div class="scroll"><table><thead><tr><th>Date</th><th>Mode</th><th>Score</th><th>Minutes</th><th>Where</th></tr></thead><tbody>${S.sessions.slice(0,60).map(s=>`<tr><td>${new Date(s.ts).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</td><td>${esc(sessName(s))}</td><td class="num">${s.correct}/${s.total} (${pct(s)}%)</td><td class="num">${Math.max(1,Math.round((s.secs||0)/60))}</td><td>${esc(s.home||'')}</td></tr>`).join('')}</tbody></table></div></section>`;
 }
 function settingsTab(){
   return`<section class="card"><h3>Settings</h3>
@@ -705,7 +1381,13 @@ function settingsTab(){
   <label class="row">Exam timer <select id="examTimer"><option value="on" ${timerOn()?'selected':''}>${fmtT(EXAM_SECS)} per question</option><option value="off" ${timerOn()?'':'selected'}>Off</option></select></label>
   <label class="row">New parent PIN <input class="txt" id="newPin" type="password" inputmode="numeric" maxlength="8" placeholder="leave blank to keep" style="width:200px"></label>
   <div class="row"><button class="btn" data-act="saveSettings">Save settings</button><span id="saved" class="mute"></span></div>
-  <p class="mute">Settings are saved on this device. Set the same PIN and exam length on each computer.</p></section>`;
+  <p class="mute">Settings are saved on this device. Set the same PIN and exam length on each computer.</p></section>
+  <section class="card"><h3>My spelling lists</h3>
+  <p class="mute">Unit 3 is built in. Add a list here for another unit or extra words. Custom lists are saved on this device only, so add the same list on the other computer.</p>
+  ${customLists().length?customLists().map(l=>`<div class="row between"><span><b>${esc(l.name)}</b> <span class="mute">${l.words.length} words</span></span><button class="btn quiet" data-act="dellist" data-v="${esc(l.id)}">Remove</button></div>`).join(''):''}
+  <label class="row">List name <input class="txt" id="listName" maxlength="24" placeholder="Unit 4, Week 1" style="width:220px"></label>
+  <textarea class="txt" id="listWords" aria-label="Words, one per line" placeholder="One word per line, or separate words with commas"></textarea>
+  <div class="row"><button class="btn" data-act="addlist">Add list</button><span id="listMsg" class="mute"></span></div></section>`;
 }
 
 /* ---------- render + events ---------- */
@@ -715,13 +1397,17 @@ function render(){
   switch(S.view){
     case'run':h=runView();break;
     case'results':h=resultsView();break;
+    case'math':h=mathView();break;
+    case'spell':h=spellView();break;
+    case'sprun':h=spRunView();break;
+    case'spresults':h=spResultsView();break;
     case'parent':h=parentView();break;
     case'closet':h=closetView();break;
     default:h=homeView();
   }
   $app.innerHTML=h;
   if(lastView!==S.view){window.scrollTo(0,0);lastView=S.view}
-  const a=document.getElementById('ans');
+  const a=document.getElementById('ans')||document.getElementById('spin');
   if(a&&!a.disabled)a.focus({preventScroll:true});
   const p=document.getElementById('pin');if(p)p.focus({preventScroll:true});
 }
@@ -736,7 +1422,7 @@ function finish(){
     return{t:q.type,k:q.kind,ok:st.ok,h:st.helped?1:0,err:st.err||null,given:st.given};
   });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.round((Date.now()-run.t0)/1000),stars:exam?correct*2+5:correct+3,items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,h:i.h||0,to:i.to||0,err:i.err}))};
+  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-run.t0)/1000)),stars:exam?correct*2+5:correct+3,items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,h:i.h||0,to:i.to||0,err:i.err}))};
   saveSession(sess);
   const now=before+sess.stars;
   const unlocked=ITEMS.filter(it=>it.at>before&&it.at<=now).map(it=>it.name);
@@ -769,11 +1455,18 @@ function setAv(k,v){
   store.set('lmath.avatar',a);render();
 }
 document.addEventListener('input',e=>{
+  if(e.target.id==='spin'&&sp&&sp.game==='test')sp.items[sp.i].val=e.target.value;
   if(e.target.id==='ans'&&run&&run.mode==='exam')run.answers[run.i]=e.target.value.replace(/[^0-9]/g,'');
   if(e.target.id==='ans')e.target.value=e.target.value.replace(/[^0-9]/g,'');
 });
 document.addEventListener('keydown',e=>{
+  if(sp&&S.view==='sprun'&&sp.game==='scramble'&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){
+    const it=sp.items[sp.i];
+    if(/^[a-z]$/i.test(e.key)){e.preventDefault();scrPlaceChar(it,e.key.toLowerCase());render();return}
+    if(e.key==='Backspace'){e.preventDefault();scrBack(it);render();return}
+  }
   if(e.key!=='Enter')return;
+  if(e.target.id==='spin'&&sp){e.preventDefault();act(sp.game==='test'?'spnext':'spcheck');return}
   if(e.target.id==='ans'&&run){e.preventDefault();if(run.mode==='exam')act('next');else guidedSubmit(e.target.value)}
   if(e.target.id==='pin')act('unlock');
 });
@@ -787,7 +1480,65 @@ function act(a,v,d){
     case'sethome':S.home=v;store.set('lmath.home',v);S.view='home';render();break;
     case'rehome':S.view='pickhome';render();break;
     case'start':start(v);break;
-    case'home':S.view='home';S.unlocked=false;run=null;render();break;
+    case'skill':start('guided',v);break;
+    case'topic':{
+      const on=S.topics.includes(v)?S.topics.filter(x=>x!==v):[...S.topics,v];
+      if(on.length){S.topics=on;store.set('lmath.topics',on)}
+      render();break}
+    case'home':S.view='home';S.unlocked=false;run=null;sp=null;render();break;
+    case'exit':S.view=S.from||'home';S.unlocked=false;run=null;sp=null;render();break;
+    case'psub':S.psub=v;render();break;
+    case'splist':S.splist=v;store.set('lmath.splist',v);render();break;
+    case'sayword':say(v);break;
+    case'spstart':startSpell(v);break;
+    case'spagain':{
+      const g=sp.game;
+      if(v==='missed')startSpell('cards',shuffle(sp.result.items.filter(i=>!i.ok).map(i=>i.w)));
+      else startSpell(g);
+      break}
+    case'sphear':{const w=sp.items[sp.i].w;say(w,sentOf(w),w);break}
+    case'sphears':{const w=sp.items[sp.i].w;say(sentOf(w));break}
+    case'spcover':sp.items[sp.i].phase='write';render();break;
+    case'sppeek':{const it=sp.items[sp.i];it.phase='look';it.hint=true;render();break}
+    case'spcheck':{
+      const it=sp.items[sp.i],el=document.getElementById('spin');
+      if(!it||it.done||!el)break;
+      if(sp.game==='write')sentCheck(it,el.value);else spTyped(it,el.value);
+      render();break}
+    case'sphint':{
+      const it=sp.items[sp.i];if(it.done)break;
+      if(sp.game==='scramble')scrHint(it);
+      else if(sp.game==='spot'){it.hint=true;if(!it.gone){const bad=it.opts.filter(o=>o!==it.w&&!it.wrong.includes(o));if(bad.length>1)it.gone=pick(bad)}}
+      else it.hint=true;
+      render();break}
+    case'spskip':{const it=sp.items[sp.i];it.done=true;it.ok=false;it.msg='skipped';render();break}
+    case'sptile':{
+      const it=sp.items[sp.i];
+      if(sp.game==='fill')fillTap(it,v);else scrPlace(it,Number(v));
+      render();break}
+    case'spslot':scrClear(sp.items[sp.i],Number(v));render();break;
+    case'spopt':spotTap(sp.items[sp.i],v);render();break;
+    case'spnext':{
+      const it=sp.items[sp.i],el=document.getElementById('spin');
+      if(sp.game==='test'&&el)it.val=el.value;
+      if(sp.i<sp.items.length-1){sp.i++;render();autoSay()}else finishSpell();
+      break}
+    case'hclue':sp.hunt.clue=!sp.hunt.clue;S.huntClues=sp.hunt.clue;render();break;
+    case'hhint':{
+      const h=sp.hunt,left=h.words.filter(x=>!x.found);
+      if(left.length){const w=pick(left);w.h=1;h.hintCell=w.cells[0];h.msg='Look near the gold letter.'}
+      render();break}
+    case'hfinish':finishSpell();break;
+    case'addlist':{
+      const name=document.getElementById('listName').value.trim(),msg=document.getElementById('listMsg');
+      const words=[...new Set(document.getElementById('listWords').value.toLowerCase().split(/[\n,;]+/).map(x=>x.trim()).filter(x=>/^[a-z]{3,14}$/.test(x)))].slice(0,20);
+      if(!name||words.length<3){msg.textContent='Add a name and at least 3 words (letters only).';break}
+      store.set('lmath.lists',[...customLists(),{id:'c'+Date.now().toString(36),name,note:'Your own list',words}]);
+      render();document.getElementById('listMsg').textContent='Added '+words.length+' words.';break}
+    case'dellist':
+      store.set('lmath.lists',customLists().filter(l=>l.id!==v));
+      if(S.splist===v){S.splist=UNIT3[0].id;store.set('lmath.splist',S.splist)}
+      render();break;
     case'nav':S.view=v;if(v!=='parent'){S.unlocked=false}S.pinErr=false;render();break;
     case'av':setAv(d.k,v);break;
     case'tab':S.tab=v;render();break;
