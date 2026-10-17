@@ -1116,6 +1116,7 @@ function spInit(game,w){
 }
 function startSpell(game,words){
   words=words||spPick(S.splist);
+  if(!words.length&&S.splist==='tricky')words=spPick('all');
   if(!words.length)return;
   S.from='spell';
   sp={game,words,i:0,t0:Date.now(),items:game==='hunt'?[]:words.map(w=>spInit(game,w)),hunt:game==='hunt'?huntGen(words):null};
@@ -1562,9 +1563,9 @@ function spellView(){
   const words=sel==='tricky'?trickyWords():sel==='all'?allWords():cur.words;
   const opts=[...lists.map(l=>[l.id,l.name]),['all','All words'],['tricky','Tricky words']];
   const mastered=words.filter(w=>wordLevel(st[w])==='m').length;
-  const note=sel==='tricky'?'Words that need more practice, picked from everything Laila has tried.':sel==='all'?'A mix from every list. Each activity picks 12 words.':cur.note;
+  const note=sel==='tricky'?(words.length?'Words that need more practice, picked from everything Laila has tried.':'No tricky words yet. Every activity below uses a mix from all the lists until some words need more practice.'):sel==='all'?'A mix from every list. Each activity picks 12 words.':cur.note;
   const chips=words.length?words.map(w=>`<button class="wchip" data-act="sayword" data-v="${esc(w)}" aria-label="Hear ${esc(w)}"><i class="${wordLevel(st[w])==='n'?'':wordLevel(st[w])}"></i>${esc(w)}</button>`).join(''):'<p class="mute">No tricky words yet. Practice a list first and the words she misses will show up here.</p>';
-  const game=(k,g)=>`<button class="mode ${g.lead?'lead':''}" ${words.length?'':'disabled'} data-act="spstart" data-v="${k}"><span class="ic">${ICON[g.ic]}</span><span><h3>${g.name}</h3><span class="d">${g.d}</span></span>${ICON.next}</button>`;
+  const game=(k,g)=>`<button class="mode ${g.lead?'lead':''}" ${words.length||sel==='tricky'?'':'disabled'} data-act="spstart" data-v="${k}"><span class="ic">${ICON[g.ic]}</span><span><h3>${g.name}</h3><span class="d">${g.d}</span></span>${ICON.next}</button>`;
   return nav('Spelling')+`<div class="largehead"><h1>Spelling</h1><p class="mute">Choose a word list, then choose how to practice.</p></div>
   <div class="seg wrap">${opts.map(([k,l])=>`<button class="${sel===k?'on':''}" data-act="splist" data-v="${esc(k)}">${esc(l)}</button>`).join('')}</div>
   <section class="card"><div class="row between"><h3>${sel==='tricky'?'Tricky words':sel==='all'?'All words':esc(cur.name)}</h3><span class="pill">${mastered} of ${words.length} mastered</span></div>
