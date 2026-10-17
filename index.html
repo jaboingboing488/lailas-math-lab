@@ -473,14 +473,17 @@ async function loadFirestore(){
   const fs=F.getFirestore(A.initializeApp(FB_CONFIG));
   return{
     recent:(n,ok,err)=>F.onSnapshot(F.query(F.collection(fs,'sessions'),F.orderBy('ts','desc'),F.limit(n)),ok,err),
-    save:s=>F.setDoc(F.doc(fs,'sessions',s.id),s)
+    save:s=>F.setDoc(F.doc(fs,'sessions',s.id),s),
+    profile:(ok,err)=>F.onSnapshot(F.doc(fs,'profile','laila'),ok,err),
+    saveProfile:p=>F.setDoc(F.doc(fs,'profile','laila'),p)
   };
 }
 async function initDb(){
   try{db=await loadFirestore()}catch(e){db=null}
   if(!db){S.sync='local';render();return}
   try{
-    db.recent(500,snap=>{
+    initProfileSync();
+    db.recent(1000,snap=>{
       S.sync='live';
       dbSessions=snap.docs.map(d=>Object.assign({id:d.id},d.data()));
       dbSessions.forEach(s=>pending.delete(s.id));
@@ -489,6 +492,30 @@ async function initDb(){
       if(S.view!=='run'&&S.view!=='sprun')render();
     },()=>{S.sync='local';render()});
   }catch(e){S.sync='local';render()}
+}
+/* look, topics, chosen word list and custom lists follow Laila between homes (newest change wins) */
+const PROFILE_SAFE=['home','math','spell','fb','closet'];
+function profileData(){return{avatar:getAv(),topics:S.topics,splist:String(S.splist),lists:customLists(),updated:store.get('lmath.profileTs',0)}}
+function pushProfile(){
+  if(!db||!db.saveProfile||!store.get('lmath.profileTs',0))return;
+  db.saveProfile(profileData()).catch(()=>{});
+}
+function touchProfile(){store.set('lmath.profileTs',Date.now());pushProfile()}
+function initProfileSync(){
+  if(!db.profile)return;
+  db.profile(snap=>{
+    const mine=store.get('lmath.profileTs',0);
+    if(!snap.exists()){pushProfile();return}
+    const p=snap.data();
+    if((p.updated||0)>mine){
+      if(p.avatar)store.set('lmath.avatar',p.avatar);
+      if(Array.isArray(p.topics)&&p.topics.length){S.topics=p.topics;store.set('lmath.topics',p.topics)}
+      if(p.splist){S.splist=p.splist;store.set('lmath.splist',p.splist)}
+      if(Array.isArray(p.lists))store.set('lmath.lists',p.lists);
+      store.set('lmath.profileTs',p.updated);
+      if(PROFILE_SAFE.includes(S.view))render();
+    }else if((p.updated||0)<mine)pushProfile();
+  },()=>{});
 }
 function pushSession(s){
   if(!db)return;
@@ -1763,9 +1790,9 @@ function settingsTab(){
   <label class="row">Football Club <select id="fbOn"><option value="on" ${fbOn()?'selected':''}>Show (extra, just for fun)</option><option value="off" ${fbOn()?'':'selected'}>Hide</option></select></label>
   <label class="row">New parent PIN <input class="txt" id="newPin" type="password" inputmode="numeric" maxlength="8" placeholder="leave blank to keep" style="width:200px"></label>
   <div class="row"><button class="btn" data-act="saveSettings">Save settings</button><span id="saved" class="mute"></span></div>
-  <p class="mute">Settings are saved on this device. Set the same PIN and exam length on each computer.</p></section>
+  <p class="mute">The PIN, exam length, timer and Football Club switch are saved on this device only (the PIN is never uploaded). Set them the same on each computer. Progress, her avatar and closet, her word lists and math topics sync between homes.</p></section>
   <section class="card"><h3>My spelling lists</h3>
-  <p class="mute">Unit 3 is built in. Add a list here for another unit or extra words. Custom lists are saved on this device only, so add the same list on the other computer.</p>
+  <p class="mute">Unit 3 is built in. Add a list here for another unit or extra words. Custom lists sync to both homes.</p>
   ${customLists().length?customLists().map(l=>`<div class="row between"><span><b>${esc(l.name)}</b> <span class="mute">${l.words.length} words</span></span><button class="btn quiet" data-act="dellist" data-v="${esc(l.id)}">Remove</button></div>`).join(''):''}
   <label class="row">List name <input class="txt" id="listName" maxlength="24" placeholder="Unit 4, Week 1" style="width:220px"></label>
   <textarea class="txt" id="listWords" aria-label="Words, one per line" placeholder="One word per line, or separate words with commas"></textarea>
@@ -1839,7 +1866,7 @@ function setAv(k,v){
     else if(it.slot==='head')a.head=a.head===v?'':v;
     else a.top=a.top===v?'tee':v;
   }
-  store.set('lmath.avatar',a);render();
+  store.set('lmath.avatar',a);touchProfile();render();
 }
 document.addEventListener('input',e=>{
   if(e.target.id==='spin'&&sp&&sp.game==='test')sp.items[sp.i].val=e.target.value;
@@ -1870,7 +1897,7 @@ function act(a,v,d){
     case'skill':start('guided',v);break;
     case'topic':{
       const on=S.topics.includes(v)?S.topics.filter(x=>x!==v):[...S.topics,v];
-      if(on.length){S.topics=on;store.set('lmath.topics',on)}
+      if(on.length){S.topics=on;store.set('lmath.topics',on);touchProfile()}
       render();break}
     case'home':S.view='home';S.unlocked=false;run=null;sp=null;render();break;
     case'exit':S.view=S.from||'home';S.unlocked=false;run=null;sp=null;render();break;
@@ -1884,7 +1911,7 @@ function act(a,v,d){
     case'fdtoggle':fdToggle(v);render();break;
     case'fdcheck':fdCheck();render();break;
     case'fdnext':if(fd.i<fd.rounds.length-1){fd.i++;render()}else finishDraft();break;
-    case'splist':S.splist=v;store.set('lmath.splist',v);render();break;
+    case'splist':S.splist=v;store.set('lmath.splist',v);touchProfile();render();break;
     case'sayword':say(v);break;
     case'spstart':startSpell(v);break;
     case'spagain':{
@@ -1929,11 +1956,12 @@ function act(a,v,d){
       const name=document.getElementById('listName').value.trim(),msg=document.getElementById('listMsg');
       const words=[...new Set(document.getElementById('listWords').value.toLowerCase().split(/[\n,;]+/).map(x=>x.trim()).filter(x=>/^[a-z]{3,14}$/.test(x)))].slice(0,20);
       if(!name||words.length<3){msg.textContent='Add a name and at least 3 words (letters only).';break}
-      store.set('lmath.lists',[...customLists(),{id:'c'+Date.now().toString(36),name,note:'Your own list',words}]);
+      store.set('lmath.lists',[...customLists(),{id:'c'+Date.now().toString(36),name,note:'Your own list',words}]);touchProfile();
       render();document.getElementById('listMsg').textContent='Added '+words.length+' words.';break}
     case'dellist':
       store.set('lmath.lists',customLists().filter(l=>l.id!==v));
       if(S.splist===v){S.splist=UNIT3[0].id;store.set('lmath.splist',S.splist)}
+      touchProfile();
       render();break;
     case'nav':S.view=v;if(v!=='parent'){S.unlocked=false}S.pinErr=false;render();break;
     case'av':setAv(d.k,v);break;

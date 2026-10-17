@@ -22,6 +22,21 @@ service cloud.firestore {
       allow create: if valid(request.resource.data, id);
       allow update, delete: if false;
     }
+    function validProfile(d) {
+      return d.keys().hasOnly(['avatar','topics','splist','lists','updated'])
+        && d.keys().hasAll(['avatar','topics','splist','lists','updated'])
+        && d.avatar is map
+        && d.topics is list && d.topics.size() >= 1 && d.topics.size() <= 5
+        && d.splist is string && d.splist.size() <= 24
+        && d.lists is list && d.lists.size() <= 10
+        && d.updated is number;
+    }
+
+    match /profile/{id} {
+      allow read: if true;
+      allow create, update: if id == 'laila' && validProfile(request.resource.data);
+      allow delete: if false;
+    }
     match /{other=**} { allow read, write: if false; }
   }
 }
