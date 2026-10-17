@@ -2372,7 +2372,7 @@ POSTERS.unshift(O('mine','Make your own',0,{bg:'#3B1F6B',art:''}));
 /* Laila from head to toe: the bust from avatarSvg, plus arms, jeans and sneakers */
 function bodySvg(c){
   const skin=SKIN[c.skin]||SKIN[1],hs=houseOf(c),shade=darken(skin,.14),P=avatarSvg(Object.assign({},c,{_parts:1}));
-  /* the colors of the chosen top, read from the bust so the sleeves match it */
+  /* the colors of the chosen top, read from the bust so the sleeves and skirt match it */
   let ca='#7B5CD6',cb='#4A3590';
   const f=P.top.match(/fill="([^"]+)"/);
   if(f){
@@ -2380,23 +2380,25 @@ function bodySvg(c){
     if(u){const g=P.D.match(new RegExp('id="'+u[1]+'"[^>]*><stop offset="0" stop-color="(#[0-9a-fA-F]{6})"/><stop offset="1" stop-color="(#[0-9a-fA-F]{6})"'));if(g){ca=g[1];cb=g[2]}}
     else if(/^#[0-9a-f]{6}$/i.test(f[1])){ca=f[1];cb=darken(f[1],.25)}
   }
-  const mid=darken(ca,.06),long=['robe','gamehoodie','brickhoodie','jacket'].includes(c.top);
+  const K=(ca+cb).replace(/[^0-9a-f]/gi,''),mid=darken(ca,.06),long=['robe','gamehoodie','brickhoodie','jacket'].includes(c.top);
   const T='M33 100Q36 92 50 91.5H70Q84 92 87 100L93 130H27Z';
+  /* arms end at the hip, a little above the hem of the skirt */
   const arm=s=>{
-    const X=v=>60+s*v,sl=long?148:123.5,cuff=darken(ca,.3);
-    return`<path d="M${X(27)} 103C${X(32)} 112 ${X(35)} 120 ${X(34)} 130S${X(36)} 144 ${X(35)} 151" stroke="${skin}" stroke-width="10.5" fill="none" stroke-linecap="round"/>`
-      +`<path d="M${X(34.6)} 128Q${X(36)} 140 ${X(35.4)} 150" stroke="${shade}" stroke-width="1.6" fill="none" opacity=".35" stroke-linecap="round"/>`
-      +`<circle cx="${X(35.4)}" cy="156.4" r="6.2" fill="${skin}"/><ellipse cx="${X(31)}" cy="155" rx="2.3" ry="3.8" transform="rotate(${s*-20} ${X(31)} 155)" fill="${skin}"/><path d="M${X(36.6)} 154.6Q${X(37.4)} 158 ${X(35.6)} 160.4" stroke="${shade}" stroke-width="1" fill="none" opacity=".5" stroke-linecap="round"/>`
-      +`<path d="M${X(27)} 103C${X(32)} 111 ${X(34.2)} ${long?118:116} ${X(34)} ${sl}" stroke="${mid}" stroke-width="13" fill="none"/>`
-      +`<circle cx="${X(28)}" cy="102.4" r="7.4" fill="${mid}"/>`
-      +`<path d="M${X(29.6)} 101C${X(33.5)} 108 ${X(35.5)} 116 ${X(35.4)} ${sl-6}" stroke="#fff" stroke-width="2.2" fill="none" opacity=".16" stroke-linecap="round"/>`
-      +`<path d="M${X(27.4)} ${sl}H${X(40.6)}" stroke="${cuff}" stroke-width="${long?3.2:2.2}"/>`;
+    const X=v=>60+s*v,sl=long?132:119,cuff=darken(ca,.3);
+    return`<path d="M${X(27)} 103C${X(31.5)} 110 ${X(34)} 117 ${X(33.6)} 124S${X(34.4)} 132 ${X(34)} 135" stroke="${skin}" stroke-width="9.6" fill="none" stroke-linecap="round"/>`
+      +`<circle cx="${X(34)}" cy="139.6" r="5.4" fill="${skin}"/><ellipse cx="${X(30.6)}" cy="138.4" rx="2" ry="3.4" transform="rotate(${s*-18} ${X(30.6)} 138.4)" fill="${skin}"/><path d="M${X(35.8)} 138Q${X(36.4)} 141 ${X(34.8)} 143.4" stroke="${shade}" stroke-width=".9" fill="none" opacity=".5" stroke-linecap="round"/>`
+      +`<path d="M${X(27)} 103C${X(31.5)} 109 ${X(33.6)} 113 ${X(33.4)} ${sl}" stroke="${mid}" stroke-width="12" fill="none"/>`
+      +`<circle cx="${X(28)}" cy="102.4" r="7" fill="${mid}"/>`
+      +`<path d="M${X(29.4)} 101C${X(32.6)} 106 ${X(34.4)} 111 ${X(34.4)} ${sl-5}" stroke="#fff" stroke-width="2" fill="none" opacity=".16" stroke-linecap="round"/>`
+      +`<path d="M${X(27.6)} ${sl}H${X(39.4)}" stroke="${cuff}" stroke-width="${long?3:2.2}"/>`;
   };
-  const defs=`<linearGradient id="bsl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${ca}"/><stop offset="1" stop-color="${cb}"/></linearGradient><linearGradient id="bts" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".2"/><stop offset=".22" stop-color="#000" stop-opacity="0"/><stop offset=".78" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".2"/></linearGradient><clipPath id="btc"><path d="${T}"/></clipPath><linearGradient id="bdj" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3A4D86"/><stop offset=".5" stop-color="#5068AC"/><stop offset="1" stop-color="#2A3A6A"/></linearGradient><linearGradient id="bsn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#D9D3EA"/></linearGradient>`;
-  const torso=`<path d="${T}" fill="url(#bsl)"/><g clip-path="url(#btc)">${P.top}</g><path d="${T}" fill="url(#bts)"/><path d="M28 129.4H92" stroke="rgba(0,0,0,.2)" stroke-width="1.8"/>`;
-  const legs=`<path d="M31 122H89L88 198H63L60 150L57 198H32Z" fill="url(#bdj)"/><path d="M60 150V124" stroke="#1E2A55" stroke-width="1.4" opacity=".6"/><path d="M42 160Q44 170 42 178M78 160Q76 170 78 178" stroke="#fff" stroke-width="1.4" fill="none" opacity=".16" stroke-linecap="round"/><path d="M32 190H57M63 190H88" stroke="#8FA6E0" stroke-width="2" opacity=".7"/>`;
-  const shoe=(a,b)=>{const m=(a+b)/2;return`<rect x="${a}" y="196" width="${b-a}" height="15" rx="7" fill="url(#bsn)" stroke="#B9B4C4" stroke-width=".8"/><rect x="${a}" y="205.5" width="${b-a}" height="5.5" rx="2.7" fill="${hs[1]}"/><path d="M${m-7} 199.5l8 2M${m-5} 197.5l8 2" stroke="#B9B4C4" stroke-width="1.2" stroke-linecap="round"/>`};
-  return`<svg viewBox="0 0 120 214" width="100%" height="100%" role="img" aria-label="Laila's avatar"><defs>${P.D}${defs}</defs>${P.back}${legs}${shoe(25,62)}${shoe(58,95)}${torso}${arm(-1)}${arm(1)}${P.head}${P.topD}${P.fringe}${P.face}${P.ex}${P.hd}</svg>`;
+  const defs=`<linearGradient id="bsl${K}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${ca}"/><stop offset="1" stop-color="${cb}"/></linearGradient><linearGradient id="bts" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".2"/><stop offset=".22" stop-color="#000" stop-opacity="0"/><stop offset=".78" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".2"/></linearGradient><clipPath id="btc"><path d="${T}"/></clipPath><linearGradient id="bsn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#D9D3EA"/></linearGradient>`;
+  const torso=`<path d="${T}" fill="url(#bsl${K})"/><g clip-path="url(#btc)">${P.top}</g><path d="${T}" fill="url(#bts)"/>`;
+  /* a flared skirt in the color of the top, then bare legs, socks and sneakers */
+  const skirt=`<path d="M27 128.6L19 158Q60 165 101 158L93 128.6Z" fill="url(#bsl${K})"/><path d="M40 130L34.5 160M53 131L51.6 162M67 131L68.4 162M80 130L85.5 160" stroke="${cb}" stroke-width="1.6" opacity=".3"/><path d="M19.4 156.4Q60 163.4 100.6 156.4" stroke="${darken(cb,.18)}" stroke-width="2.6" fill="none"/><path d="M27 129.2H93" stroke="${darken(cb,.2)}" stroke-width="2.4" opacity=".7"/><path d="M27 128.6L19 158Q60 165 101 158L93 128.6Z" fill="url(#bts)"/>`;
+  const leg=x=>`<rect x="${x-6}" y="150" width="12" height="42" rx="5" fill="${skin}"/><path d="M${x+2.5} 160V180" stroke="${shade}" stroke-width="2.4" opacity=".28" stroke-linecap="round"/><rect x="${x-6.6}" y="180" width="13.2" height="12" rx="3" fill="#fff"/><path d="M${x-6.6} 183.6H${x+6.6}" stroke="${hs[1]}" stroke-width="1.8"/>`;
+  const shoe=(a,b)=>{const m=(a+b)/2;return`<rect x="${a}" y="190" width="${b-a}" height="13" rx="6" fill="url(#bsn)" stroke="#B9B4C4" stroke-width=".8"/><rect x="${a}" y="198.4" width="${b-a}" height="4.6" rx="2.3" fill="${hs[1]}"/><path d="M${m-5} 192.6l6 1.6M${m-4} 191l6 1.6" stroke="#B9B4C4" stroke-width="1" stroke-linecap="round"/>`};
+  return`<svg viewBox="0 0 120 204" width="100%" height="100%" role="img" aria-label="Laila's avatar"><defs>${P.D}${defs}</defs>${P.back}${leg(49)}${leg(71)}${shoe(36,60)}${shoe(60,84)}${skirt}${torso}${arm(-1)}${arm(1)}${P.head}${P.topD}${P.fringe}${P.face}${P.ex}${P.hd}</svg>`;
 }
 const HOOKS=[O('none','Empty hook',0),O('backpack','Backpack',0),O('soccerbag','Soccer bag','soc1'),O('robe','Wizard robe',100),O('jersey','Game day jersey',70)];
 const WALLDECO=[O('clock','Wall clock',20),O('pennants','Pennant banner',75),O('lights','Fairy lights',50)];
@@ -2572,7 +2574,7 @@ function roomSvg(R,av){
   g+=hot('bed',`<rect x="124" y="114" width="176" height="104" rx="12" fill="url(#frg)"/><rect x="132" y="122" width="160" height="62" rx="8" fill="${dark(frame)}"/><rect x="132" y="122" width="160" height="6" rx="3" fill="#fff" opacity=".2"/><path d="M185 128V184M239 128V184" stroke="#fff" stroke-width="1.2" opacity=".14"/>${pil}`);
   /* Laila standing on the floor beside the bed */
   g+=`<ellipse cx="350" cy="291" rx="28" ry="4.6" fill="#000" opacity=".22"/>`;
-  g+=hot('closet',bodySvg(av).replace('width="100%" height="100%"','x="320" y="185" width="60" height="107"'));
+  g+=hot('closet',bodySvg(av).replace('width="100%" height="100%"','x="320" y="190" width="60" height="102"'));
   let dec='';
   const pr=R.pillows;
   if(pr==='heart')dec=`<path d="M0 12C-22 -6-12 -22 0 -12C12-22 22 -6 0 12Z" fill="${ac}"/>`;
