@@ -249,6 +249,14 @@ textarea.txt{font:inherit;padding:12px 14px;border:0;border-radius:14px;backgrou
 .bk{display:flex;justify-content:space-between;gap:10px;font-weight:700}
 @media(max-width:480px){.tab svg{width:24px;height:24px}.huntcard{padding-inline:10px}.hunt{gap:1px}}
 @media(max-width:480px){.card{padding:16px}.bar{grid-template-columns:1fr 1fr 44px}.hero{grid-template-columns:96px 1fr}.hero .av{width:96px;height:104px}}
+/* sports club, soccer, geography */
+.field{display:block;width:100%;max-width:300px;margin:0 auto;border-radius:12px;box-shadow:var(--shadow)}
+.pls{display:flex;flex-direction:column;gap:4px;margin-top:2px}
+.plr{display:block;font-size:.8rem;line-height:1.25;font-weight:700}
+.plr i{font-style:normal;font-weight:800;color:var(--dc);margin-right:5px}
+.plr em{display:block;font-style:normal;color:var(--mute);font-size:.72rem;font-weight:600}
+.lesson p{line-height:1.5}
+.tabbar>div{gap:2px}.tab{font-size:.66rem}
 </style>
 </head><body>
 <div id="app"></div>
@@ -499,7 +507,7 @@ async function initDb(){
   }catch(e){S.sync='local';render()}
 }
 /* look, topics, chosen word list and custom lists follow Laila between homes (newest change wins) */
-const PROFILE_SAFE=['home','math','spell','fb','closet'];
+const PROFILE_SAFE=['home','math','spell','fb','club','soc','geo','closet'];
 function profileData(){return{avatar:getAv(),topics:S.topics,splist:String(S.splist),lists:customLists(),updated:store.get('lmath.profileTs',0)}}
 function pushProfile(){
   if(!db||!db.saveProfile||!store.get('lmath.profileTs',0))return;
@@ -535,12 +543,12 @@ function saveSession(s){
 }
 
 /* ---------- derived stats ---------- */
-const mathSess=()=>S.sessions.filter(s=>s.mode!=='spell'&&s.mode!=='nfl');
+const mathSess=()=>S.sessions.filter(s=>!['spell','nfl','soc','geo'].includes(s.mode));
 const spellSess=()=>S.sessions.filter(s=>s.mode==='spell');
 const nflSess=()=>S.sessions.filter(s=>s.mode==='nfl');
 function stats(){
   /* football is extra: its sessions give stars (plus collection prizes) but do not count toward the school streak */
-  const ss=S.sessions.filter(s=>s.mode!=='nfl'),stars=S.sessions.reduce((n,s)=>n+(s.stars||0),0)+nflInfo(nflSess()).bonus;
+  const ss=S.sessions.filter(s=>!['nfl','soc'].includes(s.mode)),stars=S.sessions.reduce((n,s)=>n+(s.stars||0),0)+nflInfo(nflSess()).bonus;
   const days=new Set(ss.map(s=>dayKey(s.ts)));
   let streak=0;const d=new Date();
   if(!days.has(dayKey(d)))d.setDate(d.getDate()-1);
@@ -565,7 +573,7 @@ function badges(st){
   const big=exams.filter(s=>pct(s)>=85).length;
   const jump=exams.some((s,i)=>i>0&&pct(s)-pct(exams[i-1])>=10);
   const mulOk=st.items.filter(i=>/^mul/.test(i.t)&&i.ok).length;
-  const perfect=S.sessions.some(s=>s.mode!=='exam'&&s.mode!=='spell'&&s.mode!=='nfl'&&s.total===10&&s.correct===10&&(s.items||[]).every(i=>i.ok&&!i.h));
+  const perfect=mathSess().some(s=>s.mode!=='exam'&&s.total===10&&s.correct===10&&(s.items||[]).every(i=>i.ok&&!i.h));
   return[
     {l:'M',n:'First Kick',d:'Finish your first session',on:st.sessions>=1},
     {l:'A',n:'Hat Trick',d:'Practice 3 days in a row',on:st.streak>=3},
@@ -638,7 +646,11 @@ const ITEMS=[
   {id:'football',slot:'extra',name:'Football',at:null,nfl:'Finish your first Football Club game'},
   {id:'eyeblack',slot:'extra',name:'Eye black',at:null,nfl:'Master 4 teams'},
   {id:'fbjersey',slot:'top',name:'Game day jersey',at:null,nfl:'Complete a division'},
-  {id:'champ',slot:'head',name:'Champion headband',at:null,nfl:'Complete a conference'}
+  {id:'champ',slot:'head',name:'Champion headband',at:null,nfl:'Complete a conference'},
+  {id:'armband',slot:'extra',name:'Captain armband',at:null,u:'Master 10 soccer questions',grp:'soc'},
+  {id:'goldboot',slot:'extra',name:'Golden boot',at:null,u:'Master 25 soccer questions',grp:'soc'},
+  {id:'compass',slot:'extra',name:'Explorer compass',at:null,u:'Master 10 state capitals',grp:'geo'},
+  {id:'shades',slot:'extra',name:'Sunshine State shades',at:null,u:'Master 10 Florida facts',grp:'geo'}
 ];
 const STOPS=[{n:'Platform',at:0,c:'#B8283A'},{n:'Boats',at:25,c:'#3C57B8'},{n:'Castle',at:75,c:'#8C93A0'},{n:'Great Hall',at:150,c:'#E3B94F'},{n:'Owlery',at:250,c:'#2E8A4F'},{n:'Tower',at:400,c:'#8A5AC8'}];
 const CHEERS=['Brilliant!','Wizard work!','Spell cast!','Magical!','Sparkling work!','Top marks!'];
@@ -701,6 +713,10 @@ function avatarSvg(c){
   if(c.extra.includes('snitch'))ex+=`<g transform="translate(100 28)"><path d="M-4-1C-10-10-19-8-17-1C-13-3-8-3-4-1ZM4-1C10-10 19-8 17-1C13-3 8-3 4-1Z" fill="#fff" stroke="#C8921A" stroke-width="1"/><circle r="6" fill="#E3B94F" stroke="#C8921A" stroke-width="1.4"/></g>`;
   if(c.extra.includes('potion'))ex+=`<g transform="translate(96 110)"><path d="M-3-14H3V-7L10 4Q12 12 4 13H-4Q-12 12-10 4L-3-7Z" fill="rgba(255,255,255,.4)" stroke="#2A1630" stroke-width="1.6" stroke-linejoin="round"/><path d="M-9 5Q0 1 9 5Q11 12 4 12H-4Q-11 12-9 5Z" fill="#8E5CFF"/><rect x="-3.5" y="-17" width="7" height="4" rx="1.5" fill="#6B3E1E"/></g>`;
   if(c.extra.includes('trophy'))ex+=`<g transform="translate(98 104)"><path d="M-9-12H9V-4Q9 4 0 6Q-9 4-9-4Z" fill="#E3B94F" stroke="#A8741A" stroke-width="1.4"/><path d="M-9-9H-14Q-14-2-8-1M9-9H14Q14-2 8-1" fill="none" stroke="#A8741A" stroke-width="1.8"/><rect x="-2" y="6" width="4" height="6" fill="#C8921A"/><rect x="-8" y="12" width="16" height="5" rx="1.5" fill="#6B3E1E"/>${star(0,-5,3.2,'#fff')}</g>`;
+  if(c.extra.includes('armband'))ex+=`<rect x="18" y="107" width="12" height="7.5" rx="2" fill="#E3B94F" stroke="#A8741A" stroke-width=".9"/><text x="24" y="113" text-anchor="middle" font-size="6.5" font-weight="800" fill="#2A1630" style="font-family:Inter,system-ui,sans-serif">C</text>`;
+  if(c.extra.includes('goldboot'))ex+=`<g transform="translate(100 120)"><path d="M-10-8H-3V-2L7 1Q11 2 11 6V8H-10Z" fill="#E3B94F" stroke="#A8741A" stroke-width="1.2"/><path d="M-8 8V11M-3 8V11M2 8V11M7 8V11" stroke="#6B3E1E" stroke-width="1.6"/></g>`;
+  if(c.extra.includes('compass'))ex+=`<g transform="translate(99 104)"><circle r="11" fill="#F6EEDC" stroke="#A8741A" stroke-width="2"/><path d="M0-8L3 0L-3 0Z" fill="#B8283A"/><path d="M0 8L3 0L-3 0Z" fill="#2B4590"/></g>`;
+  if(c.extra.includes('shades'))ex+=`<rect x="40" y="56" width="17" height="11" rx="4.5" fill="#1A1A1A"/><rect x="63" y="56" width="17" height="11" rx="4.5" fill="#1A1A1A"/><path d="M57 60H63M40 59L34 57M80 59L86 57" stroke="#1A1A1A" stroke-width="1.8"/><path d="M43 59L47 59M66 59L70 59" stroke="#fff" stroke-width="1.3" opacity=".6"/>`;
   if(c.extra.includes('eyeblack'))ex+=`<rect x="44" y="68" width="12" height="3.4" rx="1.7" fill="#2A1630"/><rect x="64" y="68" width="12" height="3.4" rx="1.7" fill="#2A1630"/>`;
   if(c.extra.includes('football'))ex+=`<g transform="translate(18 112) rotate(-25)"><ellipse rx="15" ry="9.5" fill="#9A5B33" stroke="#2A1630" stroke-width="2"/><path d="M-5 0H5M-3 -3V3M0 -3V3M3 -3V3" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></g>`;
   if(c.extra.includes('ball'))ex+=`<g transform="translate(100 108)"><circle r="15" fill="#fff" stroke="#2A1630" stroke-width="2"/><polygon points="0,-6 5.7,-1.9 3.5,4.9 -3.5,4.9 -5.7,-1.9" fill="#2A1630"/><path d="M0 -6V-15M5.7 -1.9L14 -4M3.5 4.9L9 12M-3.5 4.9L-9 12M-5.7 -1.9L-14 -4" stroke="#2A1630" stroke-width="1.6"/></g>`;
@@ -1205,15 +1221,16 @@ function nflHas(id,inf){
   return false;
 }
 function hotCount(items){let run=0,n=0;items.forEach(i=>{if(i.ok&&!i.h){run++;if(run%5===0)n++}else run=0});return n}
-function nflAward(items){
-  const today=nflSess().filter(s=>dayKey(s.ts)===fbDay());
+function sportAward(list,items,label){
+  const today=list.filter(s=>dayKey(s.ts)===fbDay());
   if(today.length>=NFL_DAILY)return{parts:[],total:0,capped:true};
-  const correct=items.filter(i=>i.ok).length,parts=[['Right answers',correct],['Kickoff bonus',2]];
+  const correct=items.filter(i=>i.ok).length,parts=[['Right answers',correct],[label,2]];
   if(items.length>=4&&items.every(i=>i.ok&&!i.h))parts.push(['Perfect game',5]);
   const hot=hotCount(items);if(hot)parts.push(['Hot streak x'+hot,hot*2]);
   if(!today.length)parts.push(['Daily double',3]);
   return{parts,total:parts.reduce((n,p)=>n+p[1],0),capped:false};
 }
+const nflAward=items=>sportAward(nflSess(),items,'Kickoff bonus');
 function nflBadges(inf){
   const ss=nflSess();
   const perfect=ss.some(s=>s.total>=4&&s.correct===s.total&&(s.items||[]).every(i=>!i.h));
@@ -1225,6 +1242,7 @@ function nflBadges(inf){
     {l:'T',n:'Perfect Game',d:'Get every answer right with no help',on:perfect},
     {l:'B',n:'Division Champ',d:'Master all 4 teams in a division',on:inf.divsDone.length>=1},
     {l:'A',n:'Rules Rookie',d:'Master 8 rules',on:inf.rulesM.length>=8},
+    {l:'L',n:'League Leader',d:'Master 16 teams',on:inf.teamsM.length>=16},
     {l:'L',n:'Hall of Fame',d:'Master all 32 teams',on:inf.all}
   ];
 }
@@ -1268,9 +1286,12 @@ function pickRules(n){
 }
 let nq=null,fd=null,fbres=null;
 function startQuiz(game){
-  const qs=game==='rules'?pickRules(8):pickTeamQs(10);
-  S.from='fb';
-  nq={game,qs,i:0,t0:Date.now(),st:qs.map(()=>({tries:0,wrong:[],done:false,ok:false,h:false,cheer:''}))};
+  let qs,sport='nfl';
+  if(SOC_GAMES[game]){qs=pickSoc(game,10);sport='soc'}
+  else if(GEO_GAMES[game]){qs=pickGeo(game);sport='geo'}
+  else qs=game==='rules'?pickRules(8):pickTeamQs(10);
+  S.from=sport==='nfl'?'fb':sport;
+  nq={game,sport,qs,i:0,t0:Date.now(),st:qs.map(()=>({tries:0,wrong:[],done:false,ok:false,h:false,cheer:''}))};
   S.view='nqrun';render();
 }
 function nqPick(idx){
@@ -1278,7 +1299,7 @@ function nqPick(idx){
   if(st.done)return;
   const v=q.opts[idx];if(v===undefined||st.wrong.includes(v))return;
   st.tries++;
-  if(v===q.ans){st.done=true;st.ok=true;st.h=st.tries>1;st.cheer=pick(FB_CHEERS)}
+  if(v===q.ans){st.done=true;st.ok=true;st.h=st.tries>1;st.cheer=pick(nq.sport==='nfl'?FB_CHEERS:CHEERS)}
   else{st.wrong.push(v);if(q.opts.length<=2||st.tries>=2){st.done=true;st.ok=false}}
 }
 function startDraft(){
@@ -1329,7 +1350,7 @@ function finishNfl(game,items,missed){
 function finishQuiz(){
   const items=nq.qs.map((q,i)=>({k:q.k,c:q.c,ok:nq.st[i].ok,h:nq.st[i].h?1:0}));
   const missed=nq.qs.map((q,i)=>({q,st:nq.st[i]})).filter(x=>!x.st.ok).map(x=>({prompt:x.q.prompt,ans:x.q.ans,why:x.q.why}));
-  finishNfl(nq.game,items,missed);
+  if(nq.sport==='nfl')finishNfl(nq.game,items,missed);else finishOther(nq.sport,items,missed);
 }
 function finishDraft(){
   const items=[],missed=[];
@@ -1344,14 +1365,14 @@ function finishDraft(){
 }
 
 /* ---------- views ---------- */
-const modeName=m=>({smart:'Smart Practice',guided:'Guided Practice',exam:'Practice Exam',spell:'Spelling',nfl:'Football Club'}[m]||m);
-const sessName=s=>s.mode==='spell'?'Spelling: '+((SP_GAMES[gameOf(s)]||{}).name||'practice'):s.mode==='nfl'?'Football: '+((FB_GAMES[gameOf(s)]||{}).name||'game'):modeName(s.mode);
+const modeName=m=>({smart:'Smart Practice',guided:'Guided Practice',exam:'Practice Exam',spell:'Spelling',nfl:'American Football',soc:'Soccer',geo:'Geography'}[m]||m);
+const sessName=s=>s.mode==='spell'?'Spelling: '+((SP_GAMES[gameOf(s)]||{}).name||'practice'):s.mode==='nfl'?'Football: '+gameName(gameOf(s)):s.mode==='soc'?'Soccer: '+gameName(gameOf(s)):s.mode==='geo'?'Geography: '+gameName(gameOf(s)):modeName(s.mode);
 const fbOn=()=>S.settings.football!==false;
 const syncPill=()=>`<span class="pill plain"><i class="dot ${S.sync==='live'?'':'off'}"></i>${S.sync==='live'?'Synced':'This device only'}</span>`;
 function nav(title,right){return`<div class="navbar">${syncPill()}<span class="mid">${esc(title)}</span>${right||'<span></span>'}</div>`}
 function tabbar(on){
   const t=(k,l)=>`<button class="tab ${on===k?'on':''}" data-act="nav" data-v="${k}" aria-label="${l}">${ICON[k]}<span>${l}</span></button>`;
-  return`<nav class="tabbar" aria-label="Main"><div>${t('home','Home')}${t('math','Math')}${t('spell','Spelling')}${fbOn()?t('fb','Football'):''}${t('closet','Closet')}${t('parent','Parent')}</div></nav>`;
+  return`<nav class="tabbar" aria-label="Main"><div>${t('home','Home')}${t('math','Math')}${t('spell','Spelling')}${t('geo','States')}${fbOn()?t('club','Sports'):''}${t('closet','Closet')}${t('parent','Parent')}</div></nav>`;
 }
 function homePicker(){
   return`<section class="card"><h2>Where are you practicing today?</h2><p class="mute">This helps Mom and Dad see where each session happened.</p>
@@ -1377,8 +1398,9 @@ function homeView(){
   <section class="modes">
     ${m('math','math','Math',lastMath?`Last time: ${lastMath.correct} of ${lastMath.total} right on ${fmtDate(lastMath.ts)}`:'Pick a skill or play a mix. Add, subtract and multiply.',true)}
     ${m('spell','spell','Spelling',`${esc(cur.name)}: ${mastered} of ${cur.words.length} words mastered`)}
+    ${m('geo','globe','Geography',`${geoInfo().st.length} of 50 state capitals mastered. Florida spotlight inside.`)}
   </section>
-  ${fbOn()?`<div class="sect">Just for fun</div><section class="modes">${m('fb','football','Football Club',`${nflInfo(nflSess()).teamsM.length} of 32 team cards won. Bonus prizes inside!`)}</section>`:''}
+  ${fbOn()?`<div class="sect">Just for fun</div><section class="modes">${m('club','football','Sports Club',`Soccer rules and American football teams. Bonus prizes inside!`)}</section>`:''}
   ${last?`<p class="mute" style="padding-inline:6px">Last activity: ${esc(sessName(last))}, ${last.correct} of ${last.total} on ${fmtDate(last.ts)}.</p>`:''}
   <section class="spark"><b>Professor's fact of the day</b><p>${esc(fact)}</p></section>
   <div class="sect">Your math bracelet</div>
@@ -1434,8 +1456,8 @@ function spellView(){
 function closetView(){
   const st=stats(),av=getAv(),inf=nflInfo(nflSess());
   const sw=(k,arr,label)=>`<div class="sect" style="padding-inline:0">${label}</div><div class="swatches">${arr.map((c,i)=>`<button class="swatch ${av[k]===i?'on':''}" style="background:${c}" data-act="av" data-k="${k}" data-v="${i}" aria-label="${label} ${i+1}"></button>`).join('')}</div>`;
-  const it=x=>{const un=x.nfl?nflHas(x.id,inf):st.stars>=x.at,on=x.slot==='extra'?av.extra.includes(x.id):av[x.slot]===x.id;
-    return`<button class="item ${on?'on':''} ${un?'':'lock'}" ${un?'':'disabled'} data-act="av" data-k="item" data-v="${x.id}"><b>${x.name}</b><small>${un?(on?'Wearing it':'Tap to wear'):x.nfl?`Football Club prize: ${x.nfl}`:`Unlocks at ${x.at} stars`}</small></button>`};
+  const it=x=>{const un=x.nfl?nflHas(x.id,inf):x.u?extraHas(x.id):st.stars>=x.at,on=x.slot==='extra'?av.extra.includes(x.id):av[x.slot]===x.id;
+    return`<button class="item ${on?'on':''} ${un?'':'lock'}" ${un?'':'disabled'} data-act="av" data-k="item" data-v="${x.id}"><b>${x.name}</b><small>${un?(on?'Wearing it':'Tap to wear'):x.nfl?`Football Club prize: ${x.nfl}`:x.u?`Prize: ${x.u}`:`Unlocks at ${x.at} stars`}</small></button>`};
   return nav('Closet')+`<div class="largehead"><h1>Closet</h1><p class="mute">You have <b class="num">${st.stars}</b> stars. Earn more to unlock new looks.</p></div>
   <div class="avbig"><div style="width:190px;height:206px">${avatarSvg(av)}</div></div>
   <section class="card">${sw('skin',SKIN,'Skin')}${sw('hair',HAIR,'Hair color')}
@@ -1665,7 +1687,7 @@ function fbView(){
   ];
   const prizes=[...DIVS.map(d=>[d+' champion','+10 stars',inf.divsDone.includes(d)]),['AFC champion','+25 stars and a headband',inf.confsDone.includes('AFC')],['NFC champion','+25 stars and a headband',inf.confsDone.includes('NFC')],['Hall of Fame','+50 stars for all 32 teams',inf.all]];
   const ci=x=>nflHas(x.id,inf);
-  return nav('Football Club')+`<div class="largehead"><h1>Football Club</h1><p class="mute">Just for fun, not schoolwork. Learn the teams and how the game works, and win bonus prizes.</p></div>
+  return clubNav('American Football')+`<div class="largehead"><h1>American Football</h1><p class="mute">Just for fun, not schoolwork. Learn the teams and how the game works, and win bonus prizes.</p></div>
   <section class="card"><div class="row between"><h3>Today's bonuses</h3><span class="pill">${inf.teamsM.length} of 32 teams</span></div>
     <div class="perks">${perks.map(([a,b,d])=>`<div class="perk ${d?'done':''}"><b>${a}${d?' ✓':''}</b><span>${b}</span></div>`).join('')}</div></section>
   <div class="sect">Play</div>
@@ -1674,7 +1696,7 @@ function fbView(){
   <div class="sect">Your card collection</div>
   <section class="card"><p class="mute">Master a team (right twice in a row with no help) to win its card. Gold dots are teams you are learning.</p>
   ${DIVS.map(d=>`<div class="row between"><b>${d}</b>${dprog(d,inf)}</div><div class="tcards">${teamsIn(d).map(t=>{const lv=inf.level[t.id],got=inf.mastered.has(t.id);
-    return`<div class="tcard ${got?'':'lock'}" style="--dc:${DIV_COL[t.div]}">${helmetSvg(got?DIV_COL[t.div]:'#9a9aa8')}<b>${got?esc(t.nick):'???'}</b><small>${got?esc(t.place):lv&&lv!=='n'?'Keep going!':'Not won yet'}</small></div>`}).join('')}</div>`).join('')}</section>
+    return`<div class="tcard ${got?'':'lock'}" style="--dc:${DIV_COL[t.div]}">${got?teamLogo(t):helmetSvg('#9a9aa8')}<b>${got?esc(t.nick):'???'}</b><small>${got?esc(t.place):lv&&lv!=='n'?'Keep going!':'Not won yet'}</small></div>`}).join('')}</div>`).join('')}</section>
   <div class="sect">Prizes to win</div>
   <section class="card"><div class="perks">${prizes.map(([a,b,d])=>`<div class="perk ${d?'done':''}"><b>${a}${d?' ✓':''}</b><span>${b}</span></div>`).join('')}
     ${ITEMS.filter(x=>x.nfl).map(x=>`<div class="perk ${ci(x)?'done':''}"><b>${esc(x.name)}${ci(x)?' ✓':''}</b><span>Closet prize: ${esc(x.nfl)}</span></div>`).join('')}
@@ -1682,20 +1704,20 @@ function fbView(){
   <div class="sect">Your football bracelet</div>
   <section class="card"><div class="bracelet">${nflBadges(inf).map(b=>`<div class="bead ${b.on?'':'off'}" title="${esc(b.n)}">${b.l}</div>`).join('')}</div>
     <div class="dl">${nflBadges(inf).map(b=>`<div class="${b.on?'':'off'}"><b>${b.on?'★ ':''}${esc(b.n)}</b><span>${esc(b.d)}</span></div>`).join('')}</div></section>
-  ${tabbar('fb')}`;
+  ${tabbar('club')}`;
 }
 function fbStudyView(){
   const f=S.fbDiv||'all',open=S.fbOpen||(S.fbOpen=new Set());
   const list=f==='all'?TEAMS:teamsIn(f);
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Meet the Teams</span><span style="min-width:64px"></span></div>
-  <div class="largehead"><h1>Meet the Teams</h1><p class="mute">Tap a card to flip it and hear the name. The colored edge shows the division: blue East, purple North, green South, orange West.</p></div>
+  <div class="largehead"><h1>Meet the Teams</h1><p class="mute">Tap a card to flip it, hear the name and meet the team's star players. The colored edge shows the division: blue East, purple North, green South, orange West. Rosters change, so players may switch teams.</p></div>
   <div class="seg wrap">${['all',...DIVS].map(d=>`<button class="${f===d?'on':''}" data-act="fbdiv" data-v="${d}">${d==='all'?'All 32':d}</button>`).join('')}</div>
   <section class="tcards">${list.map(t=>{const o=open.has(t.id);
-    return`<button class="tcard" style="--dc:${DIV_COL[t.div]}" data-act="fbflip" data-v="${t.id}" aria-pressed="${o}">${helmetSvg(DIV_COL[t.div])}<b>${esc(o?t.name:t.nick)}</b><small>${o?`${esc(t.place)}<br>${divOf(t)}${t.note?'<br>'+esc(t.note):''}`:'Tap to flip'}</small></button>`}).join('')}</section>`;
+    return`<button class="tcard" style="--dc:${DIV_COL[t.div]}" data-act="fbflip" data-v="${t.id}" aria-pressed="${o}">${teamLogo(t)}<b>${esc(o?t.name:t.nick)}</b><small>${o?`${esc(t.place)}<br>${divOf(t)}${t.note?'<br>'+esc(t.note):''}`:'Tap to flip'}</small>${o?`<small><b>Star players</b></small>${playersHtml(t)}`:''}</button>`}).join('')}</section>`;
 }
 function nqRunView(){
   const r=nq,q=r.qs[r.i],st=r.st[r.i],N=r.qs.length,last=r.i===N-1;
-  const top=`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Exit</button><span class="mid">${esc(FB_GAMES[r.game].name)}</span><span style="min-width:64px"></span></div>`;
+  const top=`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Exit</button><span class="mid">${esc(gameName(r.game))}</span><span style="min-width:64px"></span></div>`;
   const goals=r.st.filter(s=>s.ok).length,f=(r.i+(st.done?1:0))/N;
   const opts=q.opts.map((o,i)=>{let cls='choice';if(st.wrong.includes(o))cls+=' bad';if(st.done&&o===q.ans)cls+=' ok';
     return`<button class="${cls}" data-act="nqpick" data-v="${i}" ${st.done||st.wrong.includes(o)?'disabled':''}>${esc(o)}</button>`}).join('');
@@ -1722,22 +1744,435 @@ function fdRunView(){
 }
 function fbResView(){
   const x=fbres,s=x.sess,p=pct(s);
-  const msg=p>=90?'All-star game! You really know your football.':p>=70?'Strong game. Keep building your collection.':'Good effort. Every game teaches you something new.';
+  const sub=x.sport==='soc'?'soccer':x.sport==='geo'?'geography':'football';
+  const msg=p>=90?`All-star game! You really know your ${sub}.`:p>=70?'Strong game. Keep building your progress.':'Good effort. Every game teaches you something new.';
   const wins=[
     ...x.cards.map(n=>`New card: ${n}`),...x.divs.map(d=>`${d} champion! Bonus stars added.`),...x.confs.map(c=>`${c} champion! Bonus stars and a prize.`),
     ...(x.allNow?['Hall of Fame! You mastered all 32 teams.']:[]),...(x.rulesNew>0&&x.milestone>0&&!x.divs.length&&!x.confs.length?['Rules bonus earned!']:[]),
     ...x.items.map(n=>`New in your closet: ${n}`),...x.stops.map(n=>`Your broom reached ${n}!`)
   ];
-  return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Final whistle!</span><span style="min-width:64px"></span></div>
-  <section class="card"><h2>${esc(FB_GAMES[x.game].name)} complete!</h2>
+  return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">${x.sport==='geo'?'Quiz complete!':'Final whistle!'}</span><span style="min-width:64px"></span></div>
+  <section class="card"><h2>${esc(gameName(x.game))} complete!</h2>
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
   <div><div class="bigscore"><span style="color:var(--gold)">★</span> +${s.stars+(x.milestone||0)}</div><span class="mute">stars earned</span></div></div>
   <p>${msg}</p>
-  ${x.aw.capped?`<div class="fb try">You already earned stars in ${NFL_DAILY} games today. This one still counts toward your cards and prizes!</div>`
+  ${x.aw.capped?`<div class="fb try">You already earned stars in ${NFL_DAILY} games today. This one still counts toward your prizes!</div>`
     :`<div class="card" style="box-shadow:inset 0 0 0 1px var(--line);padding:14px;gap:6px"><h3>Bonus breakdown</h3>${x.aw.parts.map(([a,n])=>`<div class="bk"><span>${esc(a)}</span><span class="num">+${n}</span></div>`).join('')}${x.milestone?`<div class="bk"><span>Collection prize</span><span class="num">+${x.milestone}</span></div>`:''}</div>`}
   ${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
   ${x.missed.length?`<h3>Let's look at these</h3>${x.missed.map(m=>`<details><summary>${esc(m.prompt)}</summary><p style="margin-top:8px"><b>${esc(m.ans)}</b>. ${esc(m.why)}</p></details>`).join('')}`:'<div class="fb good">No misses. Perfect!</div>'}
   <div class="row"><button class="btn" data-act="fbstart" data-v="${x.game}">Play again</button><button class="btn tint" data-act="exit">Done</button></div></section>`;
+}
+
+/* ===== sports club + geography: data ===== */
+/* team logo badges (original artwork in team colors, not the official logos) and star players. Rosters change, so these are a snapshot. */
+const POS={QB:'Quarterback',RB:'Running back',WR:'Wide receiver',TE:'Tight end',OT:'Offensive tackle',DE:'Defensive end',DT:'Defensive tackle',OLB:'Outside linebacker',LB:'Linebacker',EDGE:'Edge rusher',CB:'Cornerback',S:'Safety'};
+const TEAM_X={
+  buf:['BUF','#00338D','#C60C30',[['Josh Allen','QB',17],['James Cook','RB',4],['Khalil Shakir','WR',10]]],
+  mia:['MIA','#008E97','#FC4C02',[['Jaylen Waddle','WR',17],['De\'Von Achane','RB',28],['Zach Sieler','DT',92]]],
+  ne:['NE','#002244','#C60C30',[['Drake Maye','QB',10],['Rhamondre Stevenson','RB',38],['Christian Gonzalez','CB',0]]],
+  nyj:['NYJ','#125740','#FFFFFF',[['Garrett Wilson','WR',17],['Breece Hall','RB',20],['Will McDonald IV','EDGE',99]]],
+  bal:['BAL','#241773','#9E7C0C',[['Lamar Jackson','QB',8],['Derrick Henry','RB',22],['Kyle Hamilton','S',14]]],
+  cin:['CIN','#FB4F14','#000000',[['Joe Burrow','QB',9],['Ja\'Marr Chase','WR',1],['Tee Higgins','WR',5]]],
+  cle:['CLE','#FF3C00','#311D00',[['Myles Garrett','DE',95],['Shedeur Sanders','QB',12],['Quinshon Judkins','RB',1]]],
+  pit:['PIT','#FFB612','#101820',[['T.J. Watt','OLB',90],['DK Metcalf','WR',4],['Jaylen Warren','RB',30]]],
+  hou:['HOU','#03202F','#A71930',[['C.J. Stroud','QB',7],['Nico Collins','WR',12],['Will Anderson Jr.','DE',51]]],
+  ind:['IND','#002C5F','#FFFFFF',[['Jonathan Taylor','RB',28],['Daniel Jones','QB',17],['Quenton Nelson','OT',56]]],
+  jax:['JAX','#006778','#D7A22A',[['Trevor Lawrence','QB',16],['Travis Etienne Jr.','RB',1],['Brian Thomas Jr.','WR',7]]],
+  ten:['TEN','#4B92DB','#0C2340',[['Cam Ward','QB',1],['Calvin Ridley','WR',0],['Jeffery Simmons','DT',98]]],
+  den:['DEN','#FB4F14','#002244',[['Bo Nix','QB',10],['Patrick Surtain II','CB',2],['Courtland Sutton','WR',14]]],
+  kc:['KC','#E31837','#FFB81C',[['Patrick Mahomes','QB',15],['Travis Kelce','TE',87],['Chris Jones','DT',95]]],
+  lv:['LV','#000000','#A5ACAF',[['Brock Bowers','TE',89],['Maxx Crosby','DE',98],['Ashton Jeanty','RB',2]]],
+  lac:['LAC','#0080C6','#FFC20E',[['Justin Herbert','QB',10],['Derwin James Jr.','S',3],['Quentin Johnston','WR',1]]],
+  dal:['DAL','#003594','#869397',[['Dak Prescott','QB',4],['CeeDee Lamb','WR',88],['George Pickens','WR',3]]],
+  nyg:['NYG','#0B2265','#A71930',[['Jaxson Dart','QB',6],['Malik Nabers','WR',1],['Abdul Carter','EDGE',51]]],
+  phi:['PHI','#004C54','#A5ACAF',[['Jalen Hurts','QB',1],['Saquon Barkley','RB',26],['Jalen Carter','DT',98]]],
+  was:['WAS','#5A1414','#FFB612',[['Jayden Daniels','QB',5],['Terry McLaurin','WR',17]]],
+  chi:['CHI','#0B162A','#C83803',[['Caleb Williams','QB',18],['D\'Andre Swift','RB',4],['Rome Odunze','WR',15]]],
+  det:['DET','#0076B6','#B0B7BC',[['Jared Goff','QB',16],['Amon-Ra St. Brown','WR',14],['Aidan Hutchinson','DE',97]]],
+  gb:['GB','#203731','#FFB612',[['Jordan Love','QB',10],['Micah Parsons','LB',1],['Jayden Reed','WR',11]]],
+  min:['MIN','#4F2683','#FFC62F',[['J.J. McCarthy','QB',9],['Justin Jefferson','WR',18],['Jordan Addison','WR',3]]],
+  atl:['ATL','#A71930','#000000',[['Bijan Robinson','RB',7],['Drake London','WR',5]]],
+  car:['CAR','#0085CA','#101820',[['Bryce Young','QB',9],['Tetairoa McMillan','WR',4],['Derrick Brown','DT',95]]],
+  no:['NO','#D3BC8D','#101820',[['Chris Olave','WR',12],['Alvin Kamara','RB',41],['Tyler Shough','QB',8]]],
+  tb:['TB','#D50A0A','#34302B',[['Baker Mayfield','QB',6],['Bucky Irving','RB',7],['Antoine Winfield Jr.','S',31]]],
+  ari:['ARI','#97233F','#000000',[['Marvin Harrison Jr.','WR',18],['Trey McBride','TE',85]]],
+  lar:['LAR','#003594','#FFA300',[['Matthew Stafford','QB',9],['Puka Nacua','WR',12],['Kyren Williams','RB',23]]],
+  sf:['SF','#AA0000','#B3995D',[['Brock Purdy','QB',13],['George Kittle','TE',85],['Nick Bosa','DE',97]]],
+  sea:['SEA','#002244','#69BE28',[['Sam Darnold','QB',14],['Jaxon Smith-Njigba','WR',11],['Devon Witherspoon','CB',21]]]
+};
+TEAMS.forEach(t=>{const x=TEAM_X[t.id];t.abbr=x[0];t.c1=x[1];t.c2=x[2];t.pl=x[3].map(p=>({name:p[0],pos:p[1],num:p[2]}))});
+const lum=h=>{const n=parseInt(h.slice(1),16);return(.299*(n>>16)+.587*((n>>8)&255)+.114*(n&255))/255};
+function teamLogo(t){
+  const ink=lum(t.c1)>.55?'#1A1A1A':'#FFFFFF';
+  return`<svg viewBox="0 0 48 40" aria-hidden="true"><path d="M5 22C5 10 14 4 26 4C37 4 44 12 44 23V29H21L16 34H9L7 27Z" fill="${t.c1}" stroke="${t.c2}" stroke-width="2"/><path d="M12 10C19 6 31 6 38 12" stroke="${t.c2}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M22 27H42M24 32H40" stroke="${t.c2}" stroke-width="2" stroke-linecap="round"/><text x="25" y="22" text-anchor="middle" font-size="${t.abbr.length>2?8:9.5}" font-weight="800" fill="${ink}" style="font-family:Inter,system-ui,sans-serif">${t.abbr}</text></svg>`;
+}
+const playersHtml=t=>`<span class="pls">${t.pl.map(p=>`<span class="plr"><i>#${p.num}</i>${esc(p.name)}<em>${esc(POS[p.pos]||p.pos)}</em></span>`).join('')}</span>`;
+
+/* ---------- soccer ---------- */
+const SOC_GAMES={
+  sall:{name:'Soccer Quiz',d:'10 questions mixing rules, positions and spacing.',ic:'ball',lead:1},
+  srule:{name:'Rules Quiz',d:'How the game is played, from throw-ins to offside.',ic:'whistle'},
+  spos:{name:'Positions Quiz',d:'Who plays where, and what each player does.',ic:'cards'},
+  sspace:{name:'Spacing Quiz',d:'Where to stand to help your team.',ic:'puzzle'}
+};
+const SOC_CAT={sall:'all',srule:'rule',spos:'pos',sspace:'space'};
+const SQ=(id,c,q,opts,a,why)=>({id,c,q,opts,a,why});
+const SOCQ=[
+  SQ('goal','rule','How does a team score a goal?',['The whole ball crosses the goal line between the posts and under the bar','The ball touches the net','The ball hits the post','The goalkeeper kicks it away'],'The whole ball crosses the goal line between the posts and under the bar','The whole ball has to cross the line, between the posts and under the crossbar.'),
+  SQ('hands','rule','Which player is allowed to use their hands in their own penalty area?',['The goalkeeper','The captain','The forwards','Any player'],'The goalkeeper','Only the goalkeeper can use hands, and only inside their own penalty area.'),
+  SQ('handball','rule','A field player touches the ball on purpose with their hand or arm. What happens?',['The other team gets a free kick','Nothing','The ball goes out of play','That player scores'],'The other team gets a free kick','Handball is a foul. The other team gets a free kick.'),
+  SQ('throwin','rule','The whole ball goes over the sideline. How does play restart?',['A throw-in','A corner kick','A goal kick','A kickoff'],'A throw-in','The team that did not touch the ball last gets the throw-in.'),
+  SQ('thtech','rule','How do you take a throw-in?',['Two hands, from behind and over your head, with both feet on the ground','One hand, like a baseball','Kick it back in','Roll it with your foot'],'Two hands, from behind and over your head, with both feet on the ground','A good throw-in uses two hands, the ball goes from behind your head, and both feet stay on the ground.'),
+  SQ('gk','rule','The ball crosses the end line (not in the goal) and an attacker touched it last. The defense gets a...',['Goal kick','Corner kick','Throw-in','Penalty kick'],'Goal kick','When the attackers send the ball over the end line, the defense restarts with a goal kick.'),
+  SQ('corner','rule','The ball crosses the end line (not in the goal) and a defender touched it last. The attackers get a...',['Corner kick','Goal kick','Throw-in','Free kick'],'Corner kick','A corner kick is taken from the corner arc, a great chance to score.'),
+  SQ('kickoff','rule','Where does the ball start at the beginning of each half?',['On the center spot','On the penalty spot','In the corner','On the goal line'],'On the center spot','Kickoff happens at the center of the field, and again after a goal.'),
+  SQ('half','rule','About how long is each half for 9 and 10 year olds in 7v7 games?',['25 minutes','10 minutes','45 minutes','90 minutes'],'25 minutes','U.S. Soccer suggests two 25 minute halves at this age. Your league may be a little different.'),
+  SQ('seven','rule','How many players does each team have on the field in 7v7, including the goalkeeper?',['7','11','9','5'],'7','Six field players and one goalkeeper make 7.'),
+  SQ('foul','rule','A player trips another player on purpose. What does the referee give?',['A free kick to the other team','A throw-in','A corner kick','Nothing'],'A free kick to the other team','Tripping, pushing, holding and kicking are fouls.'),
+  SQ('yellow','rule','What does a yellow card mean?',['A warning','The player must leave the game','The ball is out','Time out'],'A warning','A yellow card is a caution. The player can keep playing.'),
+  SQ('red','rule','What does a red card mean?',['The player must leave the field','A warning','A free substitution','The ball is out'],'The player must leave the field','A red card means the player is sent off and the team plays with one fewer.'),
+  SQ('off','rule','You are in an offside position when you are closer to the other goal than the ball and than...',['The second-to-last defender','Your own goalkeeper','The corner flag','The center circle'],'The second-to-last defender','In 7v7 the build-out line is often used to judge offside. Offside is only called when the ball is played to you.'),
+  SQ('offno','rule','You can never be offside when you receive the ball directly from a...',['Throw-in','Pass from a teammate','Long pass','Back pass'],'Throw-in','You cannot be offside from a throw-in, a goal kick or a corner kick.'),
+  SQ('head','rule','In youth 7v7 games, what is not allowed?',['Heading the ball on purpose','Passing the ball','Dribbling the ball','Throwing the ball in'],'Heading the ball on purpose','Players this age do not head the ball in games. It keeps young players safe.'),
+  SQ('bol','rule','The goalkeeper picks up the ball. What do the other team\'s players do at this age?',['Retreat behind the build-out line','Run at the goalkeeper','Sit down','Switch sides'],'Retreat behind the build-out line','The build-out line gives the goalkeeper time and space to start a pass.'),
+  SQ('gkthrow','rule','With the ball in her hands, how can a 7v7 goalkeeper restart play?',['Throw it, roll it or pass it','Punt it as far as possible','Drop kick it','Keep it for 30 seconds'],'Throw it, roll it or pass it','Many youth leagues do not allow punts so teams learn to play out from the back.'),
+  SQ('sub','rule','Can players be substituted during a game?',['Yes, when play is stopped','Never','Only at halftime','Only if someone is hurt'],'Yes, when play is stopped','Youth games allow many substitutions so everyone gets to play.'),
+  SQ('pk','rule','The defense fouls inside their own penalty area. The attackers get a...',['Penalty kick','Corner kick','Goal kick','Throw-in'],'Penalty kick','A penalty kick is a one-on-one shot against the goalkeeper from the penalty spot.'),
+  SQ('fair','rule','After the game, what do good sports do?',['Shake hands and say good game','Argue with the referee','Leave right away','Complain about the score'],'Shake hands and say good game','Fair play and respect come first.'),
+  SQ('gkpos','pos','Who is the last line of defense and can use hands inside the penalty area?',['Goalkeeper','Striker','Midfielder','Winger'],'Goalkeeper','The goalkeeper guards the goal.'),
+  SQ('def','pos','What is the main job of a defender?',['Stop the other team from scoring','Score all the goals','Throw in the ball','Be the referee'],'Stop the other team from scoring','Defenders protect the goal and win the ball back.'),
+  SQ('mid','pos','Which players help both attack and defense and connect the team?',['Midfielders','Goalkeepers','Referees','Substitutes'],'Midfielders','Midfielders do a lot of running. They link the defenders and the forwards.'),
+  SQ('fwd','pos','Which players play closest to the other goal and try to score?',['Forwards (strikers)','Defenders','Goalkeepers','Fullbacks'],'Forwards (strikers)','Forwards, also called strikers, lead the attack.'),
+  SQ('f1','pos','A 1-2-3-1 formation has how many defenders?',['2','1','3','4'],'2','Read the numbers from back to front: 1 goalkeeper, 2 defenders, 3 midfielders, 1 forward.'),
+  SQ('f2','pos','In a 1-2-3-1 formation, how many midfielders are there?',['3','2','1','4'],'3','1 goalkeeper, 2 defenders, 3 midfielders, 1 forward.'),
+  SQ('f3','pos','In a 1-3-2-1 formation, how many defenders are there?',['3','2','1','4'],'3','1 goalkeeper, 3 defenders, 2 midfielders, 1 forward.'),
+  SQ('fsum','pos','The numbers in a 7v7 formation like 1-2-3-1 add up to...',['7','6','11','10'],'7','The goalkeeper counts too, so every 7v7 formation adds up to 7.'),
+  SQ('wing','pos','A wide midfielder who plays near the sideline is often called a...',['Winger','Keeper','Striker','Referee'],'Winger','Wingers use the width of the field to stretch the other team.'),
+  SQ('fb','pos','Defenders who play on the left or right side are called...',['Fullbacks','Strikers','Goalkeepers','Captains'],'Fullbacks','Left back and right back are fullbacks.'),
+  SQ('cb','pos','Defenders who play in the middle are called...',['Center backs','Wingers','Strikers','Keepers'],'Center backs','Center backs guard the middle, right in front of the goal.'),
+  SQ('cap','pos','Who wears the armband and talks to the referee for the team?',['The captain','The coach','A fan','The ball boy'],'The captain','The captain leads the team and shows good sportsmanship.'),
+  SQ('kit','pos','Why does the goalkeeper wear a different color shirt?',['So everyone can see who can use their hands','To look cool','Because it is lucky','To hide from the ball'],'So everyone can see who can use their hands','A different color helps the referee and players spot the goalkeeper.'),
+  SQ('allatk','pos','When your team wins the ball, which players should help attack?',['Everyone, not just the forwards','Only the goalkeeper','Only the forwards','Nobody'],'Everyone, not just the forwards','Soccer is a team game. Everyone attacks and everyone defends.'),
+  SQ('tri','space','Your teammate has the ball. Where is a good place to stand?',['A few steps away at an angle so they can pass to you','Right behind them in a straight line','Far across the field','Right next to them'],'A few steps away at an angle so they can pass to you','Standing at an angle makes a triangle and gives your teammate a clear pass.'),
+  SQ('bunch','space','What is it called when all the players crowd around the ball?',['Bunching up','Spreading out','Offside','A corner'],'Bunching up','When everyone bunches up, one pass can beat the whole group.'),
+  SQ('big','space','Your team has the ball. What should your team do?',['Spread out wide to make the field big','Stand close together near the ball','Stand in one line','Stay in the goal'],'Spread out wide to make the field big','Space makes it easier to pass and dribble.'),
+  SQ('small','space','The other team has the ball. What should your team do?',['Stay close together and make the field small','Spread out as far as possible','Walk off the field','Stand near the sideline'],'Stay close together and make the field small','Less space for the other team means it is harder for them to pass and shoot.'),
+  SQ('goalside','space','A good defender stands between the attacker and...',['Your goal','The corner flag','The bench','The center circle'],'Your goal','Staying goal side means the attacker has to get past you to score.'),
+  SQ('dist','space','About how far apart should teammates be so passes are easy in 7v7?',['About 10 yards','Right next to each other','Across the whole field','50 yards'],'About 10 yards','Close enough to pass, far enough to leave space.'),
+  SQ('width','space','Why do wingers stay near the sidelines when attacking?',['To stretch the defense and open space in the middle','They are lost','To rest','To block the referee'],'To stretch the defense and open space in the middle','Wide players pull defenders out of the middle.'),
+  SQ('move','space','After you pass the ball, what should you do?',['Move to a new open space','Stand still and watch','Sit down','Leave the field'],'Move to a new open space','Pass and move. Moving gives your teammate another pass.'),
+  SQ('look','space','Before the ball comes to you, what is smart to do?',['Look around to see where the space and defenders are','Close your eyes','Turn your back','Walk away'],'Look around to see where the space and defenders are','Looking early helps you decide what to do before the ball arrives.'),
+  SQ('first','space','Which defender goes to the ball first?',['The closest defender','The goalkeeper','The player farthest away','Everyone at once'],'The closest defender','The first defender pressures the ball while teammates get into position.'),
+  SQ('cover','space','What does it mean to give cover behind the first defender?',['Stand behind them to help if they get beaten','Cover your eyes','Hide the ball with a jacket','Stand in front of them'],'Stand behind them to help if they get beaten','Cover is the helper standing behind the first defender.'),
+  SQ('thirds','space','The field has three parts: the defending third, the middle third and the...',['Attacking third','Scoring box','Sideline','Bench'],'Attacking third','The attacking third is the part closest to the goal you are trying to score in.'),
+  SQ('gkstand','space','Where does the goalkeeper stand?',['In the goal, a little off the line, ready to move','Behind the goal','At the corner flag','On the bench'],'In the goal, a little off the line, ready to move','Standing a little in front of the line helps the goalkeeper cover more of the goal.')
+];
+
+/* diagrams */
+function fieldSvg(o){
+  const ln='stroke="#fff" stroke-width=".9" fill="none"',font='style="font-family:Inter,system-ui,sans-serif"';
+  let g='<rect x="0" y="0" width="100" height="140" rx="3" fill="#2E8B57"/>';
+  for(let i=0;i<7;i+=2)g+=`<rect x="5" y="${(5+i*18.57).toFixed(1)}" width="90" height="18.57" fill="#fff" opacity=".07"/>`;
+  g+=`<g ${ln}><rect x="5" y="5" width="90" height="130"/><path d="M5 70H95"/><circle cx="50" cy="70" r="10"/><rect x="25" y="5" width="50" height="22"/><rect x="25" y="113" width="50" height="22"/><rect x="38" y="5" width="24" height="9"/><rect x="38" y="126" width="24" height="9"/><path d="M42 5V1.5H58V5M42 135V138.5H58V135"/></g><circle cx="50" cy="70" r="1" fill="#fff"/>`;
+  if(o.bol)g+=`<path d="M5 48.5H95M5 91.5H95" stroke="#FFD24D" stroke-width=".9" stroke-dasharray="3 2"/>`;
+  (o.lines||[]).forEach(l=>{g+=`<path d="M${l[0]} ${l[1]}L${l[2]} ${l[3]}" stroke="${l[4]||'#fff'}" stroke-width="1.1" ${l[5]?'stroke-dasharray="2.5 2"':''} opacity=".92"/>`});
+  (o.pl||[]).forEach(p=>{g+=`<circle cx="${p[0]}" cy="${p[1]}" r="5.2" fill="${p[3]||'#2B4590'}" stroke="#fff" stroke-width="1"/><text x="${p[0]}" y="${p[1]+1.5}" text-anchor="middle" font-size="4" font-weight="800" fill="#fff" ${font}>${p[2]}</text>`});
+  if(o.ball)g+=`<circle cx="${o.ball[0]}" cy="${o.ball[1]}" r="2.6" fill="#fff" stroke="#222" stroke-width=".7"/>`;
+  (o.txt||[]).forEach(t=>{g+=`<text x="${t[0]}" y="${t[1]}" text-anchor="middle" font-size="${t[3]||3.8}" font-weight="800" fill="${t[4]||'#fff'}" ${font}>${t[2]}</text>`});
+  return`<svg class="field" viewBox="0 0 100 140" role="img" aria-label="${esc(o.alt||'Soccer field')}">${g}</svg>`;
+}
+const KP='#E3A21A',OPP='#B8283A';
+const D_FIELD=fieldSvg({alt:'A soccer field with its lines',txt:[[50,11.5,'goal area',3.4],[50,24.5,'penalty area',3.4],[84,68,'halfway line',3.4],[50,86,'center circle',3.4],[50,122,'penalty area',3.4]]});
+const D_FORM1=fieldSvg({alt:'The 1-2-3-1 formation',pl:[[50,126,'GK',KP],[32,104,'LB'],[68,104,'RB'],[20,84,'LM'],[50,86,'CM'],[80,84,'RM'],[50,52,'ST']],txt:[[50,16,'Attack this way',3.6]]});
+const D_FORM2=fieldSvg({alt:'The 1-3-2-1 formation',pl:[[50,126,'GK',KP],[22,104,'LB'],[50,108,'CB'],[78,104,'RB'],[34,84,'CM'],[66,84,'CM'],[50,52,'ST']],txt:[[50,16,'Attack this way',3.6]]});
+const D_TRI=fieldSvg({alt:'Three teammates making a triangle',lines:[[50,98,26,78],[50,98,74,78],[26,78,74,78]],pl:[[50,98,'1'],[26,78,'2'],[74,78,'3']],ball:[50,91.5],txt:[[50,16,'Triangles give easy passes',3.6]]});
+const D_BUNCH=fieldSvg({alt:'Players bunched up around the ball',pl:[[42,66,'1'],[56,64,'2'],[48,76,'3'],[60,74,'4'],[38,76,'5'],[70,40,'',OPP],[30,44,'',OPP],[50,30,'',OPP]],ball:[50,70],txt:[[50,16,'Bunched up: not good',3.6]]});
+const D_SPREAD=fieldSvg({alt:'Players spread out around the ball',pl:[[20,88,'1'],[50,98,'2'],[80,88,'3'],[30,60,'4'],[70,60,'5'],[70,40,'',OPP],[30,44,'',OPP],[50,30,'',OPP]],lines:[[20,88,50,98],[50,98,80,88],[20,88,30,60],[80,88,70,60],[30,60,70,60]],ball:[50,91.5],txt:[[50,16,'Spread out: great',3.6]]});
+const D_OFF=fieldSvg({alt:'Offside example',lines:[[5,28,95,28,'#FFD24D',1]],pl:[[50,14,'GK',OPP],[35,28,'D',OPP],[65,34,'D',OPP],[50,22,'A','#2B4590'],[80,38,'B','#2B4590'],[50,72,'P','#2B4590']],ball:[50,66],txt:[[84,26,'offside line',3.3,'#FFD24D'],[50,100,'A is closer to the goal than the ball and',3.2],[50,105,'the second-to-last defender: offside.',3.2],[50,112,'B is behind the line: onside.',3.2]]});
+const D_BOL=fieldSvg({alt:'The build-out line',bol:1,pl:[[50,126,'GK',KP],[30,108,'',undefined],[70,108,'',undefined],[30,80,'',OPP],[50,78,'',OPP],[70,80,'',OPP]],ball:[50,120],txt:[[50,86,'Build-out line',3.4,'#FFD24D'],[50,72,'Other team waits behind it',3.2],[50,24,'Same line on the other end',3.2]]});
+const SOC_LESSONS={
+  rules:[
+    {h:'The field',b:'The lines tell you where things happen. Each end has a goal area and a bigger penalty area. The halfway line splits the field, and the game starts in the center circle. The goalkeeper can use hands inside their own penalty area.',svg:D_FIELD},
+    {h:'The game',b:'Each team has 7 players: 6 field players and 1 goalkeeper. A half is about 25 minutes at your age, and the team with more goals at the end wins. Your league may use slightly different times, so listen to your coach.'},
+    {h:'Scoring',b:'A goal counts when the whole ball crosses the goal line, between the posts and under the crossbar. After a goal, the other team kicks off from the center.'},
+    {h:'Hands and heading',b:'Only the goalkeeper can use their hands, and only inside their own penalty area. Everyone else plays the ball with feet, legs, chest and body. Players your age do not head the ball in games.'},
+    {h:'Throw-in',b:'When the whole ball goes over the sideline, the team that did not touch it last gets a throw-in. Use two hands, bring the ball from behind your head, and keep both feet on the ground.'},
+    {h:'Goal kick and corner kick',b:'When the ball goes over the end line (not in the goal): if the attackers touched it last, the defense gets a goal kick. If a defender touched it last, the attackers get a corner kick from the corner arc.'},
+    {h:'Fouls and free kicks',b:'Tripping, pushing, holding, kicking and handball are fouls. The other team gets a free kick. A foul by the defense inside their own penalty area gives the attackers a penalty kick.'},
+    {h:'Cards',b:'A yellow card is a warning. A red card means the player has to leave the game. Playing fair means you almost never see one.'},
+    {h:'Offside',b:'You are offside if you are closer to the other goal than the ball and the second-to-last defender when the ball is played to you. You cannot be offside from a throw-in, goal kick or corner kick. In 7v7 the build-out line is often used to judge offside.',svg:D_OFF},
+    {h:'The build-out line',b:'In 7v7, when the goalkeeper has the ball or there is a goal kick, the other team backs up behind the build-out line (halfway between the penalty area and the halfway line). That gives your team room to pass out from the back. Goalkeepers throw, roll or pass the ball. No punting.',svg:D_BOL},
+    {h:'Fair play',b:'Say good game, help someone up, and respect the referee and your coach. Learning, effort and teamwork matter more than the score.'}
+  ],
+  pos:[
+    {h:'Formations',b:'A formation is a number code from back to front. The goalkeeper is the 1. A 1-2-3-1 means 1 goalkeeper, 2 defenders, 3 midfielders and 1 forward. That adds up to 7 players.',svg:D_FORM1},
+    {h:'Another formation',b:'A 1-3-2-1 has 1 goalkeeper, 3 defenders, 2 midfielders and 1 forward. Teams choose the shape that fits their players. Both formations are common at your age.',svg:D_FORM2},
+    {h:'Goalkeeper (GK)',b:'The last line of defense. The goalkeeper stops shots, can use hands in the penalty area, wears a different color, and starts the attack with a throw, roll or pass.'},
+    {h:'Defenders (LB, RB, CB)',b:'Defenders protect the goal. Fullbacks play on the left and right sides (LB and RB). Center backs (CB) guard the middle. They win the ball and pass it forward.'},
+    {h:'Midfielders (LM, CM, RM)',b:'Midfielders connect the defense and the attack, so they do the most running. Wide midfielders, also called wingers, use the sides of the field. Center midfielders control the middle.'},
+    {h:'Forward (ST)',b:'The forward, or striker, plays closest to the other goal and tries to score. Strikers also pressure the other team\'s defenders when they have the ball.'},
+    {h:'Everyone attacks, everyone defends',b:'When your team wins the ball, everyone helps attack. When you lose it, everyone helps defend. The captain wears an armband and talks to the referee for the team.'}
+  ],
+  space:[
+    {h:'Big field, small field',b:'When your team has the ball, spread out and make the field big. When the other team has the ball, get close together and make the field small. Space is your best friend on attack, and the other team\'s enemy on defense.'},
+    {h:'Make triangles',b:'Stand a few steps away from your teammate with the ball, at an angle. Three players make a triangle, and a triangle always gives the player with the ball a pass. Try to stay about 10 yards apart.',svg:D_TRI},
+    {h:'Do not bunch up',b:'When everyone runs to the ball, one pass beats the whole group and nobody is open. Pick a spot and let the ball come to you.',svg:D_BUNCH},
+    {h:'Spread out',b:'Spread out wide and deep so every player has a pass. Wingers stay near the sidelines to stretch the other team, which opens space in the middle.',svg:D_SPREAD},
+    {h:'Pass and move',b:'After you pass, move to a new open space. Before the ball comes to you, look over your shoulder to see where the space and the defenders are.'},
+    {h:'Defending together',b:'The closest defender goes to the ball first (the first defender). A teammate stands behind to give cover. Everyone stays goal side, between the attacker and your goal.'},
+    {h:'Thirds of the field',b:'Imagine the field in three parts: the defending third, the middle third and the attacking third. In your defending third, stay safe. In the middle, keep the ball moving. In the attacking third, be brave and shoot.'}
+  ]
+};
+
+/* ---------- geography ---------- */
+const REGIONS=['Northeast','Southeast','Midwest','Southwest','West'];
+const STATES=[
+  ['Alabama','AL','Montgomery','Southeast'],['Alaska','AK','Juneau','West'],['Arizona','AZ','Phoenix','Southwest'],['Arkansas','AR','Little Rock','Southeast'],
+  ['California','CA','Sacramento','West'],['Colorado','CO','Denver','West'],['Connecticut','CT','Hartford','Northeast'],['Delaware','DE','Dover','Southeast'],
+  ['Florida','FL','Tallahassee','Southeast'],['Georgia','GA','Atlanta','Southeast'],['Hawaii','HI','Honolulu','West'],['Idaho','ID','Boise','West'],
+  ['Illinois','IL','Springfield','Midwest'],['Indiana','IN','Indianapolis','Midwest'],['Iowa','IA','Des Moines','Midwest'],['Kansas','KS','Topeka','Midwest'],
+  ['Kentucky','KY','Frankfort','Southeast'],['Louisiana','LA','Baton Rouge','Southeast'],['Maine','ME','Augusta','Northeast'],['Maryland','MD','Annapolis','Southeast'],
+  ['Massachusetts','MA','Boston','Northeast'],['Michigan','MI','Lansing','Midwest'],['Minnesota','MN','Saint Paul','Midwest'],['Mississippi','MS','Jackson','Southeast'],
+  ['Missouri','MO','Jefferson City','Midwest'],['Montana','MT','Helena','West'],['Nebraska','NE','Lincoln','Midwest'],['Nevada','NV','Carson City','West'],
+  ['New Hampshire','NH','Concord','Northeast'],['New Jersey','NJ','Trenton','Northeast'],['New Mexico','NM','Santa Fe','Southwest'],['New York','NY','Albany','Northeast'],
+  ['North Carolina','NC','Raleigh','Southeast'],['North Dakota','ND','Bismarck','Midwest'],['Ohio','OH','Columbus','Midwest'],['Oklahoma','OK','Oklahoma City','Southwest'],
+  ['Oregon','OR','Salem','West'],['Pennsylvania','PA','Harrisburg','Northeast'],['Rhode Island','RI','Providence','Northeast'],['South Carolina','SC','Columbia','Southeast'],
+  ['South Dakota','SD','Pierre','Midwest'],['Tennessee','TN','Nashville','Southeast'],['Texas','TX','Austin','Southwest'],['Utah','UT','Salt Lake City','West'],
+  ['Vermont','VT','Montpelier','Northeast'],['Virginia','VA','Richmond','Southeast'],['Washington','WA','Olympia','West'],['West Virginia','WV','Charleston','Southeast'],
+  ['Wisconsin','WI','Madison','Midwest'],['Wyoming','WY','Cheyenne','West']
+].map(a=>({name:a[0],ab:a[1],cap:a[2],reg:a[3]}));
+const FLFACTS=[
+  ['Capital','Tallahassee, in the northern part of the state called the Panhandle.'],
+  ['Nickname','The Sunshine State.'],
+  ['Became a state','March 3, 1845. Florida was the 27th state.'],
+  ['Biggest city','Jacksonville is the largest city in Florida by population. Miami, Tampa and Orlando are also big.'],
+  ['Shape','Florida is a peninsula with the Atlantic Ocean on the east and the Gulf of Mexico on the west. It borders only two states: Georgia and Alabama.'],
+  ['State symbols','Bird: northern mockingbird. Flower: orange blossom. Tree: sabal palm. Animal: Florida panther. Marine mammal: manatee. Reptile: American alligator.'],
+  ['Everglades','The Everglades are a huge, slow-moving river of grass and wetlands, home to alligators, birds and the Florida panther.'],
+  ['Space','Rockets launch from Kennedy Space Center at Cape Canaveral on Florida\'s Space Coast.'],
+  ['Oldest city','St. Augustine, founded by Spain in 1565, is the oldest city in the U.S. founded by Europeans that is still lived in today.'],
+  ['St. Johns River','This long river flows north, which is unusual. It runs through Jacksonville and out to the Atlantic Ocean.'],
+  ['Weather','Warm all year. Hurricane season runs from June 1 to November 30, so Florida families make a plan.'],
+  ['Key West','The southernmost city in the continental U.S., at the end of the Florida Keys.'],
+  ['Counties','Florida has 67 counties.'],
+  ['Famous fruit','Florida is famous for oranges, and orange juice is the official state beverage.']
+];
+const FLQ=[
+  SQ('cap','f','What is the capital of Florida?',['Tallahassee','Miami','Orlando','Jacksonville'],'Tallahassee','Tallahassee is Florida\'s capital, in the Panhandle.'),
+  SQ('nick','f','Florida\'s nickname is the...',['Sunshine State','Peach State','Lone Star State','Golden State'],'Sunshine State','Florida is the Sunshine State.'),
+  SQ('big','f','Which is the largest city in Florida by population?',['Jacksonville','Miami','Tampa','Orlando'],'Jacksonville','Jacksonville in northeast Florida is the biggest city in the state.'),
+  SQ('bird','f','What is Florida\'s state bird?',['Northern mockingbird','Flamingo','Pelican','Cardinal'],'Northern mockingbird','The northern mockingbird is the state bird.'),
+  SQ('flower','f','What is Florida\'s state flower?',['Orange blossom','Sunflower','Rose','Daisy'],'Orange blossom','The orange blossom is the state flower. Oranges are a big Florida crop.'),
+  SQ('animal','f','Which of these is the Florida state animal?',['Florida panther','Grizzly bear','Moose','Buffalo'],'Florida panther','The Florida panther is a rare big cat that lives in southern Florida.'),
+  SQ('tree','f','What is Florida\'s state tree?',['Sabal palm','Maple','Redwood','Aspen'],'Sabal palm','The sabal palm (cabbage palm) is the state tree.'),
+  SQ('ever','f','The Everglades are a huge...',['Wetland with slow-moving water and sawgrass','Desert','Snowy mountain range','Frozen lake'],'Wetland with slow-moving water and sawgrass','The Everglades are a one-of-a-kind wetland in south Florida.'),
+  SQ('space','f','Rockets launch from Kennedy Space Center near...',['Cape Canaveral','Key West','Pensacola','Tallahassee'],'Cape Canaveral','Kennedy Space Center is on Florida\'s Space Coast.'),
+  SQ('staug','f','Which Florida city was founded in 1565 and is the oldest city in the U.S. founded by Europeans?',['St. Augustine','Miami','Tampa','Orlando'],'St. Augustine','Spain founded St. Augustine in 1565.'),
+  SQ('fruit','f','Which fruit is Florida famous for?',['Oranges','Cranberries','Maple syrup','Apples only'],'Oranges','Florida grows more oranges than any other state except California, and orange juice is the state beverage.'),
+  SQ('hur','f','Florida\'s hurricane season runs from June 1 to...',['November 30','August 31','December 25','March 1'],'November 30','Hurricane season lasts about six months.'),
+  SQ('border','f','Which two states border Florida by land?',['Georgia and Alabama','Texas and Louisiana','Georgia and South Carolina','Alabama and Mississippi'],'Georgia and Alabama','Florida touches Georgia to the north and Alabama to the northwest.'),
+  SQ('gulf','f','Florida is a peninsula. The Atlantic Ocean is on the east. What water is on the west?',['Gulf of Mexico','Pacific Ocean','Arctic Ocean','Great Lakes'],'Gulf of Mexico','The Gulf of Mexico is west of Florida.'),
+  SQ('stj','f','The St. Johns River is unusual because it flows...',['North','South','Uphill','Backward when it rains'],'North','Most rivers in the U.S. flow south. The St. Johns flows north.'),
+  SQ('27','f','Florida became which state in 1845?',['27th','13th','50th','1st'],'27th','Florida joined the Union as the 27th state.'),
+  SQ('kw','f','Key West is the southernmost city in the...',['Continental United States','World','Midwest','Pacific'],'Continental United States','Key West is at the end of the Florida Keys.'),
+  SQ('mana','f','What gentle sea animal, nicknamed the sea cow, is the Florida state marine mammal?',['Manatee','Walrus','Orca','Penguin'],'Manatee','Manatees visit Florida\'s warm springs and rivers in winter.')
+];
+const GEO_GAMES={
+  gcap:{name:'Capital Quiz',d:'Which city is the capital of each state?',ic:'cards',lead:1},
+  gstate:{name:'Which State?',d:'You get the capital. Name the state.',ic:'puzzle'},
+  gab:{name:'State Abbreviations',d:'Match each state to its two-letter mail code.',ic:'pencil'},
+  gfl:{name:'Florida Facts',d:'Our home state: capital, symbols, places and history.',ic:'check'}
+};
+
+/* ===== sports club + geography: logic and screens ===== */
+ICON.club=ICON.fb;
+ICON.geo='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 12h19M12 2.5c3.4 3.2 3.4 16.8 0 19M12 2.5c-3.4 3.2-3.4 16.8 0 19" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+ICON.globe=ICON.geo;
+const gameName=g=>(FB_GAMES[g]||SOC_GAMES[g]||GEO_GAMES[g]||{}).name||'Game';
+const socSess=()=>S.sessions.filter(s=>s.mode==='soc');
+const geoSess=()=>S.sessions.filter(s=>s.mode==='geo');
+const REGCOL={Northeast:'#3AB6FF',Southeast:'#27C28A',Midwest:'#E3B94F',Southwest:'#FF9A3C',West:'#8E5CFF'};
+const mcOpts=(ans,pool)=>shuffle([ans,...shuffle([...new Set(pool)].filter(x=>x!==ans)).slice(0,3)]);
+
+function socInfo(){
+  const inf=nflInfo(socSess()),m=q=>inf.mastered.has('s:'+q.id);
+  const done=c=>SOCQ.filter(q=>q.c===c&&m(q)).length;
+  return{inf,n:SOCQ.filter(m).length,rule:done('rule'),pos:done('pos'),space:done('space')};
+}
+function geoInfo(){
+  const inf=nflInfo(geoSess());
+  const st=STATES.filter(s=>inf.mastered.has('g:'+s.ab)),fl=FLQ.filter(q=>inf.mastered.has('f:'+q.id));
+  const regDone=REGIONS.filter(r=>STATES.filter(s=>s.reg===r).every(s=>inf.mastered.has('g:'+s.ab)));
+  return{inf,st,fl,regDone};
+}
+function extraHas(id){
+  if(id==='armband')return socInfo().n>=10;
+  if(id==='goldboot')return socInfo().n>=25;
+  if(id==='compass')return geoInfo().st.length>=10;
+  if(id==='shades')return geoInfo().fl.length>=10;
+  return false;
+}
+function socBadges(si){
+  const ss=socSess(),perfect=ss.some(s=>s.total>=4&&s.correct===s.total&&(s.items||[]).every(i=>!i.h));
+  return[
+    {l:'S',n:'First Whistle',d:'Finish your first soccer game',on:ss.length>=1},
+    {l:'O',n:'Rules Rookie',d:'Master 8 rules',on:si.rule>=8},
+    {l:'C',n:'Position Pro',d:'Master 6 position questions',on:si.pos>=6},
+    {l:'C',n:'Space Maker',d:'Master 6 spacing questions',on:si.space>=6},
+    {l:'E',n:'Perfect Game',d:'Get every answer right with no help',on:perfect},
+    {l:'R',n:'Referee Ready',d:'Master 25 soccer questions',on:si.n>=25}
+  ];
+}
+function geoBadges(gi){
+  const ss=geoSess();
+  return[
+    {l:'S',n:'First Stop',d:'Finish your first geography quiz',on:ss.length>=1},
+    {l:'T',n:'Ten States',d:'Master 10 state capitals',on:gi.st.length>=10},
+    {l:'A',n:'Region Ace',d:'Master every state in one region',on:gi.regDone.length>=1},
+    {l:'T',n:'Twenty-Five',d:'Master 25 state capitals',on:gi.st.length>=25},
+    {l:'E',n:'Florida Expert',d:'Master 10 Florida facts',on:gi.fl.length>=10},
+    {l:'S',n:'All Fifty',d:'Master all 50 state capitals',on:gi.st.length>=50}
+  ];
+}
+function pickSoc(game,n){
+  const lv=socInfo().inf.level,c=SOC_CAT[game];
+  const pool=c==='all'?SOCQ:SOCQ.filter(q=>q.c===c);
+  return weightedPick(pool,q=>LV_W[lv['s:'+q.id]||'n'],n).map(q=>({k:'s:'+q.id,c:q.c,prompt:q.q,opts:q.opts.length===4?shuffle(q.opts):q.opts,ans:q.a,why:q.why}));
+}
+function pickGeo(game){
+  const lv=geoInfo().inf.level;
+  if(game==='gfl')return weightedPick(FLQ,q=>LV_W[lv['f:'+q.id]||'n'],10).map(q=>({k:'f:'+q.id,c:'florida',prompt:q.q,opts:shuffle(q.opts),ans:q.a,why:q.why}));
+  const pre=game==='gab'?'a:':'g:';
+  return weightedPick(STATES,s=>LV_W[lv[pre+s.ab]||'n'],10).map(s=>{
+    if(game==='gcap')return{k:'g:'+s.ab,c:'capital',prompt:`What is the capital of ${s.name}?`,opts:mcOpts(s.cap,STATES.map(x=>x.cap)),ans:s.cap,why:`${s.cap} is the capital of ${s.name}.`};
+    if(game==='gstate')return{k:'g:'+s.ab,c:'state',prompt:`${s.cap} is the capital of which state?`,opts:mcOpts(s.name,STATES.map(x=>x.name)),ans:s.name,why:`${s.cap} is the capital of ${s.name}.`};
+    return{k:'a:'+s.ab,c:'abbr',prompt:`What is the mail code (abbreviation) for ${s.name}?`,opts:mcOpts(s.ab,STATES.map(x=>x.ab)),ans:s.ab,why:`${s.name} is ${s.ab}.`};
+  });
+}
+function geoAward(items){
+  const correct=items.filter(i=>i.ok).length,parts=[['Right answers',correct],['Practice bonus',3]];
+  if(items.length>=4&&items.every(i=>i.ok&&!i.h))parts.push(['Perfect game',5]);
+  return{parts,total:parts.reduce((n,p)=>n+p[1],0),capped:false};
+}
+function finishOther(sport,items,missed){
+  const before=stats().stars;
+  const aw=sport==='soc'?sportAward(socSess(),items,'Kickoff bonus'):geoAward(items);
+  const correct=items.filter(i=>i.ok).length;
+  const sess={ts:Date.now(),mode:sport,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-nq.t0)/1000)),stars:aw.total,
+    items:items.map(i=>({t:sport,g:nq.game,c:i.c,k:i.k,ok:i.ok,h:i.h||0,err:null}))};
+  const had=ITEMS.filter(x=>x.u&&extraHas(x.id)).map(x=>x.id);
+  saveSession(sess);
+  const now=stats().stars;
+  fbres={game:nq.game,sport,sess,aw,missed,cards:[],divs:[],confs:[],allNow:false,rulesNew:0,milestone:0,
+    items:ITEMS.filter(x=>x.u&&extraHas(x.id)&&!had.includes(x.id)).map(x=>x.name).concat(ITEMS.filter(x=>!x.nfl&&!x.u&&x.at>before&&x.at<=now).map(x=>x.name)),
+    stops:STOPS.filter(p=>p.at>0&&p.at>before&&p.at<=now).map(p=>p.n)};
+  S.view='fbres';render();
+}
+const clubNav=title=>`<div class="navbar"><button class="back" data-act="nav" data-v="club">${ICON.chev}Sports</button><span class="mid">${esc(title)}</span>${syncPill()}</div>`;
+const perkHtml=perks=>`<div class="perks">${perks.map(([a,b,d])=>`<div class="perk ${d?'done':''}"><b>${a}${d?' ✓':''}</b><span>${b}</span></div>`).join('')}</div>`;
+const braceletHtml=bs=>`<div class="bracelet">${bs.map(b=>`<div class="bead ${b.on?'':'off'}" title="${esc(b.n)}">${b.l}</div>`).join('')}</div><div class="dl">${bs.map(b=>`<div class="${b.on?'':'off'}"><b>${b.on?'★ ':''}${esc(b.n)}</b><span>${esc(b.d)}</span></div>`).join('')}</div>`;
+const gameBtn=(k,x)=>`<button class="mode ${x.lead?'lead':''}" data-act="fbstart" data-v="${k}"><span class="ic">${ICON[x.ic]}</span><span><h3>${x.name}</h3><span class="d">${x.d}</span></span>${ICON.next}</button>`;
+
+function clubView(){
+  const ni=nflInfo(nflSess()),si=socInfo();
+  const m=(k,ic,t,d,lead)=>`<button class="mode ${lead?'lead':''}" data-act="nav" data-v="${k}"><span class="ic">${ICON[ic]}</span><span><h3>${t}</h3><span class="d">${d}</span></span>${ICON.next}</button>`;
+  return nav('Sports Club')+`<div class="largehead"><h1>Sports Club</h1><p class="mute">Just for fun, not schoolwork. Pick a sport, learn it, and win bonus prizes.</p></div>
+  <section class="modes">
+    ${m('soc','ball','Soccer',`Rookie Rules, positions and spacing. ${si.n} of ${SOCQ.length} questions mastered.`,true)}
+    ${m('fb','football','American Football',`Meet the teams and their star players. ${ni.teamsM.length} of 32 team cards won.`)}
+  </section>
+  ${tabbar('club')}`;
+}
+function socView(){
+  const si=socInfo(),today=socSess().filter(s=>dayKey(s.ts)===fbDay()).length,left=Math.max(0,NFL_DAILY-today);
+  const perks=[
+    ['Daily double',today?'Claimed today':'+3 stars on your first game today',!!today],
+    ['Perfect game','+5 stars for no misses and no hints',false],
+    ['Hot streak','+2 stars for every 5 right in a row',false],
+    ['Star limit',left?`${left} of ${NFL_DAILY} star games left today`:'Done for today. Games still count toward your prizes!',!left]
+  ];
+  const prizes=ITEMS.filter(x=>x.u&&x.grp==='soc').map(x=>[esc(x.name),`Closet prize: ${esc(x.u)}`,extraHas(x.id)]);
+  const row=(l,n,t)=>`<div class="row between"><b>${l}</b><span class="pill plain">${n} of ${t} mastered</span></div>`;
+  const cnt=c=>SOCQ.filter(q=>q.c===c).length;
+  return clubNav('Soccer')+`<div class="largehead"><h1>Soccer</h1><p class="mute">Learn the rules, the positions and where to stand. Just for fun, not schoolwork.</p></div>
+  <section class="card"><div class="row between"><h3>Today's bonuses</h3><span class="pill">${si.n} of ${SOCQ.length} mastered</span></div>${perkHtml(perks)}</section>
+  <div class="sect">Learn</div>
+  <section class="modes"><button class="mode lead" data-act="socstudy"><span class="ic">${ICON.whistle}</span><span><h3>Rookie Rules</h3><span class="d">Rules, positions and spacing, with pictures. No score.</span></span>${ICON.next}</button></section>
+  <div class="sect">Play</div>
+  <section class="modes">${Object.entries(SOC_GAMES).map(([k,x])=>gameBtn(k,x)).join('')}</section>
+  <div class="sect">Your progress</div>
+  <section class="card"><p class="mute">A question is mastered when you get it right twice in a row with no help.</p>${row('Rules',si.rule,cnt('rule'))}${row('Positions',si.pos,cnt('pos'))}${row('Spacing',si.space,cnt('space'))}</section>
+  <div class="sect">Prizes to win</div>
+  <section class="card">${perkHtml(prizes)}</section>
+  <div class="sect">Your soccer bracelet</div>
+  <section class="card">${braceletHtml(socBadges(si))}</section>
+  ${tabbar('club')}`;
+}
+function socStudyView(){
+  const tab=S.socTab||'rules',L=SOC_LESSONS[tab];
+  return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Rookie Rules</span><span style="min-width:64px"></span></div>
+  <div class="largehead"><h1>Rookie Rules</h1><p class="mute">Read at your own speed. No score. When you are ready, try the quiz.</p></div>
+  <div class="seg">${[['rules','Rules'],['pos','Positions'],['space','Spacing']].map(([k,l])=>`<button class="${tab===k?'on':''}" data-act="soctab" data-v="${k}">${l}</button>`).join('')}</div>
+  ${L.map((c,i)=>`<section class="card lesson"><div class="sect" style="padding:0">${i+1} of ${L.length}</div><h3>${esc(c.h)}</h3><p>${esc(c.b)}</p>${c.svg||''}</section>`).join('')}
+  <div class="row"><button class="btn" data-act="fbstart" data-v="${tab==='rules'?'srule':tab==='pos'?'spos':'sspace'}">Quiz me on this</button></div>
+  <p class="mute" style="padding-inline:6px">Rules can be a little different from league to league. Your coach has the final word.</p>`;
+}
+function geoView(){
+  const gi=geoInfo(),inf=gi.inf;
+  const dot=id=>{const l=inf.level[id];return!l||l==='n'?'':l};
+  return nav('Geography')+`<div class="largehead"><h1>Geography</h1><p class="mute">All 50 states and their capitals. Master a state by getting it right twice in a row with no help.</p></div>
+  <section class="card"><div class="row between"><h3>Florida spotlight</h3><span class="pill">${gi.fl.length} of ${FLQ.length} facts</span></div>
+    <p class="mute">We live in Florida, so let's know it best.</p>
+    <div class="dl">${FLFACTS.map(([a,b])=>`<div><b>${esc(a)}</b><span>${esc(b)}</span></div>`).join('')}</div>
+    <div class="row"><button class="btn" data-act="fbstart" data-v="gfl">Florida Facts quiz</button></div></section>
+  <div class="sect">Learn</div>
+  <section class="modes"><button class="mode" data-act="geostudy"><span class="ic">${ICON.cards}</span><span><h3>State Flash Cards</h3><span class="d">Flip through all 50 states by region. No score.</span></span>${ICON.next}</button></section>
+  <div class="sect">Play</div>
+  <section class="modes">${Object.entries(GEO_GAMES).filter(([k])=>k!=='gfl').map(([k,x])=>gameBtn(k,x)).join('')}</section>
+  <div class="sect">Your state passport</div>
+  <section class="card"><div class="row between"><span class="mute">Gold means mastered.</span><span class="pill">${gi.st.length} of 50 states</span></div>
+    ${REGIONS.map(r=>{const ss=STATES.filter(s=>s.reg===r),n=ss.filter(s=>inf.mastered.has('g:'+s.ab)).length;
+      return`<div class="row between"><b>${r}</b><span class="mute num">${n}/${ss.length}</span></div><div class="wchips">${ss.map(s=>`<span class="wchip" title="${esc(s.name)}"><i class="${dot('g:'+s.ab)}"></i>${s.ab}</span>`).join('')}</div>`}).join('')}
+    <div class="legend"><span><i style="background:var(--line)"></i>New</span><span><i style="background:var(--warn)"></i>Tricky</span><span><i style="background:var(--gold)"></i>Learning</span><span><i style="background:var(--good)"></i>Mastered</span></div></section>
+  <div class="sect">Prizes to win</div>
+  <section class="card">${perkHtml(ITEMS.filter(x=>x.u&&x.grp==='geo').map(x=>[esc(x.name),`Closet prize: ${esc(x.u)}`,extraHas(x.id)]))}</section>
+  <div class="sect">Your geography bracelet</div>
+  <section class="card">${braceletHtml(geoBadges(gi))}</section>
+  ${tabbar('geo')}`;
+}
+function geoStudyView(){
+  const f=S.geoReg||'all',open=S.geoOpen||(S.geoOpen=new Set());
+  const list=f==='all'?STATES:STATES.filter(s=>s.reg===f);
+  return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">State Flash Cards</span><span style="min-width:64px"></span></div>
+  <div class="largehead"><h1>State Flash Cards</h1><p class="mute">Tap a card to flip it and hear the capital. The colored edge shows the region.</p></div>
+  <div class="seg wrap">${['all',...REGIONS].map(r=>`<button class="${f===r?'on':''}" data-act="georeg" data-v="${r}">${r==='all'?'All 50':r}</button>`).join('')}</div>
+  <section class="tcards">${list.map(s=>{const o=open.has(s.ab);
+    return`<button class="tcard" style="--dc:${REGCOL[s.reg]}" data-act="geoflip" data-v="${s.ab}" aria-pressed="${o}"><b class="num" style="font-size:1.35rem">${s.ab}</b><b>${esc(s.name)}${s.ab==='FL'?' ★':''}</b><small>${o?`Capital: ${esc(s.cap)}<br>${s.reg}${s.ab==='FL'?'<br>Our home state!':''}`:'Tap to flip'}</small></button>`}).join('')}</section>`;
+}
+function socProgress(){
+  const ss=socSess();
+  if(!ss.length)return`<section class="card"><h3>No soccer games yet</h3><p class="mute">This section is extra and separate from schoolwork. Her rules, positions and spacing progress shows up here once she plays.</p></section>`;
+  const si=socInfo(),items=ss.flatMap(s=>s.items||[]);
+  const bar=(label,p,right,low)=>`<div class="bar"><span>${label}</span><span class="track2"><span class="fill ${low?'low':''}" style="width:${p}%"></span></span><span class="num">${right}</span></div>`;
+  const cat=[['rule','Rules'],['pos','Positions'],['space','Spacing']].map(([k,l])=>{const a=items.filter(i=>i.c===k);return{l,n:a.length,c:a.filter(i=>i.ok&&!i.h).length}}).filter(x=>x.n);
+  const weak=SOCQ.filter(q=>si.inf.level['s:'+q.id]==='t');
+  return`<section class="card"><h3>Soccer (extra)</h3><p class="mute">${ss.length} games played. ${si.n} of ${SOCQ.length} questions mastered: ${si.rule} rules, ${si.pos} positions, ${si.space} spacing.</p>
+  ${cat.map(x=>bar(esc(x.l),Math.round(100*x.c/x.n),Math.round(100*x.c/x.n)+'%',x.c/x.n<.7)).join('')}</section>
+  <section class="card"><h3>Soccer questions that need work</h3>${weak.length?weak.map(q=>`<p>${esc(q.q)} <b>${esc(q.a)}</b></p>`).join(''):'<p class="mute">No tricky questions right now.</p>'}</section>`;
+}
+function sportsProgress(){return fbProgress()+socProgress()}
+function geoProgress(){
+  const ss=geoSess();
+  if(!ss.length)return`<section class="card"><h3>No geography yet</h3><p class="mute">Once Laila finishes a geography quiz, her state progress shows up here for both homes.</p></section>`;
+  const gi=geoInfo(),items=ss.flatMap(s=>s.items||[]);
+  const bar=(label,p,right,low)=>`<div class="bar"><span>${label}</span><span class="track2"><span class="fill ${low?'low':''}" style="width:${p}%"></span></span><span class="num">${right}</span></div>`;
+  const byGame=Object.keys(GEO_GAMES).map(k=>{const a=items.filter(i=>i.g===k);return{k,n:a.length,c:a.filter(i=>i.ok&&!i.h).length}}).filter(x=>x.n);
+  const weak=STATES.filter(s=>gi.inf.level['g:'+s.ab]==='t');
+  return`<section class="card"><h3>Score history</h3>${chart(ss)}</section>
+  <section class="card"><h3>States mastered</h3><p class="mute">${gi.st.length} of 50 states, ${gi.fl.length} of ${FLQ.length} Florida facts.</p>
+  ${REGIONS.map(r=>{const t=STATES.filter(s=>s.reg===r),n=t.filter(s=>gi.inf.mastered.has('g:'+s.ab)).length;return bar(r,Math.round(100*n/t.length),n+'/'+t.length)}).join('')}</section>
+  <section class="card"><h3>States that need work</h3>${weak.length?`<div class="wchips">${weak.map(s=>`<span class="wchip"><i class="t"></i>${esc(s.name)}</span>`).join('')}</div>`:'<p class="mute">No tricky states right now.</p>'}</section>
+  <section class="card"><h3>Clean answers by quiz</h3>${byGame.map(x=>bar(esc(GEO_GAMES[x.k].name),Math.round(100*x.c/x.n),Math.round(100*x.c/x.n)+'%',x.c/x.n<.7)).join('')}</section>`;
 }
 
 /* parent area */
@@ -1748,8 +2183,8 @@ function parentView(){
     ${S.pinErr?'<div class="fb try">That PIN is not right. Try again.</div>':'<p class="mute">The starting PIN is 1234. Change it under Settings.</p>'}</section>`+tabbar('parent');
   }
   const seg=`<div class="seg">${[['progress','Progress'],['log','Practice log'],['settings','Settings']].map(([k,l])=>`<button class="${S.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</div>`;
-  const sub=S.tab==='progress'?`<div class="seg">${[['math','Math'],['spell','Spelling'],['fb','Football']].map(([k,l])=>`<button class="${S.psub===k?'on':''}" data-act="psub" data-v="${k}">${l}</button>`).join('')}</div>`:'';
-  return head+seg+sub+(S.tab==='progress'?(S.psub==='spell'?spellProgress():S.psub==='fb'?fbProgress():progressTab()):S.tab==='log'?logTab():settingsTab())+tabbar('parent');
+  const sub=S.tab==='progress'?`<div class="seg">${[['math','Math'],['spell','Spelling'],['geo','Geography'],['fb','Sports']].map(([k,l])=>`<button class="${S.psub===k?'on':''}" data-act="psub" data-v="${k}">${l}</button>`).join('')}</div>`:'';
+  return head+seg+sub+(S.tab==='progress'?(S.psub==='spell'?spellProgress():S.psub==='geo'?geoProgress():S.psub==='fb'?sportsProgress():progressTab()):S.tab==='log'?logTab():settingsTab())+tabbar('parent');
 }
 function spellProgress(){
   const ss=spellSess();
@@ -1771,13 +2206,13 @@ function spellProgress(){
 }
 function fbProgress(){
   const ss=nflSess();
-  if(!ss.length)return`<section class="card"><h3>No Football Club games yet</h3><p class="mute">This section is extra and separate from schoolwork. Her team and rules progress shows up here once she plays.</p></section>`;
+  if(!ss.length)return`<section class="card"><h3>No American Football games yet</h3><p class="mute">This section is extra and separate from schoolwork. Her team and rules progress shows up here once she plays.</p></section>`;
   const inf=nflInfo(ss),items=ss.flatMap(s=>s.items||[]);
   const bar=(label,p,right,low)=>`<div class="bar"><span>${label}</span><span class="track2"><span class="fill ${low?'low':''}" style="width:${p}%"></span></span><span class="num">${right}</span></div>`;
   const byGame=Object.keys(FB_GAMES).map(k=>{const a=items.filter(i=>i.g===k);return{k,n:a.length,c:a.filter(i=>i.ok&&!i.h).length}}).filter(x=>x.n);
   const byCat=[['conf','Conference'],['div','Division'],['loc','State'],['who','Which team plays in a city'],['mates','Which team is in a division'],['draft','Division Draft'],['rules','Rules']].map(([k,l])=>{const a=items.filter(i=>i.c===k);return{l,n:a.length,c:a.filter(i=>i.ok&&!i.h).length}}).filter(x=>x.n);
   const weak=TEAMS.filter(t=>inf.level[t.id]==='t');
-  return`<section class="card"><h3>Football Club (extra)</h3><p class="mute">${ss.length} games played. ${inf.teamsM.length} of 32 teams mastered, ${inf.rulesM.length} of ${RULES.length} rules mastered, ${inf.divsDone.length} of 8 divisions complete.</p>
+  return`<section class="card"><h3>American Football (extra)</h3><p class="mute">${ss.length} games played. ${inf.teamsM.length} of 32 teams mastered, ${inf.rulesM.length} of ${RULES.length} rules mastered, ${inf.divsDone.length} of 8 divisions complete.</p>
   ${DIVS.map(d=>bar(d,Math.round(25*teamsIn(d).filter(t=>inf.mastered.has(t.id)).length),teamsIn(d).filter(t=>inf.mastered.has(t.id)).length+'/4')).join('')}</section>
   <section class="card"><h3>Teams that need work</h3>${weak.length?`<div class="wchips">${weak.map(t=>`<span class="wchip"><i class="t"></i>${esc(t.nick)}</span>`).join('')}</div>`:'<p class="mute">No tricky teams right now.</p>'}</section>
   <section class="card"><h3>Clean answers by activity</h3>${byGame.map(x=>bar(esc(FB_GAMES[x.k].name),Math.round(100*x.c/x.n),Math.round(100*x.c/x.n)+'%',x.c/x.n<.7)).join('')}
@@ -1820,10 +2255,10 @@ function settingsTab(){
   return`<section class="card"><h3>Settings</h3>
   <label class="row">Exam length <select id="examLen">${[10,11,12,13,14,15].map(n=>`<option ${Number(S.settings.examLen)===n?'selected':''}>${n}</option>`).join('')}</select> questions</label>
   <label class="row">Exam timer <select id="examTimer"><option value="on" ${timerOn()?'selected':''}>${fmtT(EXAM_SECS)} per question</option><option value="off" ${timerOn()?'':'selected'}>Off</option></select></label>
-  <label class="row">Football Club <select id="fbOn"><option value="on" ${fbOn()?'selected':''}>Show (extra, just for fun)</option><option value="off" ${fbOn()?'':'selected'}>Hide</option></select></label>
+  <label class="row">Sports Club <select id="fbOn"><option value="on" ${fbOn()?'selected':''}>Show (extra, just for fun)</option><option value="off" ${fbOn()?'':'selected'}>Hide</option></select></label>
   <label class="row">New parent PIN <input class="txt" id="newPin" type="password" inputmode="numeric" maxlength="8" placeholder="leave blank to keep" style="width:200px"></label>
   <div class="row"><button class="btn" data-act="saveSettings">Save settings</button><span id="saved" class="mute"></span></div>
-  <p class="mute">The PIN, exam length, timer and Football Club switch are saved on this device only (the PIN is never uploaded). Set them the same on each computer. Progress, her avatar and closet, her word lists and math topics sync between homes.</p></section>
+  <p class="mute">The PIN, exam length, timer and Sports Club switch are saved on this device only (the PIN is never uploaded). Set them the same on each computer. Progress, her avatar and closet, her word lists and math topics sync between homes.</p></section>
   <section class="card"><h3>My spelling lists</h3>
   <p class="mute">Unit 3 is built in. Add a list here for another unit or extra words. Custom lists sync to both homes.</p>
   ${customLists().length?customLists().map(l=>`<div class="row between"><span><b>${esc(l.name)}</b> <span class="mute">${l.words.length} words</span></span><button class="btn quiet" data-act="dellist" data-v="${esc(l.id)}">Remove</button></div>`).join(''):''}
@@ -1841,6 +2276,11 @@ function render(){
     case'results':h=resultsView();break;
     case'math':h=mathView();break;
     case'spell':h=spellView();break;
+    case'club':h=clubView();break;
+    case'soc':h=socView();break;
+    case'socstudy':h=socStudyView();break;
+    case'geo':h=geoView();break;
+    case'geostudy':h=geoStudyView();break;
     case'fb':h=fbView();break;
     case'fbstudy':h=fbStudyView();break;
     case'nqrun':h=nqRunView();break;
@@ -1937,6 +2377,11 @@ function act(a,v,d){
     case'exit':S.view=S.from||'home';S.unlocked=false;run=null;sp=null;render();break;
     case'psub':S.psub=v;render();break;
     case'fbstart':if(v==='draft')startDraft();else startQuiz(v);break;
+    case'socstudy':S.from='soc';S.view='socstudy';render();break;
+    case'soctab':S.socTab=v;render();break;
+    case'geostudy':S.from='geo';S.view='geostudy';render();break;
+    case'georeg':S.geoReg=v;render();break;
+    case'geoflip':{const o=S.geoOpen||(S.geoOpen=new Set());if(o.has(v))o.delete(v);else{o.add(v);say(STATES.find(s=>s.ab===v).cap)}render();break}
     case'fbstudy':S.from='fb';S.view='fbstudy';render();break;
     case'fbdiv':S.fbDiv=v;render();break;
     case'fbflip':{const o=S.fbOpen||(S.fbOpen=new Set());if(o.has(v))o.delete(v);else{o.add(v);say(teamById(v).name)}render();break}
