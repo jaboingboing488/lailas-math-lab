@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#7A1220">
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Practice math, spelling, sports and geography.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Laila's Lab">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Laila's Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@600;700&family=Cinzel:wght@600;700;800&display=swap">
@@ -485,6 +493,36 @@ function mergedSessions(){
 function refreshSessions(){S.sessions=mergedSessions()}
 function saveLocalCopy(){store.set('lmath.sessions',S.sessions.slice(0,300));store.set('lmath.pending',[...pending])}
 
+/* everything that arrives from the shared database is checked before it is kept or drawn */
+const SAFE_ID=/^[\w#.:-]{0,40}$/;
+function safeVal(v,d){
+  if(typeof v==='number')return isFinite(v)?v:0;
+  if(typeof v==='boolean')return v;
+  if(typeof v==='string')return SAFE_ID.test(v)?v:'';
+  if(Array.isArray(v))return d>2?[]:v.slice(0,80).map(x=>safeVal(x,d+1));
+  if(v&&typeof v==='object'&&d<=2){const o={};Object.keys(v).slice(0,80).forEach(k=>{if(SAFE_ID.test(k))o[k]=safeVal(v[k],d+1)});return o}
+  return'';
+}
+const cleanTxt=(v,n)=>typeof v==='string'?v.replace(/[<>"`]/g,'').slice(0,n):'';
+const cleanNum=v=>Number.isFinite(v)?v:0;
+function cleanProfile(p){
+  const known=GROUPS.map(g=>g.k);
+  const lists=(Array.isArray(p.lists)?p.lists:[]).slice(0,10).map(l=>l&&typeof l==='object'?{id:String(l.id||'').replace(/[^\w-]/g,'').slice(0,24),name:cleanTxt(l.name,40),note:'Your own list',words:(Array.isArray(l.words)?l.words:[]).filter(w=>typeof w==='string'&&/^[a-z]{3,14}$/.test(w)).slice(0,20)}:null).filter(l=>l&&l.id&&l.name&&l.words.length>=3);
+  return{avatar:safeVal(p.avatar,0),topics:(Array.isArray(p.topics)?p.topics:[]).filter(x=>known.includes(x)).slice(0,5),splist:SAFE_ID.test(String(p.splist))?String(p.splist):'',lists,updated:cleanNum(p.updated)};
+}
+const SESS_MODES=['smart','guided','exam','spell','nfl','soc','geo'];
+function cleanSession(id,d){
+  if(!d||typeof d!=='object'||!SESS_MODES.includes(d.mode))return null;
+  const items=(Array.isArray(d.items)?d.items:[]).slice(0,20).map(i=>{
+    i=i&&typeof i==='object'?i:{};
+    const o={ok:i.ok?1:0,h:i.h?1:0};
+    ['t','g','c','k','w','given'].forEach(f=>{if(typeof i[f]==='string')o[f]=cleanTxt(i[f],60)});
+    o.err=typeof i.err==='string'?cleanTxt(i.err,40):null;
+    if(typeof i.to==='number')o.to=cleanNum(i.to);
+    return o;
+  });
+  return{id:String(id),ts:cleanNum(d.ts),mode:d.mode,home:cleanTxt(d.home,20),correct:cleanNum(d.correct),total:cleanNum(d.total),secs:cleanNum(d.secs),stars:cleanNum(d.stars),items};
+}
 const FB_CONFIG={apiKey:"AIzaSyBAAlH6P0UmkgMhB1FDXyLNZHQTO-XpKzk",authDomain:"lailas-math-lab.firebaseapp.com",projectId:"lailas-math-lab",storageBucket:"lailas-math-lab.firebasestorage.app",messagingSenderId:"239119121120",appId:"1:239119121120:web:d01dd2cf1d3bdc4285ae85"};
 async function loadFirestore(){
   const V='10.12.2',B='https://www.gstatic.com/firebasejs/'+V+'/';
@@ -504,7 +542,7 @@ async function initDb(){
     initProfileSync();
     db.recent(1000,snap=>{
       S.sync='live';
-      dbSessions=snap.docs.map(d=>Object.assign({id:d.id},d.data()));
+      dbSessions=snap.docs.map(d=>cleanSession(d.id,d.data())).filter(Boolean);
       dbSessions.forEach(s=>pending.delete(s.id));
       refreshSessions();saveLocalCopy();
       store.get('lmath.sessions',[]).filter(s=>pending.has(s.id)&&!dbSessions.some(d=>d.id===s.id)).forEach(pushSession);
@@ -525,12 +563,12 @@ function initProfileSync(){
   db.profile(snap=>{
     const mine=store.get('lmath.profileTs',0);
     if(!snap.exists()){pushProfile();return}
-    const p=snap.data();
+    const p=cleanProfile(snap.data()||{});
     if((p.updated||0)>mine){
-      if(p.avatar)store.set('lmath.avatar',p.avatar);
+      if(p.avatar&&Object.keys(p.avatar).length)store.set('lmath.avatar',p.avatar);
       if(Array.isArray(p.topics)&&p.topics.length){S.topics=p.topics;store.set('lmath.topics',p.topics)}
       if(p.splist){S.splist=p.splist;store.set('lmath.splist',p.splist)}
-      if(Array.isArray(p.lists))store.set('lmath.lists',p.lists);
+      store.set('lmath.lists',p.lists);
       store.set('lmath.profileTs',p.updated);
       if(PROFILE_SAFE.includes(S.view))render();
     }else if((p.updated||0)<mine)pushProfile();
@@ -2726,7 +2764,7 @@ function settingsTab(){
 
 /* ---------- render + events ---------- */
 let lastView=null;
-function render(){
+function buildView(){
   let h;
   switch(S.view){
     case'run':h=runView();break;
@@ -2748,6 +2786,16 @@ function render(){
     case'parent':h=parentView();break;
     case'closet':h=closetView();break;
     default:h=homeView();
+  }
+  return h;
+}
+function render(){
+  let h;
+  try{h=buildView()}
+  catch(e){
+    console.error(e);
+    try{S.view='home';h=buildView()}
+    catch(e2){h='<section class="card"><h2>Something went wrong</h2><p class="mute">Your progress is safe. Tap the button to start again.</p><button class="btn" onclick="location.reload()">Reload</button></section>'}
   }
   $app.innerHTML=h;
   if(lastView!==S.view){window.scrollTo(0,0);lastView=S.view}
@@ -2927,5 +2975,6 @@ function act(a,v,d){
 }
 render();
 initDb();
+if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>{try{navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}});
 </script>
 </body></html>

@@ -12,5 +12,10 @@ Third-grade add/subtract-with-regrouping practice and exam simulator. One file, 
 ## Setup
 1. Host `index.html` anywhere static (this repo uses GitHub Pages).
 2. Put your Firebase web config in `FB_CONFIG` inside `index.html`.
-3. Publish `firestore.rules` (spelling uses mode `spell` and football uses mode `nfl`, so re-publish after updates) in the Firebase console (Firestore Database > Rules).
+3. Publish `firestore.rules` in the Firebase console (Firestore Database > Rules). Re-publish after any update to it.
 4. Restrict the Firebase API key to your site's address in Google Cloud Console.
+
+## Notes
+- Installable, and works offline after the first visit (`sw.js`, `manifest.webmanifest`). Online visits always load the newest page first.
+- Data coming back from the shared database is checked before it is kept or drawn.
+- The page asks search engines not to index it.

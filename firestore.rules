@@ -6,6 +6,7 @@ service cloud.firestore {
       return d.keys().hasOnly(['id','ts','mode','home','correct','total','secs','stars','items'])
         && d.keys().hasAll(['id','ts','mode','home','correct','total','secs','stars','items'])
         && d.id is string && d.id == id && d.id.size() <= 24
+        && d.id.matches('^[A-Za-z0-9_-]+$')
         && d.ts is number && d.ts > 1700000000000
         && d.ts < request.time.toMillis() + 86400000
         && d.mode in ['smart','guided','exam','spell','nfl','soc','geo']
@@ -17,26 +18,34 @@ service cloud.firestore {
         && d.items is list && d.items.size() == d.total;
     }
 
+    // Practice history: anyone with the link can read it, new sessions can be
+    // added but never changed or removed, and reads are capped at 1000 at a time.
     match /sessions/{id} {
-      allow read: if true;
+      allow get: if true;
+      allow list: if request.query.limit <= 1000;
       allow create: if valid(request.resource.data, id);
       allow update, delete: if false;
     }
+
     function validProfile(d) {
       return d.keys().hasOnly(['avatar','topics','splist','lists','updated'])
         && d.keys().hasAll(['avatar','topics','splist','lists','updated'])
-        && d.avatar is map
+        && d.avatar is map && d.avatar.size() <= 40
         && d.topics is list && d.topics.size() >= 1 && d.topics.size() <= 5
         && d.splist is string && d.splist.size() <= 24
+        && d.splist.matches('^[A-Za-z0-9_-]*$')
         && d.lists is list && d.lists.size() <= 10
-        && d.updated is number;
+        && d.updated is number && d.updated > 1700000000000
+        && d.updated < request.time.toMillis() + 86400000;
     }
 
+    // One shared look-and-settings document.
     match /profile/{id} {
       allow read: if true;
       allow create, update: if id == 'laila' && validProfile(request.resource.data);
       allow delete: if false;
     }
+
     match /{other=**} { allow read, write: if false; }
   }
 }
