@@ -1,38 +1,42 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#FF2D78">
+<meta name="theme-color" content="#7A1220">
 <title>Laila's Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@600;700&family=Cinzel:wght@600;700;800&display=swap">
 <style>
 /* Layout: iOS-style single column. Translucent top bar, big titles, grouped cards, floating tab bar.
-   Palette: pink pop by day, deep-space purple by night. */
+   Palette: Hogwarts. Parchment and candlelight by day, the Great Hall at night. */
 :root{
-  --bg:#FFF1F6; --bg2:#FFD9E8; --card:#FFFFFF; --card2:#FFF6FA; --ink:#2A1630; --mute:#80628B; --line:rgba(120,40,100,.13);
-  --accent:#FF2D78; --accent-ink:#FFFFFF; --accent-soft:#FFE0EC; --lilac:#8E5CFF;
-  --good:#12875B; --good-bg:#DDF6EA; --warn:#B85200; --warn-bg:#FFEBD6; --gold:#FFB400; --spark:rgba(255,120,170,.55);
-  --shadow:0 8px 28px rgba(255,45,120,.12),0 1px 3px rgba(80,20,70,.08); --bar:rgba(255,246,250,.8);
+  --bg:#F6EEDC; --bg2:#E6D2A0; --card:#FFFBF0; --card2:#F8F0DD; --ink:#2B1B14; --mute:#78613F; --line:rgba(90,60,20,.18);
+  --accent:#8A1523; --accent-ink:#FFF3D6; --accent-soft:#F2DFC6; --lilac:#14275E;
+  --good:#1F6B3A; --good-bg:#DCEBCF; --warn:#9A4A00; --warn-bg:#F6E0BC; --gold:#C8921A; --spark:rgba(200,146,26,.5);
+  --hero1:#7A1220; --hero2:#14275E;
+  --shadow:0 8px 24px rgba(70,40,10,.16),0 1px 3px rgba(60,30,10,.12); --bar:rgba(246,238,220,.85);
+  --f-head:'Cinzel','Palatino Linotype',Palatino,'Book Antiqua',Georgia,serif;
   --f-ui:-apple-system,BlinkMacSystemFont,'SF Pro Rounded','SF Pro Display','Inter',system-ui,'Segoe UI',sans-serif;
   --f-num:'SF Mono','JetBrains Mono',ui-monospace,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0D0A1F; --bg2:#2A1250; --card:#1A1535; --card2:#241C47; --ink:#F8EFFF; --mute:#B0A0CC; --line:rgba(255,255,255,.11);
-  --accent:#FF5C9A; --accent-ink:#2A0A1C; --accent-soft:#40203F; --lilac:#AB8DFF;
-  --good:#4FD39B; --good-bg:#10382B; --warn:#FFAA5C; --warn-bg:#3F2610; --gold:#FFD24D; --spark:rgba(255,255,255,.7);
-  --shadow:0 10px 30px rgba(0,0,0,.4); --bar:rgba(18,12,42,.8); color-scheme:dark}}
+  --bg:#0B0D1A; --bg2:#271B35; --card:#151729; --card2:#1E2038; --ink:#F5E9CC; --mute:#B8AB8C; --line:rgba(245,220,160,.14);
+  --accent:#E3B94F; --accent-ink:#1C1405; --accent-soft:#3A2F14; --lilac:#8FA6F0;
+  --good:#6FD09A; --good-bg:#123524; --warn:#FFB45C; --warn-bg:#3F2A10; --gold:#E9BE4A; --spark:rgba(240,200,110,.7);
+  --hero1:#5E0F1B; --hero2:#1A2A66;
+  --shadow:0 10px 30px rgba(0,0,0,.5); --bar:rgba(11,13,26,.85); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0D0A1F; --bg2:#2A1250; --card:#1A1535; --card2:#241C47; --ink:#F8EFFF; --mute:#B0A0CC; --line:rgba(255,255,255,.11);
-  --accent:#FF5C9A; --accent-ink:#2A0A1C; --accent-soft:#40203F; --lilac:#AB8DFF;
-  --good:#4FD39B; --good-bg:#10382B; --warn:#FFAA5C; --warn-bg:#3F2610; --gold:#FFD24D; --spark:rgba(255,255,255,.7);
-  --shadow:0 10px 30px rgba(0,0,0,.4); --bar:rgba(18,12,42,.8); color-scheme:dark}
+  --bg:#0B0D1A; --bg2:#271B35; --card:#151729; --card2:#1E2038; --ink:#F5E9CC; --mute:#B8AB8C; --line:rgba(245,220,160,.14);
+  --accent:#E3B94F; --accent-ink:#1C1405; --accent-soft:#3A2F14; --lilac:#8FA6F0;
+  --good:#6FD09A; --good-bg:#123524; --warn:#FFB45C; --warn-bg:#3F2A10; --gold:#E9BE4A; --spark:rgba(240,200,110,.7);
+  --hero1:#5E0F1B; --hero2:#1A2A66;
+  --shadow:0 10px 30px rgba(0,0,0,.5); --bar:rgba(11,13,26,.85); color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background-color:var(--bg);
   background-image:radial-gradient(120% 60% at 15% 0%,var(--bg2),transparent 60%),radial-gradient(1.6px 1.6px at 18px 24px,var(--spark),transparent),radial-gradient(1.1px 1.1px at 66px 72px,var(--spark),transparent);
   background-size:auto,96px 96px,96px 96px;background-attachment:fixed,scroll,scroll;
   color:var(--ink);font:500 17px/1.45 var(--f-ui);padding-inline:16px;padding-block:0 120px;min-height:100vh}
 #app{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
-h1,h2,h3{margin:0;font-weight:800;letter-spacing:-.02em;text-wrap:balance;line-height:1.12}
-h1{font-size:2.1rem} h2{font-size:1.5rem} h3{font-size:1.1rem}
+h1,h2,h3{margin:0;font-family:var(--f-head);font-weight:800;letter-spacing:.01em;text-wrap:balance;line-height:1.15;overflow-wrap:anywhere}
+h1{font-size:1.9rem} h2{font-size:1.35rem} h3{font-size:1rem}
 p{margin:0}
 .num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
 .mute{color:var(--mute)}
@@ -61,7 +65,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 @media(prefers-reduced-motion:no-preference){.btn,.choice,.mode,.tab,.swatch,.item{transition:transform .12s ease,box-shadow .12s}.btn:active,.choice:active,.mode:active,.item:active{transform:scale(.97)}}
 
 /* home */
-.hero{background:linear-gradient(140deg,var(--accent),var(--lilac));color:#fff;border-radius:28px;padding:20px;display:grid;grid-template-columns:auto 1fr;gap:6px 16px;align-items:center;box-shadow:var(--shadow)}
+.hero{background:linear-gradient(140deg,var(--hero1),var(--hero2));color:#fff;border-radius:28px;padding:20px;display:grid;grid-template-columns:auto 1fr;gap:6px 16px;align-items:center;box-shadow:inset 0 0 0 2px rgba(233,190,74,.55),var(--shadow)}
 .hero .who{display:flex;flex-direction:column;gap:2px;min-width:0}
 .hero .who h2{color:#fff}
 .hero .who span{opacity:.9;font-weight:600;font-size:.95rem}
@@ -70,7 +74,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .stat{background:rgba(255,255,255,.2);border-radius:16px;padding:10px 6px;text-align:center}
 .stat b{display:block;font-size:1.5rem;font-weight:800;line-height:1.1}
 .stat span{font-weight:700;font-size:.78rem;opacity:.92}
-.journey{grid-column:1/-1;background:rgba(10,4,30,.38);border-radius:18px;padding:12px 12px 8px;margin-top:4px}
+.journey{grid-column:1/-1;background:rgba(8,6,24,.42);border-radius:18px;padding:12px 12px 8px;margin-top:4px}
 .journey svg{width:100%;display:block}
 .journey text{fill:#fff;font-family:var(--f-ui);font-size:9.5px;font-weight:700}
 .journey p{font-size:.9rem;font-weight:700;margin-top:2px}
@@ -88,9 +92,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 
 /* bracelet */
 .bracelet{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:6px 0;position:relative}
-.bead{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:1.15rem;color:#fff;background:var(--accent);box-shadow:inset 0 -4px 0 rgba(0,0,0,.14),0 2px 6px rgba(255,45,120,.3)}
-.bead:nth-child(3n+2){background:var(--lilac)}
-.bead:nth-child(3n){background:#FF9A3C}
+.bead{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:1.15rem;color:#fff;background:#8E1B26;box-shadow:inset 0 -4px 0 rgba(0,0,0,.18),0 2px 6px rgba(0,0,0,.25)}
+.bead:nth-child(4n+2){background:#2B4590}
+.bead:nth-child(4n+3){background:#A06E0C}
+.bead:nth-child(4n){background:#2B6B3C}
 .bead.off{background:var(--card2);color:var(--mute);box-shadow:inset 0 0 0 2px var(--line)}
 .dl{display:flex;flex-direction:column;gap:8px;font-size:.92rem}
 .dl div{display:flex;gap:10px;align-items:baseline}
@@ -609,11 +614,17 @@ function start(mode,skill){
 const SKIN=['#FFDCC2','#F2BE96','#D79B6F','#B07A52','#8A5A3C','#5E3B26'];
 const HAIR=['#2B1B16','#6A3F2A','#C98A4B','#E8C46A','#C2316E','#7B4DFF'];
 const OUTFIT=['#FF5C9A','#FF8FB8','#8E5CFF','#3AB6FF','#27C28A','#FFB400'];
+const HOUSES={g:['Gryffindor','#9B1B2A','#E3B94F'],s:['Slytherin','#1F6B3A','#C3CBD3'],r:['Ravenclaw','#2B4590','#B8864A'],h:['Hufflepuff','#E3B520','#2B1B14']};
+const houseOf=c=>HOUSES[c.house]||HOUSES.g;
 const ITEMS=[
   {id:'bow',slot:'head',name:'Sparkle bow',at:0},
   {id:'jersey',slot:'top',name:'Soccer jersey',at:20},
   {id:'ball',slot:'extra',name:'Soccer ball',at:35},
-  {id:'helmet',slot:'head',name:'Astronaut helmet',at:50},
+  {id:'wand',slot:'extra',name:'Magic wand',at:10},
+  {id:'wizhat',slot:'head',name:'Wizard hat',at:30},
+  {id:'helmet',slot:'head',name:'Bubble-head charm',at:50},
+  {id:'scarf',slot:'extra',name:'House scarf',at:60},
+  {id:'robe',slot:'top',name:'Wizard robe',at:100},
   {id:'earrings',slot:'extra',name:'Star earrings',at:80},
   {id:'jacket',slot:'top',name:'Glitter jacket',at:120},
   {id:'crown',slot:'head',name:'Star crown',at:200},
@@ -622,8 +633,8 @@ const ITEMS=[
   {id:'fbjersey',slot:'top',name:'Game day jersey',at:null,nfl:'Complete a division'},
   {id:'champ',slot:'head',name:'Champion headband',at:null,nfl:'Complete a conference'}
 ];
-const STOPS=[{n:'Earth',at:0,c:'#4DA3FF'},{n:'Moon',at:25,c:'#D5D0E0'},{n:'Mars',at:75,c:'#E5674A'},{n:'Jupiter',at:150,c:'#D9A066'},{n:'Saturn',at:250,c:'#E8CB86',ring:1},{n:'Neptune',at:400,c:'#5B7BFF'}];
-const CHEERS=['Goal!','What a pass!','Top corner!','Out of this world!','Sparkling work!','Nice kick!'];
+const STOPS=[{n:'Platform',at:0,c:'#B8283A'},{n:'Boats',at:25,c:'#3C57B8'},{n:'Castle',at:75,c:'#8C93A0'},{n:'Great Hall',at:150,c:'#E3B94F'},{n:'Owlery',at:250,c:'#2E8A4F'},{n:'Tower',at:400,c:'#8A5AC8'}];
+const CHEERS=['Brilliant!','Wizard work!','Spell cast!','Magical!','Sparkling work!','Top marks!'];
 const FACTS=[
   'A day on Venus is longer than its year. It spins once in about 243 Earth days but circles the Sun in about 225.',
   'Light from the Sun takes about 8 minutes to reach Earth.',
@@ -642,7 +653,7 @@ const star=(cx,cy,r,fill)=>{const p=[];for(let i=0;i<10;i++){const a=-Math.PI/2+
 const cloud=(cx,cy,R,n,r,f)=>{let t=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="${f}"/>`;for(let i=0;i<n;i++){const a=i*2*Math.PI/n;t+=`<circle cx="${(cx+R*Math.cos(a)).toFixed(1)}" cy="${(cy+R*Math.sin(a)).toFixed(1)}" r="${r}" fill="${f}"/>`}return t};
 const chain=(x1,y1,x2,y2,n,r,f)=>{let t='';for(let i=0;i<n;i++){const k=i/(n-1);t+=`<circle cx="${(x1+(x2-x1)*k).toFixed(1)}" cy="${(y1+(y2-y1)*k).toFixed(1)}" r="${r}" fill="${f}"/>`}return t};
 function getAv(){
-  const a=Object.assign({skin:3,hair:0,style:'curly',outfit:0,head:'bow',top:'tee',extra:[]},store.get('lmath.avatar',{}));
+  const a=Object.assign({skin:3,hair:0,style:'curly',outfit:0,head:'bow',top:'tee',extra:[],house:'g'},store.get('lmath.avatar',{}));
   if(!Array.isArray(a.extra))a.extra=[];
   return a;
 }
@@ -659,6 +670,8 @@ function avatarSvg(c){
   if(c.top==='jersey')top+=`<path d="M18 130C20 100 38 92 60 92C82 92 100 100 102 130Z" fill="#14284B"/><path d="M40 130L44 96M80 130L76 96" stroke="#fff" stroke-width="5" opacity=".9"/><text x="60" y="124" text-anchor="middle" style="fill:#fff;font:800 17px Inter,system-ui,sans-serif">13</text>`;
   if(c.top==='fbjersey')top+=`<path d="M18 130C20 100 38 92 60 92C82 92 100 100 102 130Z" fill="${out}"/><path d="M22 112H98M21 119H99" stroke="#fff" stroke-width="3.5" opacity=".8"/><text x="60" y="128" text-anchor="middle" style="fill:#fff;font:800 18px Inter,system-ui,sans-serif">42</text>`;
   if(c.top==='jacket')top+=`<path d="M60 94V130" stroke="#fff" stroke-width="2.5" opacity=".7"/>`+star(38,112,5,'#fff')+star(82,108,5,'#fff')+star(70,124,3.5,'#fff')+star(48,126,3,'#fff');
+  const hs=houseOf(c);
+  if(c.top==='robe')top+=`<path d="M14 130C16 98 38 90 60 90C82 90 104 98 106 130Z" fill="#241A2E"/><path d="M60 94L47 130M60 94L73 130" stroke="${hs[2]}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M60 94L53 130H67Z" fill="#fff" opacity=".12"/>`;
   const head=`<rect x="52" y="82" width="16" height="16" rx="6" fill="${skin}"/><circle cx="60" cy="58" r="30" fill="${skin}"/>`;
   /* hair cap: covers the whole top of the head (arc a bit larger than the head), with a soft hairline */
   let fringe=`<path d="M27 58A33 33 0 0 1 93 58C89 49 80 43 71 41.5C64 44 56 44 49 41.5C40 43 31 49 27 58Z" fill="${hair}"/>`;
@@ -666,11 +679,14 @@ function avatarSvg(c){
   const face=`<circle cx="50" cy="62" r="3.2" fill="#2A1630"/><circle cx="70" cy="62" r="3.2" fill="#2A1630"/><path d="M52 72Q60 80 68 72" stroke="#2A1630" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="43" cy="70" r="5" fill="#FF6FA5" opacity=".35"/><circle cx="77" cy="70" r="5" fill="#FF6FA5" opacity=".35"/>`;
   let hd='';
   if(c.head==='bow')hd=`<path d="M82 34L98 24V44Z" fill="#FF2D78"/><path d="M82 34L66 24V44Z" fill="#FF2D78"/><circle cx="82" cy="34" r="5" fill="#FF9AC1"/>`;
+  if(c.head==='wizhat')hd=`<path d="M37 40L57 5Q63 0 67 6L83 40Z" fill="#241A2E"/><ellipse cx="60" cy="40" rx="41" ry="7.5" fill="#241A2E"/><path d="M40 37Q60 45 80 37L81 41Q60 50 39 41Z" fill="${hs[1]}"/><path d="M42 39.5Q60 47 78 39.5" stroke="${hs[2]}" stroke-width="2" fill="none"/>`+star(59,22,3.6,'#E3B94F');
   if(c.head==='champ')hd=`<path d="M30 46Q60 28 90 46V53Q60 35 30 53Z" fill="#FFB400"/>`+star(60,37,4,'#fff');
   if(c.head==='crown')hd=`<path d="M38 36L42 16L53 28L60 12L67 28L78 16L82 36Z" fill="#FFB400"/>`+star(60,25,4,'#fff');
   if(c.head==='helmet')hd=`<circle cx="60" cy="56" r="38" fill="rgba(170,215,255,.28)" stroke="#fff" stroke-width="3"/><path d="M26 74Q60 96 94 74" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".9"/>`;
   let ex='';
   if(c.extra.includes('earrings'))ex+=star(29,71,4.5,'#FFB400')+star(91,71,4.5,'#FFB400');
+  if(c.extra.includes('scarf'))ex+=`<path d="M40 90Q60 103 80 90L82 100Q60 114 38 100Z" fill="${hs[1]}"/><path d="M47 97L46 105M60 101V110M73 97L74 105" stroke="${hs[2]}" stroke-width="3.2" stroke-linecap="round"/><rect x="68" y="101" width="12" height="26" rx="3.5" fill="${hs[1]}"/><path d="M68 111H80M68 118H80" stroke="${hs[2]}" stroke-width="3"/>`;
+  if(c.extra.includes('wand'))ex+=`<g transform="translate(26 114) rotate(-38)"><rect x="-20" y="-2" width="40" height="4" rx="2" fill="#6B3E1E"/><rect x="-20" y="-2.6" width="11" height="5.2" rx="2.4" fill="#3B2412"/></g>`+star(42,100,5,'#FFD24D')+star(50,108,2.4,'#fff');
   if(c.extra.includes('eyeblack'))ex+=`<rect x="44" y="68" width="12" height="3.4" rx="1.7" fill="#2A1630"/><rect x="64" y="68" width="12" height="3.4" rx="1.7" fill="#2A1630"/>`;
   if(c.extra.includes('football'))ex+=`<g transform="translate(18 112) rotate(-25)"><ellipse rx="15" ry="9.5" fill="#9A5B33" stroke="#2A1630" stroke-width="2"/><path d="M-5 0H5M-3 -3V3M0 -3V3M3 -3V3" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></g>`;
   if(c.extra.includes('ball'))ex+=`<g transform="translate(100 108)"><circle r="15" fill="#fff" stroke="#2A1630" stroke-width="2"/><polygon points="0,-6 5.7,-1.9 3.5,4.9 -3.5,4.9 -5.7,-1.9" fill="#2A1630"/><path d="M0 -6V-15M5.7 -1.9L14 -4M3.5 4.9L9 12M-3.5 4.9L-9 12M-5.7 -1.9L-14 -4" stroke="#2A1630" stroke-width="1.6"/></g>`;
@@ -678,7 +694,8 @@ function avatarSvg(c){
 }
 function kartSvg(av){
   const skin=SKIN[av.skin]||SKIN[1],hair=HAIR[av.hair]||HAIR[1];
-  return`<svg viewBox="0 0 64 40" width="56" aria-hidden="true"><circle cx="26" cy="11" r="8" fill="${skin}"/><path d="M18 11A8 8 0 0 1 34 11Z" fill="${hair}"/><rect x="4" y="16" width="52" height="13" rx="6.5" fill="#FF2D78"/><rect x="36" y="10" width="14" height="9" rx="4" fill="#8E5CFF"/><circle cx="16" cy="30" r="7" fill="#2A1630"/><circle cx="46" cy="30" r="7" fill="#2A1630"/><circle cx="16" cy="30" r="3" fill="#fff"/><circle cx="46" cy="30" r="3" fill="#fff"/><path d="M8 22H30" stroke="#fff" stroke-width="2" opacity=".7"/></svg>`;
+  const hs=houseOf(av);
+  return`<svg viewBox="0 0 64 40" width="56" aria-hidden="true"><path d="M20 28L3 21V35Z" fill="#D9A441"/><path d="M12 24.5L4 22M12 28L3 28M12 31.5L4 34" stroke="#A8741A" stroke-width="1.2" stroke-linecap="round"/><rect x="18" y="26.4" width="42" height="3.4" rx="1.7" fill="#6B3E1E"/><rect x="17" y="25.6" width="5" height="5" rx="1.5" fill="${hs[2]}"/><rect x="31" y="13" width="14" height="15" rx="5" fill="#241A2E"/><path d="M34 15L38 27M42 15L38 27" stroke="${hs[1]}" stroke-width="2" fill="none"/><rect x="34" y="25" width="6" height="8" rx="3" fill="#241A2E"/><circle cx="38" cy="9" r="7.5" fill="${skin}"/><path d="M30.5 9A7.5 7.5 0 0 1 45.5 9Z" fill="${hair}"/><path d="M60 28L64 26M60 28L64 30" stroke="#E3B94F" stroke-width="1.5" stroke-linecap="round"/></svg>`;
 }
 function journeySvg(stars){
   const X=i=>28+i*48.8;let idx=0;STOPS.forEach((p,i)=>{if(stars>=p.at)idx=i});
@@ -688,14 +705,14 @@ function journeySvg(stars){
     const reached=stars>=p.at;
     g+=`<g opacity="${reached?1:.65}">${p.ring?`<ellipse cx="${X(i)}" cy="28" rx="15" ry="4.5" fill="none" stroke="#fff" stroke-width="2" opacity=".8"/>`:''}<circle cx="${X(i)}" cy="28" r="9" fill="${p.c}" stroke="#fff" stroke-width="1.5"/></g><text x="${X(i)}" y="52" text-anchor="middle">${p.n}</text>`;
   });
-  g+=`<g transform="translate(${rx.toFixed(1)} 28) rotate(90)"><path d="M0-11C5-7 6-1 6 5L3 9H-3L-6 5C-6-1-5-7 0-11Z" fill="#FF2D78" stroke="#fff" stroke-width="1.4"/><circle cx="0" cy="-2" r="2.4" fill="#fff"/></g>`;
-  return`<svg viewBox="0 0 300 58" role="img" aria-label="Space mission progress">${g}</svg>`;
+  g+=`<g transform="translate(${rx.toFixed(1)} 28)"><path d="M-3-3C-9-12-17-10-15-3C-12-5-7-5-3-3ZM3-3C9-12 17-10 15-3C12-5 7-5 3-3Z" fill="#fff" stroke="#E3B94F" stroke-width="1"/><circle r="5.5" fill="#E3B94F" stroke="#fff" stroke-width="1.4"/></g>`;
+  return`<svg viewBox="0 0 300 58" role="img" aria-label="Journey to the Great Hall and the Tower">${g}</svg>`;
 }
 const ICON={
   home:'<svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" fill="currentColor"/></svg>',
   closet:'<svg viewBox="0 0 24 24"><path d="M8 3 3 6l2 4 2-1v12h10V9l2 1 2-4-5-3a4 4 0 0 1-8 0z" fill="currentColor"/></svg>',
   parent:'<svg viewBox="0 0 24 24"><path d="M7 10V8a5 5 0 0 1 10 0v2h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V8a3 3 0 0 0-6 0z" fill="currentColor"/></svg>',
-  rocket:'<svg viewBox="0 0 24 24"><path d="M12 2c3 2 5 6 5 10l-2 3H9l-2-3c0-4 2-8 5-10z" fill="currentColor"/><circle cx="12" cy="9" r="2" fill="#fff"/><path d="M9 15l-3 4 4-1M15 15l3 4-4-1M12 17v4" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>',
+  rocket:'<svg viewBox="0 0 24 24"><path d="M4 20L15 9" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/><path d="M15.5 3l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2zM20 13l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" fill="currentColor"/></svg>',
   ball:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><polygon points="12,7 16,10 14.5,14.5 9.5,14.5 8,10" fill="currentColor"/><path d="M12 7V2.5M16 10l4.5-1.5M14.5 14.5l3 4M9.5 14.5l-3 4M8 10 3.5 8.5" stroke="currentColor" stroke-width="1.6"/></svg>',
   trophy:'<svg viewBox="0 0 24 24"><path d="M7 3h10v5a5 5 0 0 1-10 0zM4 4h3v3a3 3 0 0 1-3-3zm16 0h-3v3a3 3 0 0 0 3-3zM11 13h2v4h3v3H8v-3h3z" fill="currentColor"/></svg>',
   chev:'<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -722,7 +739,7 @@ const fmtT=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
 const leftSecs=r=>Math.max(0,Math.ceil((EXAM_SECS*1000-r.used[r.i])/1000));
 const isLocked=r=>r.mode==='exam'&&timerOn()&&r.used[r.i]>=EXAM_SECS*1000;
 function examPill(r){
-  if(!timerOn())return'<span class="pill plain">Match day</span>';
+  if(!timerOn())return'<span class="pill plain">O.W.L. day</span>';
   const l=leftSecs(r);
   return`<span class="pill timer ${l<=30?'warn':''}" id="timer" aria-live="off">${l===0?"Time's up":'<span class="num">'+fmtT(l)+'</span>'}</span>`;
 }
@@ -1331,7 +1348,7 @@ function homeView(){
   if(!S.home||S.view==='pickhome')return home+homePicker()+tabbar('home');
   const st=stats(),av=getAv(),last=S.sessions[0];
   let idx=0;STOPS.forEach((p,i)=>{if(st.stars>=p.at)idx=i});
-  const nextTxt=idx<STOPS.length-1?`Next stop: ${STOPS[idx+1].n}, only ${STOPS[idx+1].at-st.stars} more stars`:'You reached Neptune! Amazing.';
+  const nextTxt=idx<STOPS.length-1?`Next stop: ${STOPS[idx+1].n}, only ${STOPS[idx+1].at-st.stars} more stars`:'You reached the Tower! Amazing.';
   const m=(k,ic,t,d,lead)=>`<button class="mode ${lead?'lead':''}" data-act="nav" data-v="${k}"><span class="ic">${ICON[ic]}</span><span><h3>${t}</h3><span class="d">${d}</span></span>${ICON.next}</button>`;
   const fact=FACTS[Math.floor(Date.now()/86400000)%FACTS.length];
   const wst=wordStats(),cur=spLists().find(l=>l.id===S.splist)||UNIT3[0];
@@ -1339,7 +1356,7 @@ function homeView(){
   const lastMath=mathSess()[0];
   return home+`
   <section class="hero"><div class="av">${avatarSvg(av)}</div>
-    <div class="who"><h2>Hi, Laila!</h2><span>${st.streak?`${st.streak}-day winning streak`:'Ready for kickoff?'}</span></div>
+    <div class="who"><h2>Hi, Laila!</h2><span>${st.streak?`${st.streak}-day winning streak`:'Ready for your next lesson?'}</span></div>
     <div class="stats"><div class="stat"><b class="num">${st.stars}</b><span>stars</span></div><div class="stat"><b class="num">${st.streak}</b><span>day streak</span></div><div class="stat"><b class="num">${st.sessions}</b><span>sessions</span></div></div>
     <div class="journey">${journeySvg(st.stars)}<p>${nextTxt}</p></div></section>
   <div class="sect">Pick a subject</div>
@@ -1349,7 +1366,7 @@ function homeView(){
   </section>
   ${fbOn()?`<div class="sect">Just for fun</div><section class="modes">${m('fb','football','Football Club',`${nflInfo(nflSess()).teamsM.length} of 32 team cards won. Bonus prizes inside!`)}</section>`:''}
   ${last?`<p class="mute" style="padding-inline:6px">Last activity: ${esc(sessName(last))}, ${last.correct} of ${last.total} on ${fmtDate(last.ts)}.</p>`:''}
-  <section class="spark"><b>Science spark</b><p>${esc(fact)}</p></section>
+  <section class="spark"><b>Professor's fact of the day</b><p>${esc(fact)}</p></section>
   <div class="sect">Your math bracelet</div>
   <section class="card"><div class="bracelet">${badges(st).map(b=>`<div class="bead ${b.on?'':'off'}" title="${esc(b.n)}">${b.l}</div>`).join('')}</div>
     <div class="dl">${badges(st).map(b=>`<div class="${b.on?'':'off'}"><b>${b.on?'★ ':''}${esc(b.n)}</b><span>${esc(b.d)}</span></div>`).join('')}</div></section>
@@ -1373,7 +1390,7 @@ function mathView(){
   <section class="modes">
     ${m('smart','rocket','Smart Practice','10 questions picked just for you. Hints help.',true)}
     ${m('guided','ball','Guided Practice','10 questions with hints and a second try.')}
-    ${m('exam','trophy','Practice Exam',`${Number(S.settings.examLen)||12} questions, no hints${timerOn()?`, ${fmtT(EXAM_SECS)} each`:''}. Match day!`)}
+    ${m('exam','trophy','Practice Exam',`${Number(S.settings.examLen)||12} questions, no hints${timerOn()?`, ${fmtT(EXAM_SECS)} each`:''}. O.W.L. day!`)}
   </section>
   ${tabbar('math')}`;
 }
@@ -1409,7 +1426,8 @@ function closetView(){
   <div class="avbig"><div style="width:190px;height:206px">${avatarSvg(av)}</div></div>
   <section class="card">${sw('skin',SKIN,'Skin')}${sw('hair',HAIR,'Hair color')}
     <div class="sect" style="padding-inline:0">Hair style</div><div class="seg wrap">${[['curly','Curly'],['puffs','Puffs'],['braids','Braids'],['long','Straight'],['pony','Ponytail'],['buns','Buns']].map(([k,l])=>`<button class="${av.style===k?'on':''}" data-act="av" data-k="style" data-v="${k}">${l}</button>`).join('')}</div>
-    ${sw('outfit',OUTFIT,'Outfit color')}</section>
+    ${sw('outfit',OUTFIT,'Outfit color')}
+    <div class="sect" style="padding-inline:0">Hogwarts house</div><div class="seg wrap">${Object.entries(HOUSES).map(([k,h])=>`<button class="${houseOf(av)===h?'on':''}" data-act="av" data-k="house" data-v="${k}">${h[0]}</button>`).join('')}</div></section>
   <div class="sect">Unlockables</div><section class="items">${ITEMS.map(it).join('')}</section>
   <p class="mute" style="padding-inline:6px">Your look is saved on this device.</p>`+tabbar('closet');
 }
@@ -1433,12 +1451,12 @@ function qHtml(q,exam){
 }
 function raceTrack(r,f){
   return`<div class="track"><div class="lane"><i style="width:${Math.round(f*100)}%"></i></div><div class="kart" style="left:calc((100% - 56px)*${f.toFixed(3)})">${kartSvg(getAv())}</div>
-  <svg class="flag" viewBox="0 0 22 30" aria-hidden="true"><path d="M3 2V28" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M3 3H20L16 9L20 15H3Z" fill="#FF2D78"/></svg></div>`;
+  <svg class="flag" viewBox="0 0 22 30" aria-hidden="true"><path d="M8 13C3 7 1 9 0 12C3 12 6 13 8 15ZM14 13C19 7 21 9 22 12C19 12 16 13 14 15Z" fill="#fff" stroke="#C8921A" stroke-width="1"/><circle cx="11" cy="16" r="5.5" fill="#E3B94F" stroke="#C8921A" stroke-width="1.2"/></svg></div>`;
 }
 function runView(){
   const r=run,q=r.qs[r.i],st=r.st[r.i],exam=r.mode==='exam',N=r.qs.length;
   const top=`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Exit</button><span class="mid">${esc(r.skill?TYPES[r.skill].label:modeName(r.mode))}</span><span style="min-width:64px"></span></div>`;
-  if(exam&&!r.started)return top+`<section class="card"><h2>Ready for match day?</h2><p>${N} questions. You get ${fmtT(EXAM_SECS)} for each one, and the timer starts when you tap Start. Get your paper and pencil ready.</p><p class="mute">When time runs out on a question, it moves to the next one by itself.</p><div class="row"><button class="btn" data-act="begin">Start</button></div></section>`;
+  if(exam&&!r.started)return top+`<section class="card"><h2>Ready for your O.W.L.?</h2><p>${N} questions. You get ${fmtT(EXAM_SECS)} for each one, and the timer starts when you tap Start. Get your paper and pencil ready.</p><p class="mute">When time runs out on a question, it moves to the next one by itself.</p><div class="row"><button class="btn" data-act="begin">Start</button></div></section>`;
   if(exam&&r.review){
     const un=r.answers.filter(a=>a==='').length;
     return top+`<section class="card"><h2>Check your answers</h2><p>${un?`You have <b>${un}</b> question${un>1?'s':''} without an answer. Tap a number to go back.`:'Every question has an answer. Tap a number to change one, or turn it in.'}</p>
@@ -1448,7 +1466,7 @@ function runView(){
   const val=exam?r.answers[r.i]:'';
   const goals=r.st.filter(s=>s.ok).length;
   const f=exam?r.answers.filter(a=>a!=='').length/N:(r.i+(st.done?1:0))/N;
-  let body=`<div class="row between"><span class="pill">Question ${r.i+1} of ${N}</span>${exam?examPill(r):`<span class="score pill plain">Goals <span class="num">${goals}</span></span>`}</div>
+  let body=`<div class="row between"><span class="pill">Question ${r.i+1} of ${N}</span>${exam?examPill(r):`<span class="score pill plain">Spells <span class="num">${goals}</span></span>`}</div>
   ${raceTrack(r,f)}
   ${exam&&timerOn()?timerBar(r):''}
   <div class="paper">Paper first: write your work on your paper. Then ${q.fmt==='mc'?'tap':'type'} your answer.</div>
@@ -1479,7 +1497,7 @@ function resultsView(){
   const msg=p>=90?'Amazing work! You really know this.':p>=75?'Strong work. A little more practice and it will be even better.':'Good effort. Every try builds the skill. Keep going.';
   const missed=run.qs.map((q,i)=>({q,it:s.items[i]})).filter(x=>!x.it.ok);
   const fact=FACTS[Math.floor(Math.random()*FACTS.length)];
-  const wins=[...(s.unlocked||[]).map(n=>`New in your closet: ${n}`),...(s.stop||[]).map(n=>`Your rocket reached ${n}!`)];
+  const wins=[...(s.unlocked||[]).map(n=>`New in your closet: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`)];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Full time!</span><span style="min-width:64px"></span></div>`+`
   <section class="card"><h2>${exam?'Final whistle!':'Great session!'}</h2>
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
@@ -1489,7 +1507,7 @@ function resultsView(){
   ${s.items.filter(i=>i.ok&&i.h).length?`<p class="mute">${s.items.filter(i=>i.ok&&i.h).length} of your right answers used a hint or a second try.</p>`:''}
   <p>${msg}</p>
   ${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
-  <section class="spark"><b>Science spark</b><p>${esc(fact)}</p></section>
+  <section class="spark"><b>Professor's fact of the day</b><p>${esc(fact)}</p></section>
   ${missed.length?`<h3>Let's look at ${missed.length===1?'this one':'these'}</h3>${missed.map(({q,it})=>`<details><summary>${esc(qLabel(q))}${it.given!==''&&it.given!==undefined?` <span class="mute">(you wrote ${esc(it.given)})</span>`:''}</summary><ol class="steps" style="margin-top:10px">${steps(q).map(x=>`<li>${esc(x)}</li>`).join('')}</ol></details>`).join('')}`:'<div class="fb good">No misses. Perfect!</div>'}
   <div class="row"><button class="btn" data-act="${run.skill?'skill':'start'}" data-v="${run.skill||(exam?'smart':s.mode)}">${exam?'Practice what I missed':'Play again'}</button><button class="btn tint" data-act="exit">Done</button></div></section>`;
 }
@@ -1607,7 +1625,7 @@ function spResultsView(){
   const s=sp.result,p=pct(s),test=sp.game==='test';
   const msg=p>=90?'Amazing spelling! You really know these words.':p>=75?'Strong work. A little more practice and every word will stick.':'Good effort. Every try builds the skill. Keep going.';
   const missed=s.items.filter(i=>!i.ok),helped=s.items.filter(i=>i.ok&&i.h).length;
-  const wins=[...(s.unlocked||[]).map(n=>`New in your closet: ${n}`),...(s.stop||[]).map(n=>`Your rocket reached ${n}!`)];
+  const wins=[...(s.unlocked||[]).map(n=>`New in your closet: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`)];
   const fact=FACTS[Math.floor(Math.random()*FACTS.length)];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Great job!</span><span style="min-width:64px"></span></div>
   <section class="card"><h2>${test?'Test complete!':'Nice practice!'}</h2>
@@ -1615,7 +1633,7 @@ function spResultsView(){
   <div><div class="bigscore"><span style="color:var(--gold)">★</span> +${s.stars}</div><span class="mute">stars earned</span></div></div>
   ${helped?`<p class="mute">${helped} of your right words used a hint or a second try.</p>`:''}
   <p>${msg}</p>${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
-  <section class="spark"><b>Science spark</b><p>${esc(fact)}</p></section>
+  <section class="spark"><b>Professor's fact of the day</b><p>${esc(fact)}</p></section>
   ${missed.length?`<h3>Words to look at again</h3>${missed.map(i=>`<div class="card" style="box-shadow:inset 0 0 0 1px var(--line);padding:14px">${i.given?diffHtml(i.given,i.w):`<div class="diff"><div><small>Word</small><br>${esc(i.w)}</div></div>`}${i.err?`<p class="mute">${esc(SP_ERR[i.err]||'')}</p>`:''}</div>`).join('')}`:'<div class="fb good">Every word right. Perfect!</div>'}
   <div class="row">${missed.length?`<button class="btn" data-act="spagain" data-v="missed">Practice my missed words</button>`:''}<button class="btn ${missed.length?'tint':''}" data-act="spagain" data-v="same">Play again</button><button class="btn tint" data-act="exit">Done</button></div></section>`;
 }
@@ -1694,7 +1712,7 @@ function fbResView(){
   const wins=[
     ...x.cards.map(n=>`New card: ${n}`),...x.divs.map(d=>`${d} champion! Bonus stars added.`),...x.confs.map(c=>`${c} champion! Bonus stars and a prize.`),
     ...(x.allNow?['Hall of Fame! You mastered all 32 teams.']:[]),...(x.rulesNew>0&&x.milestone>0&&!x.divs.length&&!x.confs.length?['Rules bonus earned!']:[]),
-    ...x.items.map(n=>`New in your closet: ${n}`),...x.stops.map(n=>`Your rocket reached ${n}!`)
+    ...x.items.map(n=>`New in your closet: ${n}`),...x.stops.map(n=>`Your broom reached ${n}!`)
   ];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Final whistle!</span><span style="min-width:64px"></span></div>
   <section class="card"><h2>${esc(FB_GAMES[x.game].name)} complete!</h2>
@@ -1861,6 +1879,7 @@ function setAv(k,v){
   const a=getAv();
   if(k==='skin'||k==='hair'||k==='outfit')a[k]=Number(v);
   else if(k==='style')a.style=v;
+  else if(k==='house'){if(HOUSES[v])a.house=v}
   else if(k==='item'){
     const it=ITEMS.find(x=>x.id===v);if(!it)return;
     if(it.slot==='extra')a.extra=a.extra.includes(v)?a.extra.filter(x=>x!==v):[...a.extra,v];
