@@ -621,6 +621,13 @@ const ITEMS=[
   {id:'jersey',slot:'top',name:'Soccer jersey',at:20},
   {id:'ball',slot:'extra',name:'Soccer ball',at:35},
   {id:'wand',slot:'extra',name:'Magic wand',at:10},
+  {id:'potion',slot:'extra',name:'Potion bottle',at:25},
+  {id:'glasses',slot:'extra',name:'Round glasses',at:40},
+  {id:'sorting',slot:'head',name:'Sorting hat',at:80},
+  {id:'owl',slot:'extra',name:'Snowy owl',at:90},
+  {id:'qjersey',slot:'top',name:'Quidditch robes',at:110},
+  {id:'snitch',slot:'extra',name:'Golden snitch',at:130},
+  {id:'trophy',slot:'extra',name:'House Cup trophy',at:150},
   {id:'wizhat',slot:'head',name:'Wizard hat',at:30},
   {id:'helmet',slot:'head',name:'Bubble-head charm',at:50},
   {id:'scarf',slot:'extra',name:'House scarf',at:60},
@@ -672,6 +679,7 @@ function avatarSvg(c){
   if(c.top==='jacket')top+=`<path d="M60 94V130" stroke="#fff" stroke-width="2.5" opacity=".7"/>`+star(38,112,5,'#fff')+star(82,108,5,'#fff')+star(70,124,3.5,'#fff')+star(48,126,3,'#fff');
   const hs=houseOf(c);
   if(c.top==='robe')top+=`<path d="M14 130C16 98 38 90 60 90C82 90 104 98 106 130Z" fill="#241A2E"/><path d="M60 94L47 130M60 94L73 130" stroke="${hs[2]}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M60 94L53 130H67Z" fill="#fff" opacity=".12"/>`;
+  if(c.top==='qjersey')top+=`<path d="M18 130C20 100 38 92 60 92C82 92 100 100 102 130Z" fill="${hs[1]}"/><path d="M19 112H101M18 119H102" stroke="${hs[2]}" stroke-width="4"/><path d="M60 94V130" stroke="${hs[2]}" stroke-width="2.5" opacity=".8"/>`;
   const head=`<rect x="52" y="82" width="16" height="16" rx="6" fill="${skin}"/><circle cx="60" cy="58" r="30" fill="${skin}"/>`;
   /* hair cap: covers the whole top of the head (arc a bit larger than the head), with a soft hairline */
   let fringe=`<path d="M27 58A33 33 0 0 1 93 58C89 49 80 43 71 41.5C64 44 56 44 49 41.5C40 43 31 49 27 58Z" fill="${hair}"/>`;
@@ -680,6 +688,7 @@ function avatarSvg(c){
   let hd='';
   if(c.head==='bow')hd=`<path d="M82 34L98 24V44Z" fill="#FF2D78"/><path d="M82 34L66 24V44Z" fill="#FF2D78"/><circle cx="82" cy="34" r="5" fill="#FF9AC1"/>`;
   if(c.head==='wizhat')hd=`<path d="M37 40L57 5Q63 0 67 6L83 40Z" fill="#241A2E"/><ellipse cx="60" cy="40" rx="41" ry="7.5" fill="#241A2E"/><path d="M40 37Q60 45 80 37L81 41Q60 50 39 41Z" fill="${hs[1]}"/><path d="M42 39.5Q60 47 78 39.5" stroke="${hs[2]}" stroke-width="2" fill="none"/>`+star(59,22,3.6,'#E3B94F');
+  if(c.head==='sorting')hd=`<path d="M35 42Q39 30 51 23Q53 11 61 2Q66 12 72 19Q81 29 85 42Q60 36 35 42Z" fill="#7A5230"/><ellipse cx="60" cy="41" rx="42" ry="7.5" fill="#6B4526"/><path d="M51 31Q58 35 66 31" stroke="#3B2412" stroke-width="1.7" fill="none" stroke-linecap="round"/><circle cx="53" cy="25" r="1.6" fill="#3B2412"/><circle cx="65" cy="25" r="1.6" fill="#3B2412"/>`;
   if(c.head==='champ')hd=`<path d="M30 46Q60 28 90 46V53Q60 35 30 53Z" fill="#FFB400"/>`+star(60,37,4,'#fff');
   if(c.head==='crown')hd=`<path d="M38 36L42 16L53 28L60 12L67 28L78 16L82 36Z" fill="#FFB400"/>`+star(60,25,4,'#fff');
   if(c.head==='helmet')hd=`<circle cx="60" cy="56" r="38" fill="rgba(170,215,255,.28)" stroke="#fff" stroke-width="3"/><path d="M26 74Q60 96 94 74" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".9"/>`;
@@ -687,6 +696,11 @@ function avatarSvg(c){
   if(c.extra.includes('earrings'))ex+=star(29,71,4.5,'#FFB400')+star(91,71,4.5,'#FFB400');
   if(c.extra.includes('scarf'))ex+=`<path d="M40 90Q60 103 80 90L82 100Q60 114 38 100Z" fill="${hs[1]}"/><path d="M47 97L46 105M60 101V110M73 97L74 105" stroke="${hs[2]}" stroke-width="3.2" stroke-linecap="round"/><rect x="68" y="101" width="12" height="26" rx="3.5" fill="${hs[1]}"/><path d="M68 111H80M68 118H80" stroke="${hs[2]}" stroke-width="3"/>`;
   if(c.extra.includes('wand'))ex+=`<g transform="translate(26 114) rotate(-38)"><rect x="-20" y="-2" width="40" height="4" rx="2" fill="#6B3E1E"/><rect x="-20" y="-2.6" width="11" height="5.2" rx="2.4" fill="#3B2412"/></g>`+star(42,100,5,'#FFD24D')+star(50,108,2.4,'#fff');
+  if(c.extra.includes('glasses'))ex+=`<circle cx="50" cy="62" r="7.5" fill="rgba(255,255,255,.18)" stroke="#2A1630" stroke-width="1.8"/><circle cx="70" cy="62" r="7.5" fill="rgba(255,255,255,.18)" stroke="#2A1630" stroke-width="1.8"/><path d="M57.5 61Q60 59 62.5 61M42.5 61L36 58M77.5 61L84 58" stroke="#2A1630" stroke-width="1.8" fill="none"/>`;
+  if(c.extra.includes('owl'))ex+=`<g transform="translate(16 90)"><ellipse cx="0" cy="8" rx="9" ry="12" fill="#fff" stroke="#B9B4C4" stroke-width="1.2"/><circle cx="0" cy="-5" r="8" fill="#fff" stroke="#B9B4C4" stroke-width="1.2"/><circle cx="-3" cy="-6" r="2.6" fill="#FFB400"/><circle cx="3" cy="-6" r="2.6" fill="#FFB400"/><circle cx="-3" cy="-6" r="1.1" fill="#2A1630"/><circle cx="3" cy="-6" r="1.1" fill="#2A1630"/><path d="M-1.6 -2.5L0 0.5L1.6 -2.5Z" fill="#E8832A"/><path d="M-9 4Q-13 12 -7 20M9 4Q13 12 7 20" stroke="#B9B4C4" stroke-width="1.6" fill="none"/></g>`;
+  if(c.extra.includes('snitch'))ex+=`<g transform="translate(100 28)"><path d="M-4-1C-10-10-19-8-17-1C-13-3-8-3-4-1ZM4-1C10-10 19-8 17-1C13-3 8-3 4-1Z" fill="#fff" stroke="#C8921A" stroke-width="1"/><circle r="6" fill="#E3B94F" stroke="#C8921A" stroke-width="1.4"/></g>`;
+  if(c.extra.includes('potion'))ex+=`<g transform="translate(96 110)"><path d="M-3-14H3V-7L10 4Q12 12 4 13H-4Q-12 12-10 4L-3-7Z" fill="rgba(255,255,255,.4)" stroke="#2A1630" stroke-width="1.6" stroke-linejoin="round"/><path d="M-9 5Q0 1 9 5Q11 12 4 12H-4Q-11 12-9 5Z" fill="#8E5CFF"/><rect x="-3.5" y="-17" width="7" height="4" rx="1.5" fill="#6B3E1E"/></g>`;
+  if(c.extra.includes('trophy'))ex+=`<g transform="translate(98 104)"><path d="M-9-12H9V-4Q9 4 0 6Q-9 4-9-4Z" fill="#E3B94F" stroke="#A8741A" stroke-width="1.4"/><path d="M-9-9H-14Q-14-2-8-1M9-9H14Q14-2 8-1" fill="none" stroke="#A8741A" stroke-width="1.8"/><rect x="-2" y="6" width="4" height="6" fill="#C8921A"/><rect x="-8" y="12" width="16" height="5" rx="1.5" fill="#6B3E1E"/>${star(0,-5,3.2,'#fff')}</g>`;
   if(c.extra.includes('eyeblack'))ex+=`<rect x="44" y="68" width="12" height="3.4" rx="1.7" fill="#2A1630"/><rect x="64" y="68" width="12" height="3.4" rx="1.7" fill="#2A1630"/>`;
   if(c.extra.includes('football'))ex+=`<g transform="translate(18 112) rotate(-25)"><ellipse rx="15" ry="9.5" fill="#9A5B33" stroke="#2A1630" stroke-width="2"/><path d="M-5 0H5M-3 -3V3M0 -3V3M3 -3V3" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></g>`;
   if(c.extra.includes('ball'))ex+=`<g transform="translate(100 108)"><circle r="15" fill="#fff" stroke="#2A1630" stroke-width="2"/><polygon points="0,-6 5.7,-1.9 3.5,4.9 -3.5,4.9 -5.7,-1.9" fill="#2A1630"/><path d="M0 -6V-15M5.7 -1.9L14 -4M3.5 4.9L9 12M-3.5 4.9L-9 12M-5.7 -1.9L-14 -4" stroke="#2A1630" stroke-width="1.6"/></g>`;
