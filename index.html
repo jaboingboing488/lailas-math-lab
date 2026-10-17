@@ -2573,8 +2573,8 @@ function roomSvg(R,av){
   g+=`<ellipse cx="212" cy="262" rx="112" ry="9" fill="#000" opacity=".2"/>`;
   g+=hot('bed',`<rect x="124" y="114" width="176" height="104" rx="12" fill="url(#frg)"/><rect x="132" y="122" width="160" height="62" rx="8" fill="${dark(frame)}"/><rect x="132" y="122" width="160" height="6" rx="3" fill="#fff" opacity=".2"/><path d="M185 128V184M239 128V184" stroke="#fff" stroke-width="1.2" opacity=".14"/>${pil}`);
   /* Laila standing on the floor beside the bed */
-  g+=`<ellipse cx="350" cy="291" rx="28" ry="4.6" fill="#000" opacity=".22"/>`;
-  g+=hot('closet',bodySvg(av).replace('width="100%" height="100%"','x="320" y="190" width="60" height="102"'));
+  g+=`<ellipse cx="350" cy="291" rx="35" ry="5.2" fill="#000" opacity=".22"/>`;
+  g+=hot('closet',bodySvg(av).replace('width="100%" height="100%"','x="312.5" y="164.5" width="75" height="127.5"'));
   let dec='';
   const pr=R.pillows;
   if(pr==='heart')dec=`<path d="M0 12C-22 -6-12 -22 0 -12C12-22 22 -6 0 12Z" fill="${ac}"/>`;
