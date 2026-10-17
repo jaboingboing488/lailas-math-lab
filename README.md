@@ -1,4 +1,4 @@
-# Laila's Math Lab
+# Laila's Lab
 
 Third-grade add/subtract-with-regrouping practice and exam simulator. One file, no build step.
 

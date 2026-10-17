@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#FF2D78">
-<title>Laila's Math Lab</title>
+<title>Laila's Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap">
 <style>
@@ -1326,7 +1326,7 @@ function homePicker(){
   <div class="row">${["Dad's home","Mom's home","Traveling"].map(h=>`<button class="btn tint" data-act="sethome" data-v="${esc(h)}">${esc(h)}</button>`).join('')}</div></section>`;
 }
 function homeView(){
-  const home=nav("Laila's Math Lab",S.home?`<button class="pill" data-act="rehome">${esc(S.home)}</button>`:'');
+  const home=nav("Laila's Lab",S.home?`<button class="pill" data-act="rehome">${esc(S.home)}</button>`:'');
   if(!S.home||S.view==='pickhome')return home+homePicker()+tabbar('home');
   const st=stats(),av=getAv(),last=S.sessions[0];
   let idx=0;STOPS.forEach((p,i)=>{if(st.stars>=p.at)idx=i});
