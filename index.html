@@ -227,6 +227,21 @@ textarea.txt{font:inherit;padding:12px 14px;border:0;border-radius:14px;backgrou
 @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 @media(prefers-reduced-motion:reduce){.shake{animation:none}}
 .tabbar .tab{font-size:.66rem}
+.tabbar>div{gap:2px}.tabbar .tab{font-size:.62rem}
+.tcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.tcard{--dc:#999;text-align:left;background:var(--card);border-radius:18px;padding:12px 12px 12px 16px;display:flex;flex-direction:column;gap:5px;box-shadow:var(--shadow),inset 6px 0 0 var(--dc);min-height:92px;min-width:0}
+.tcard svg{width:46px;height:36px}
+.tcard b{font-size:1rem;line-height:1.2}
+.tcard small{color:var(--mute);font-weight:700;line-height:1.25}
+.tcard.sel{box-shadow:0 0 0 3px var(--accent),inset 6px 0 0 var(--dc)}
+.tcard.ok{box-shadow:0 0 0 3px var(--good),inset 6px 0 0 var(--dc)}
+.tcard.bad,.tcard.lock{opacity:.45}
+.dprog{display:flex;gap:5px}.dprog i{width:12px;height:12px;border-radius:50%;background:var(--line)}.dprog i.m{background:var(--good)}.dprog i.l{background:var(--gold)}
+.perks{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.perk{background:var(--card2);border-radius:16px;padding:10px 12px;font-weight:700;font-size:.88rem;box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:2px}
+.perk b{color:var(--accent);font-size:1.05rem}
+.perk.done{opacity:.55}
+.bk{display:flex;justify-content:space-between;gap:10px;font-weight:700}
 @media(max-width:480px){.tab svg{width:24px;height:24px}.huntcard{padding-inline:10px}.hunt{gap:1px}}
 @media(max-width:480px){.card{padding:16px}.bar{grid-template-columns:1fr 1fr 44px}.hero{grid-template-columns:96px 1fr}.hero .av{width:96px;height:104px}}
 </style>
@@ -488,10 +503,12 @@ function saveSession(s){
 }
 
 /* ---------- derived stats ---------- */
-const mathSess=()=>S.sessions.filter(s=>s.mode!=='spell');
+const mathSess=()=>S.sessions.filter(s=>s.mode!=='spell'&&s.mode!=='nfl');
 const spellSess=()=>S.sessions.filter(s=>s.mode==='spell');
+const nflSess=()=>S.sessions.filter(s=>s.mode==='nfl');
 function stats(){
-  const ss=S.sessions,stars=ss.reduce((n,s)=>n+(s.stars||0),0);
+  /* football is extra: its sessions give stars (plus collection prizes) but do not count toward the school streak */
+  const ss=S.sessions.filter(s=>s.mode!=='nfl'),stars=S.sessions.reduce((n,s)=>n+(s.stars||0),0)+nflInfo(nflSess()).bonus;
   const days=new Set(ss.map(s=>dayKey(s.ts)));
   let streak=0;const d=new Date();
   if(!days.has(dayKey(d)))d.setDate(d.getDate()-1);
@@ -516,7 +533,7 @@ function badges(st){
   const big=exams.filter(s=>pct(s)>=85).length;
   const jump=exams.some((s,i)=>i>0&&pct(s)-pct(exams[i-1])>=10);
   const mulOk=st.items.filter(i=>/^mul/.test(i.t)&&i.ok).length;
-  const perfect=S.sessions.some(s=>s.mode!=='exam'&&s.mode!=='spell'&&s.total===10&&s.correct===10&&(s.items||[]).every(i=>i.ok&&!i.h));
+  const perfect=S.sessions.some(s=>s.mode!=='exam'&&s.mode!=='spell'&&s.mode!=='nfl'&&s.total===10&&s.correct===10&&(s.items||[]).every(i=>i.ok&&!i.h));
   return[
     {l:'M',n:'First Kick',d:'Finish your first session',on:st.sessions>=1},
     {l:'A',n:'Hat Trick',d:'Practice 3 days in a row',on:st.streak>=3},
@@ -572,7 +589,11 @@ const ITEMS=[
   {id:'helmet',slot:'head',name:'Astronaut helmet',at:50},
   {id:'earrings',slot:'extra',name:'Star earrings',at:80},
   {id:'jacket',slot:'top',name:'Glitter jacket',at:120},
-  {id:'crown',slot:'head',name:'Star crown',at:200}
+  {id:'crown',slot:'head',name:'Star crown',at:200},
+  {id:'football',slot:'extra',name:'Football',at:null,nfl:'Finish your first Football Club game'},
+  {id:'eyeblack',slot:'extra',name:'Eye black',at:null,nfl:'Master 4 teams'},
+  {id:'fbjersey',slot:'top',name:'Game day jersey',at:null,nfl:'Complete a division'},
+  {id:'champ',slot:'head',name:'Champion headband',at:null,nfl:'Complete a conference'}
 ];
 const STOPS=[{n:'Earth',at:0,c:'#4DA3FF'},{n:'Moon',at:25,c:'#D5D0E0'},{n:'Mars',at:75,c:'#E5674A'},{n:'Jupiter',at:150,c:'#D9A066'},{n:'Saturn',at:250,c:'#E8CB86',ring:1},{n:'Neptune',at:400,c:'#5B7BFF'}];
 const CHEERS=['Goal!','What a pass!','Top corner!','Out of this world!','Sparkling work!','Nice kick!'];
@@ -609,6 +630,7 @@ function avatarSvg(c){
   if(c.style==='buns')back=`<circle cx="28" cy="26" r="15" fill="${hair}"/><circle cx="92" cy="26" r="15" fill="${hair}"/>`;
   let top=`<path d="M18 130C20 100 38 92 60 92C82 92 100 100 102 130Z" fill="${out}"/>`;
   if(c.top==='jersey')top+=`<path d="M40 130L44 96M80 130L76 96" stroke="#fff" stroke-width="5" opacity=".85"/><text x="60" y="124" text-anchor="middle" style="fill:#fff;font:800 17px Inter,system-ui,sans-serif">13</text>`;
+  if(c.top==='fbjersey')top+=`<path d="M18 130C20 100 38 92 60 92C82 92 100 100 102 130Z" fill="${out}"/><path d="M22 112H98M21 119H99" stroke="#fff" stroke-width="3.5" opacity=".8"/><text x="60" y="128" text-anchor="middle" style="fill:#fff;font:800 20px Inter,system-ui,sans-serif">1</text>`;
   if(c.top==='jacket')top+=`<path d="M60 94V130" stroke="#fff" stroke-width="2.5" opacity=".7"/>`+star(38,112,5,'#fff')+star(82,108,5,'#fff')+star(70,124,3.5,'#fff')+star(48,126,3,'#fff');
   const head=`<rect x="52" y="82" width="16" height="16" rx="6" fill="${skin}"/><circle cx="60" cy="58" r="30" fill="${skin}"/>`;
   let fringe=`<path d="M29 58C27 24 93 24 91 58C84 44 70 38 58 42C46 38 36 46 29 58Z" fill="${hair}"/>`;
@@ -616,10 +638,13 @@ function avatarSvg(c){
   const face=`<circle cx="50" cy="62" r="3.2" fill="#2A1630"/><circle cx="70" cy="62" r="3.2" fill="#2A1630"/><path d="M52 72Q60 80 68 72" stroke="#2A1630" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="43" cy="70" r="5" fill="#FF6FA5" opacity=".35"/><circle cx="77" cy="70" r="5" fill="#FF6FA5" opacity=".35"/>`;
   let hd='';
   if(c.head==='bow')hd=`<path d="M82 34L98 24V44Z" fill="#FF2D78"/><path d="M82 34L66 24V44Z" fill="#FF2D78"/><circle cx="82" cy="34" r="5" fill="#FF9AC1"/>`;
+  if(c.head==='champ')hd=`<path d="M30 46Q60 28 90 46V53Q60 35 30 53Z" fill="#FFB400"/>`+star(60,37,4,'#fff');
   if(c.head==='crown')hd=`<path d="M38 36L42 16L53 28L60 12L67 28L78 16L82 36Z" fill="#FFB400"/>`+star(60,25,4,'#fff');
   if(c.head==='helmet')hd=`<circle cx="60" cy="56" r="38" fill="rgba(170,215,255,.28)" stroke="#fff" stroke-width="3"/><path d="M26 74Q60 96 94 74" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".9"/>`;
   let ex='';
   if(c.extra.includes('earrings'))ex+=star(29,71,4.5,'#FFB400')+star(91,71,4.5,'#FFB400');
+  if(c.extra.includes('eyeblack'))ex+=`<rect x="44" y="68" width="12" height="3.4" rx="1.7" fill="#2A1630"/><rect x="64" y="68" width="12" height="3.4" rx="1.7" fill="#2A1630"/>`;
+  if(c.extra.includes('football'))ex+=`<g transform="translate(18 112) rotate(-25)"><ellipse rx="15" ry="9.5" fill="#9A5B33" stroke="#2A1630" stroke-width="2"/><path d="M-5 0H5M-3 -3V3M0 -3V3M3 -3V3" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></g>`;
   if(c.extra.includes('ball'))ex+=`<g transform="translate(100 108)"><circle r="15" fill="#fff" stroke="#2A1630" stroke-width="2"/><polygon points="0,-6 5.7,-1.9 3.5,4.9 -3.5,4.9 -5.7,-1.9" fill="#2A1630"/><path d="M0 -6V-15M5.7 -1.9L14 -4M3.5 4.9L9 12M-3.5 4.9L-9 12M-5.7 -1.9L-14 -4" stroke="#2A1630" stroke-width="1.6"/></g>`;
   return`<svg viewBox="0 0 120 130" width="100%" height="100%" role="img" aria-label="Laila's avatar">${back}${top}${head}${fringe}${face}${ex}${hd}</svg>`;
 }
@@ -656,6 +681,9 @@ const ICON={
   quote:'<svg viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H11l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="currentColor"/></svg>',
   pencil:'<svg viewBox="0 0 24 24"><path d="M4 20l1-5L16 4l4 4L9 19zM14 6l4 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>',
   check:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M7.5 12.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  football:'<svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="10" ry="6" transform="rotate(-35 12 12)" fill="currentColor"/><path d="M8.5 15.5l7-7M10.5 9.5l1.5 1.5M13 12l1.5 1.5M8 12.5l1.5 1.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".9"/></svg>',
+  fb:'<svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="10" ry="6" transform="rotate(-35 12 12)" fill="currentColor"/><path d="M8.5 15.5l7-7" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".9"/></svg>',
+  whistle:'<svg viewBox="0 0 24 24"><path d="M3 10h11a6 6 0 1 1-5.2 9H8a5 5 0 0 1-5-5z" fill="currentColor"/><circle cx="14.5" cy="15.5" r="2.3" fill="#fff"/><path d="M14 10V6h6v3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
   next:'<svg class="go" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 };
 
@@ -1007,14 +1035,264 @@ function spBadges(){
   ];
 }
 
+/* ---------- football club (extra, not schoolwork) ---------- */
+const TEAMS=[
+  ['buf','Buffalo Bills','Bills','Buffalo, New York','New York','AFC','East'],
+  ['mia','Miami Dolphins','Dolphins','Miami Gardens, Florida','Florida','AFC','East'],
+  ['ne','New England Patriots','Patriots','Foxborough, Massachusetts','Massachusetts','AFC','East','Their name covers the whole New England region.'],
+  ['nyj','New York Jets','Jets','East Rutherford, New Jersey','New Jersey','AFC','East','The name says New York, but they play in New Jersey!'],
+  ['bal','Baltimore Ravens','Ravens','Baltimore, Maryland','Maryland','AFC','North'],
+  ['cin','Cincinnati Bengals','Bengals','Cincinnati, Ohio','Ohio','AFC','North'],
+  ['cle','Cleveland Browns','Browns','Cleveland, Ohio','Ohio','AFC','North'],
+  ['pit','Pittsburgh Steelers','Steelers','Pittsburgh, Pennsylvania','Pennsylvania','AFC','North'],
+  ['hou','Houston Texans','Texans','Houston, Texas','Texas','AFC','South'],
+  ['ind','Indianapolis Colts','Colts','Indianapolis, Indiana','Indiana','AFC','South'],
+  ['jax','Jacksonville Jaguars','Jaguars','Jacksonville, Florida','Florida','AFC','South'],
+  ['ten','Tennessee Titans','Titans','Nashville, Tennessee','Tennessee','AFC','South','Nashville is nicknamed Music City.'],
+  ['den','Denver Broncos','Broncos','Denver, Colorado','Colorado','AFC','West'],
+  ['kc','Kansas City Chiefs','Chiefs','Kansas City, Missouri','Missouri','AFC','West'],
+  ['lv','Las Vegas Raiders','Raiders','Las Vegas, Nevada','Nevada','AFC','West'],
+  ['lac','Los Angeles Chargers','Chargers','Inglewood, California','California','AFC','West','The Chargers and Rams share a stadium near Los Angeles.'],
+  ['dal','Dallas Cowboys','Cowboys','Arlington, Texas','Texas','NFC','East'],
+  ['nyg','New York Giants','Giants','East Rutherford, New Jersey','New Jersey','NFC','East','The name says New York, but they play in New Jersey!'],
+  ['phi','Philadelphia Eagles','Eagles','Philadelphia, Pennsylvania','Pennsylvania','NFC','East'],
+  ['was','Washington Commanders','Commanders','Landover, Maryland','Maryland','NFC','East','They play just outside Washington, D.C.'],
+  ['chi','Chicago Bears','Bears','Chicago, Illinois','Illinois','NFC','North'],
+  ['det','Detroit Lions','Lions','Detroit, Michigan','Michigan','NFC','North'],
+  ['gb','Green Bay Packers','Packers','Green Bay, Wisconsin','Wisconsin','NFC','North','Green Bay is one of the smallest cities with an NFL team.'],
+  ['min','Minnesota Vikings','Vikings','Minneapolis, Minnesota','Minnesota','NFC','North'],
+  ['atl','Atlanta Falcons','Falcons','Atlanta, Georgia','Georgia','NFC','South'],
+  ['car','Carolina Panthers','Panthers','Charlotte, North Carolina','North Carolina','NFC','South'],
+  ['no','New Orleans Saints','Saints','New Orleans, Louisiana','Louisiana','NFC','South'],
+  ['tb','Tampa Bay Buccaneers','Buccaneers','Tampa, Florida','Florida','NFC','South'],
+  ['ari','Arizona Cardinals','Cardinals','Glendale, Arizona','Arizona','NFC','West'],
+  ['lar','Los Angeles Rams','Rams','Inglewood, California','California','NFC','West','The Rams and Chargers share a stadium near Los Angeles.'],
+  ['sf','San Francisco 49ers','49ers','Santa Clara, California','California','NFC','West','Named for the 1849 California Gold Rush.'],
+  ['sea','Seattle Seahawks','Seahawks','Seattle, Washington','Washington','NFC','West']
+].map(a=>({id:a[0],name:a[1],nick:a[2],place:a[3],st:a[4],conf:a[5],div:a[6],note:a[7]||''}));
+const DIVS=['AFC East','AFC North','AFC South','AFC West','NFC East','NFC North','NFC South','NFC West'];
+const DIV_COL={East:'#3AB6FF',North:'#8E5CFF',South:'#27C28A',West:'#FF9A3C'};
+const divOf=t=>t.conf+' '+t.div;
+const teamsIn=d=>TEAMS.filter(t=>divOf(t)===d);
+const teamById=id=>TEAMS.find(t=>t.id===id);
+const helmetSvg=c=>`<svg viewBox="0 0 40 32" aria-hidden="true"><path d="M4 18C4 8 12 3 22 3C31 3 37 10 37 19V24H18L14 28H8L6 22Z" fill="${c}"/><path d="M10 7C16 4 25 4 31 9" stroke="#fff" stroke-width="2.2" fill="none" opacity=".6" stroke-linecap="round"/><path d="M20 22H35M22 26H33" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>`;
+const FB_GAMES={
+  quiz:{name:'Game Day Quiz',d:'10 questions about teams, places, divisions and conferences.',ic:'football',lead:1},
+  draft:{name:'Division Draft',d:'Pick the 4 teams that belong in each division.',ic:'puzzle'},
+  rules:{name:'Rookie Rules',d:'Learn how football works, one rule at a time.',ic:'whistle'}
+};
+const R=(id,q,opts,a,why)=>({id,q,opts,a,why});
+const TF=['True','False'];
+const RULES=[
+  R('td','How many points is a touchdown worth?',['3','6','7','2'],'6','A touchdown is worth 6 points. After it, the team gets a bonus try.'),
+  R('xp','After a touchdown, a team can kick an extra point. How many points is it worth?',['1','2','3','6'],'1','The extra point kick is worth 1 point.'),
+  R('fg','A kicker kicks the ball through the goal posts. How many points is that field goal?',['1','2','3','6'],'3','A field goal is worth 3 points.'),
+  R('saf','A team tackles the other team\'s ball carrier in the ball carrier\'s own end zone. That is a safety. How many points?',['1','2','3','6'],'2','A safety is worth 2 points for the defense.'),
+  R('two','After a touchdown, a team can run or pass the ball into the end zone instead of kicking. That is a two-point conversion. How many points?',['2','1','3','6'],'2','The team starts close to the goal line. If it scores, it gets 2 points.'),
+  R('downs','How many downs (tries) does a team get to move the ball 10 yards?',['2','3','4','5'],'4','Four downs. If the team gets 10 yards, it earns a new set of four downs.'),
+  R('first','How many yards must a team gain to earn a first down?',['5','10','15','20'],'10','A first down means the team moved the ball 10 yards or more.'),
+  R('eleven','How many players does each team have on the field at one time?',['9','10','11','12'],'11','Eleven players for each team.'),
+  R('quarters','How many quarters are in a football game?',['2','3','4','6'],'4','A game has 4 quarters. Halftime comes after the second one.'),
+  R('qlen','How many minutes long is each quarter in an NFL game?',['10','12','15','20'],'15','Each quarter is 15 minutes of game time. The clock stops at times, so a game lasts about 3 hours.'),
+  R('field','How many yards long is the field between the two goal lines?',['50','75','100','120'],'100','The field is 100 yards between goal lines, with a 10-yard end zone at each end.'),
+  R('endzone','Where does the ball have to go to score a touchdown?',['The end zone','The sideline','The 50-yard line','The bench'],'The end zone','The ball carrier must get the ball into the end zone.'),
+  R('pass','A team can throw a forward pass many times on the same play.',TF,'False','Only one forward pass is allowed on each play, and it must be thrown from behind the line of scrimmage.'),
+  R('punt','On fourth down, far from the goal, a team often kicks the ball away to the other team. What is that kick called?',['A punt','A sack','A fumble','A snap'],'A punt','A punt sends the ball down the field so the other team starts far from the end zone.'),
+  R('int','A defender catches a pass that was meant for the other team. What is that called?',['An interception','A fumble','A safety','A punt'],'An interception','An interception gives the ball to the defense.'),
+  R('fumble','A player drops the ball while running, and the other team can grab it. What is that called?',['A fumble','A sack','A kickoff','A huddle'],'A fumble','A fumble can be picked up by either team.'),
+  R('sack','Tackling the quarterback behind the line of scrimmage before he can throw is called a...',['Sack','Punt','Snap','Touchback'],'Sack','A sack loses yards for the offense.'),
+  R('qb','Which player usually throws the passes?',['The quarterback','The kicker','The center','The punter'],'The quarterback','The quarterback leads the offense and throws most of the passes.'),
+  R('snap','What is it called when the center hikes the ball to start a play?',['The snap','The kickoff','The huddle','The fumble'],'The snap','The play starts when the center snaps the ball.'),
+  R('false','An offensive player moves before the snap. The penalty is called...',['False start','Offside','Holding','Fumble'],'False start','A false start costs the offense 5 yards.'),
+  R('offside','A defensive player crosses the line before the snap. The penalty is called...',['Offside','False start','Sack','Punt'],'Offside','Offside costs the defense 5 yards.'),
+  R('flag','What color is the flag a referee throws for a penalty?',['Yellow','Red','Blue','Green'],'Yellow','Referees throw a yellow flag when they see a penalty.'),
+  R('toss','What decides which team gets to choose first at the start of the game?',['A coin toss','A race','A card game','A vote'],'A coin toss','The referee flips a coin and the visiting captain calls it.'),
+  R('kick','What kick starts each half and happens again after every score?',['The kickoff','The punt','The snap','The field goal'],'The kickoff','The kickoff puts the ball in play.'),
+  R('timeouts','How many timeouts can each team use in a half?',['1','2','3','5'],'3','Each team gets 3 timeouts per half to stop the clock.'),
+  R('ot','If the score is tied at the end of the fourth quarter, the game goes into...',['Overtime','Halftime','A new game','A shootout'],'Overtime','Overtime is extra time to break the tie.'),
+  R('teams','How many teams are in the NFL?',['16','24','32','40'],'32','The NFL has 32 teams: 16 in the AFC and 16 in the NFC.'),
+  R('games','How many regular-season games does each team play?',['12','14','17','20'],'17','Each team plays 17 games, with one week off (a bye week).'),
+  R('sb','What is the NFL championship game called?',['The Super Bowl','The World Series','The Final Four','The Stanley Cup'],'The Super Bowl','The AFC champion plays the NFC champion in the Super Bowl.')
+];
+const FB_CHEERS=['Touchdown!','First down!','Great catch!','Nice throw!','Hut hut hike!','Big play!'];
+const NFL_DAILY=3;
+const fbDay=()=>dayKey(Date.now());
+
+/* mastery, collection and prizes are all worked out from saved sessions, so they sync between homes */
+function nflInfo(list){
+  const att={};
+  list.slice().sort((a,b)=>a.ts-b.ts).forEach(s=>(s.items||[]).forEach(i=>{if(i.k)(att[i.k]=att[i.k]||[]).push({ok:!!i.ok,h:!!i.h,c:i.c})}));
+  const mastered=new Set(),level={};
+  for(const k in att){
+    let run=[],ever=false;
+    att[k].forEach(x=>{if(x.ok&&!x.h)run.push(x);else run=[];if(run.length>=2&&run.some(r=>r.c!=='conf'))ever=true});
+    if(ever)mastered.add(k);
+    const lv=wordLevel(att[k].slice().reverse());
+    level[k]=ever&&lv!=='t'?'m':lv==='m'?'l':lv;
+  }
+  const teamsM=TEAMS.filter(t=>mastered.has(t.id));
+  const divsDone=DIVS.filter(d=>teamsIn(d).every(t=>mastered.has(t.id)));
+  const confsDone=['AFC','NFC'].filter(c=>TEAMS.filter(t=>t.conf===c).every(t=>mastered.has(t.id)));
+  const rulesM=RULES.filter(r=>mastered.has('r:'+r.id));
+  const all=teamsM.length===TEAMS.length;
+  const bonus=divsDone.length*10+confsDone.length*25+(all?50:0)+Math.floor(rulesM.length/8)*5;
+  return{att,mastered,level,teamsM,divsDone,confsDone,rulesM,all,bonus};
+}
+function nflHas(id,inf){
+  if(id==='football')return nflSess().length>=1;
+  if(id==='eyeblack')return inf.teamsM.length>=4;
+  if(id==='fbjersey')return inf.divsDone.length>=1;
+  if(id==='champ')return inf.confsDone.length>=1;
+  return false;
+}
+function hotCount(items){let run=0,n=0;items.forEach(i=>{if(i.ok&&!i.h){run++;if(run%5===0)n++}else run=0});return n}
+function nflAward(items){
+  const today=nflSess().filter(s=>dayKey(s.ts)===fbDay());
+  if(today.length>=NFL_DAILY)return{parts:[],total:0,capped:true};
+  const correct=items.filter(i=>i.ok).length,parts=[['Right answers',correct],['Kickoff bonus',2]];
+  if(items.length>=4&&items.every(i=>i.ok&&!i.h))parts.push(['Perfect game',5]);
+  const hot=hotCount(items);if(hot)parts.push(['Hot streak x'+hot,hot*2]);
+  if(!today.length)parts.push(['Daily double',3]);
+  return{parts,total:parts.reduce((n,p)=>n+p[1],0),capped:false};
+}
+function nflBadges(inf){
+  const ss=nflSess();
+  const perfect=ss.some(s=>s.total>=4&&s.correct===s.total&&(s.items||[]).every(i=>!i.h));
+  const streak=ss.some(s=>hotCount(s.items||[])>0);
+  return[
+    {l:'F',n:'First Snap',d:'Finish your first Football Club game',on:ss.length>=1},
+    {l:'O',n:'Rookie Card',d:'Master your first team',on:inf.teamsM.length>=1},
+    {l:'O',n:'Hot Streak',d:'Get 5 in a row with no help',on:streak},
+    {l:'T',n:'Perfect Game',d:'Get every answer right with no help',on:perfect},
+    {l:'B',n:'Division Champ',d:'Master all 4 teams in a division',on:inf.divsDone.length>=1},
+    {l:'A',n:'Rules Rookie',d:'Master 8 rules',on:inf.rulesM.length>=8},
+    {l:'L',n:'Hall of Fame',d:'Master all 32 teams',on:inf.all}
+  ];
+}
+
+/* questions */
+function teamQ(t,kind){
+  const nick=t.nick,d=divOf(t);
+  if(kind==='conf')return{k:t.id,c:'conf',prompt:`Which conference are the ${nick} in?`,opts:['AFC','NFC'],ans:t.conf,why:`The ${nick} are in the ${t.conf}.`};
+  if(kind==='div')return{k:t.id,c:'div',prompt:`Which division are the ${nick} in?`,opts:shuffle([d,...shuffle(DIVS.filter(x=>x!==d)).slice(0,3)]),ans:d,why:`The ${nick} play in the ${d}.`};
+  if(kind==='who'){
+    const same=TEAMS.some(x=>x.id!==t.id&&x.place===t.place);
+    if(!same)return{k:t.id,c:'who',prompt:`Which team plays in ${t.place}?`,opts:shuffle([nick,...shuffle(TEAMS.filter(x=>x.id!==t.id&&x.st!==t.st)).slice(0,3).map(x=>x.nick)]),ans:nick,why:`The ${t.name} play in ${t.place}.`};
+    kind='loc';
+  }
+  if(kind==='mates'){
+    const others=TEAMS.filter(x=>divOf(x)!==d);
+    return{k:t.id,c:'mates',prompt:`Which team is in the ${d}?`,opts:shuffle([nick,...shuffle(others).slice(0,3).map(x=>x.nick)]),ans:nick,why:`The ${nick} are in the ${d}. The division also has ${teamsIn(d).filter(x=>x.id!==t.id).map(x=>x.nick).join(', ')}.`};
+  }
+  const sts=[...new Set(TEAMS.map(x=>x.st))].filter(s=>s!==t.st);
+  return{k:t.id,c:'loc',prompt:`In which state do the ${nick} play?`,opts:shuffle([t.st,...shuffle(sts).slice(0,3)]),ans:t.st,why:`The ${nick} play in ${t.place}.${t.note?' '+t.note:''}`};
+}
+function weightedPick(items,wf,n){
+  const pool=items.slice(),out=[];
+  while(out.length<n&&pool.length){
+    const ws=pool.map(wf),tot=ws.reduce((a,b)=>a+b,0);let r=Math.random()*tot,j=0;
+    while(j<pool.length-1&&r>ws[j]){r-=ws[j];j++}
+    out.push(pool.splice(j,1)[0]);
+  }
+  return out;
+}
+const LV_W={n:3,t:3.5,l:2,m:.6};
+function pickTeamQs(n){
+  const inf=nflInfo(nflSess());
+  const ts=weightedPick(TEAMS,t=>LV_W[inf.level[t.id]||'n'],n);
+  const kinds=['conf','div','div','div','loc','loc','loc','who','mates','mates'];
+  return ts.map(t=>teamQ(t,pick(kinds)));
+}
+function pickRules(n){
+  const inf=nflInfo(nflSess());
+  return weightedPick(RULES,r=>LV_W[inf.level['r:'+r.id]||'n'],n).map(r=>({k:'r:'+r.id,c:'rules',prompt:r.q,opts:r.opts.length===4?shuffle(r.opts):r.opts,ans:r.a,why:r.why}));
+}
+let nq=null,fd=null,fbres=null;
+function startQuiz(game){
+  const qs=game==='rules'?pickRules(8):pickTeamQs(10);
+  S.from='fb';
+  nq={game,qs,i:0,t0:Date.now(),st:qs.map(()=>({tries:0,wrong:[],done:false,ok:false,h:false,cheer:''}))};
+  S.view='nqrun';render();
+}
+function nqPick(idx){
+  const q=nq.qs[nq.i],st=nq.st[nq.i];
+  if(st.done)return;
+  const v=q.opts[idx];if(v===undefined||st.wrong.includes(v))return;
+  st.tries++;
+  if(v===q.ans){st.done=true;st.ok=true;st.h=st.tries>1;st.cheer=pick(FB_CHEERS)}
+  else{st.wrong.push(v);if(q.opts.length<=2||st.tries>=2){st.done=true;st.ok=false}}
+}
+function startDraft(){
+  const inf=nflInfo(nflSess());
+  const ds=weightedPick(DIVS,d=>1+teamsIn(d).reduce((n,t)=>n+LV_W[inf.level[t.id]||'n'],0),4);
+  const rounds=ds.map(d=>{
+    const ans=teamsIn(d).map(t=>t.id);
+    const decoys=shuffle(TEAMS.filter(t=>divOf(t)!==d)).slice(0,4).map(t=>t.id);
+    return{div:d,ans,show:shuffle([...ans,...decoys]),sel:new Set(),tries:0,done:false,ok:false,msg:null,bad:[]};
+  });
+  S.from='fb';
+  fd={rounds,i:0,t0:Date.now()};
+  S.view='fdrun';render();
+}
+function fdToggle(id){
+  const r=fd.rounds[fd.i];if(r.done||r.bad.includes(id))return;
+  if(r.sel.has(id))r.sel.delete(id);else if(r.sel.size<4)r.sel.add(id);
+  r.msg=null;
+}
+function fdCheck(){
+  const r=fd.rounds[fd.i];if(r.done||r.sel.size!==4)return;
+  r.tries++;
+  const right=[...r.sel].filter(id=>r.ans.includes(id));
+  if(right.length===4){r.done=true;r.ok=true;r.msg='right';r.cheer=pick(FB_CHEERS)}
+  else if(r.tries>=2){r.done=true;r.msg='reveal'}
+  else{r.msg='retry';r.bad=[...r.sel].filter(id=>!r.ans.includes(id));r.sel=new Set(right)}
+}
+function finishNfl(game,items,missed){
+  const infoB=nflInfo(nflSess()),before=stats().stars;
+  const aw=nflAward(items);
+  const correct=items.filter(i=>i.ok).length;
+  const started=game==='draft'?fd.t0:nq.t0;
+  const sess={ts:Date.now(),mode:'nfl',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-started)/1000)),stars:aw.total,
+    items:items.map(i=>({t:'nfl',g:game,c:i.c,k:i.k,ok:i.ok,h:i.h||0,err:null}))};
+  const hadItems=ITEMS.filter(x=>x.nfl&&nflHas(x.id,infoB)).map(x=>x.id);
+  saveSession(sess);
+  const infoA=nflInfo(nflSess()),now=stats().stars;
+  const fresh=(a,b)=>a.filter(x=>!b.includes(x));
+  fbres={game,sess,aw,missed,
+    cards:fresh(infoA.teamsM.map(t=>t.id),infoB.teamsM.map(t=>t.id)).map(id=>teamById(id).name),
+    divs:fresh(infoA.divsDone,infoB.divsDone),confs:fresh(infoA.confsDone,infoB.confsDone),
+    allNow:infoA.all&&!infoB.all,rulesNew:infoA.rulesM.length-infoB.rulesM.length,
+    milestone:infoA.bonus-infoB.bonus,
+    items:ITEMS.filter(x=>x.nfl&&nflHas(x.id,infoA)&&!hadItems.includes(x.id)).map(x=>x.name).concat(ITEMS.filter(x=>!x.nfl&&x.at>before&&x.at<=now).map(x=>x.name)),
+    stops:STOPS.filter(p=>p.at>0&&p.at>before&&p.at<=now).map(p=>p.n)};
+  S.view='fbres';render();
+}
+function finishQuiz(){
+  const items=nq.qs.map((q,i)=>({k:q.k,c:q.c,ok:nq.st[i].ok,h:nq.st[i].h?1:0}));
+  const missed=nq.qs.map((q,i)=>({q,st:nq.st[i]})).filter(x=>!x.st.ok).map(x=>({prompt:x.q.prompt,ans:x.q.ans,why:x.q.why}));
+  finishNfl(nq.game,items,missed);
+}
+function finishDraft(){
+  const items=[],missed=[];
+  fd.rounds.forEach(r=>{
+    r.ans.forEach(id=>{
+      const ok=r.ok||r.sel.has(id);
+      items.push({k:id,c:'draft',ok,h:r.tries>1||(!r.ok)?1:0});
+      if(!ok)missed.push({prompt:`${r.div}: ${teamById(id).name}`,ans:r.div,why:`The ${teamById(id).nick} play in the ${r.div}.`});
+    });
+  });
+  finishNfl('draft',items,missed);
+}
+
 /* ---------- views ---------- */
-const modeName=m=>({smart:'Smart Practice',guided:'Guided Practice',exam:'Practice Exam',spell:'Spelling'}[m]||m);
-const sessName=s=>s.mode==='spell'?'Spelling: '+((SP_GAMES[gameOf(s)]||{}).name||'practice'):modeName(s.mode);
+const modeName=m=>({smart:'Smart Practice',guided:'Guided Practice',exam:'Practice Exam',spell:'Spelling',nfl:'Football Club'}[m]||m);
+const sessName=s=>s.mode==='spell'?'Spelling: '+((SP_GAMES[gameOf(s)]||{}).name||'practice'):s.mode==='nfl'?'Football: '+((FB_GAMES[gameOf(s)]||{}).name||'game'):modeName(s.mode);
+const fbOn=()=>S.settings.football!==false;
 const syncPill=()=>`<span class="pill plain"><i class="dot ${S.sync==='live'?'':'off'}"></i>${S.sync==='live'?'Synced':'This device only'}</span>`;
 function nav(title,right){return`<div class="navbar">${syncPill()}<span class="mid">${esc(title)}</span>${right||'<span></span>'}</div>`}
 function tabbar(on){
   const t=(k,l)=>`<button class="tab ${on===k?'on':''}" data-act="nav" data-v="${k}" aria-label="${l}">${ICON[k]}<span>${l}</span></button>`;
-  return`<nav class="tabbar" aria-label="Main"><div>${t('home','Home')}${t('math','Math')}${t('spell','Spelling')}${t('closet','Closet')}${t('parent','Parent')}</div></nav>`;
+  return`<nav class="tabbar" aria-label="Main"><div>${t('home','Home')}${t('math','Math')}${t('spell','Spelling')}${fbOn()?t('fb','Football'):''}${t('closet','Closet')}${t('parent','Parent')}</div></nav>`;
 }
 function homePicker(){
   return`<section class="card"><h2>Where are you practicing today?</h2><p class="mute">This helps Mom and Dad see where each session happened.</p>
@@ -1041,6 +1319,7 @@ function homeView(){
     ${m('math','math','Math',lastMath?`Last time: ${lastMath.correct} of ${lastMath.total} right on ${fmtDate(lastMath.ts)}`:'Pick a skill or play a mix. Add, subtract and multiply.',true)}
     ${m('spell','spell','Spelling',`${esc(cur.name)}: ${mastered} of ${cur.words.length} words mastered`)}
   </section>
+  ${fbOn()?`<div class="sect">Just for fun</div><section class="modes">${m('fb','football','Football Club',`${nflInfo(nflSess()).teamsM.length} of 32 team cards won. Bonus prizes inside!`)}</section>`:''}
   ${last?`<p class="mute" style="padding-inline:6px">Last activity: ${esc(sessName(last))}, ${last.correct} of ${last.total} on ${fmtDate(last.ts)}.</p>`:''}
   <section class="spark"><b>Science spark</b><p>${esc(fact)}</p></section>
   <div class="sect">Your math bracelet</div>
@@ -1094,10 +1373,10 @@ function spellView(){
 }
 
 function closetView(){
-  const st=stats(),av=getAv();
+  const st=stats(),av=getAv(),inf=nflInfo(nflSess());
   const sw=(k,arr,label)=>`<div class="sect" style="padding-inline:0">${label}</div><div class="swatches">${arr.map((c,i)=>`<button class="swatch ${av[k]===i?'on':''}" style="background:${c}" data-act="av" data-k="${k}" data-v="${i}" aria-label="${label} ${i+1}"></button>`).join('')}</div>`;
-  const it=x=>{const un=st.stars>=x.at,on=x.slot==='extra'?av.extra.includes(x.id):av[x.slot]===x.id;
-    return`<button class="item ${on?'on':''} ${un?'':'lock'}" ${un?'':'disabled'} data-act="av" data-k="item" data-v="${x.id}"><b>${x.name}</b><small>${un?(on?'Wearing it':'Tap to wear'):`Unlocks at ${x.at} stars`}</small></button>`};
+  const it=x=>{const un=x.nfl?nflHas(x.id,inf):st.stars>=x.at,on=x.slot==='extra'?av.extra.includes(x.id):av[x.slot]===x.id;
+    return`<button class="item ${on?'on':''} ${un?'':'lock'}" ${un?'':'disabled'} data-act="av" data-k="item" data-v="${x.id}"><b>${x.name}</b><small>${un?(on?'Wearing it':'Tap to wear'):x.nfl?`Football Club prize: ${x.nfl}`:`Unlocks at ${x.at} stars`}</small></button>`};
   return nav('Closet')+`<div class="largehead"><h1>Closet</h1><p class="mute">You have <b class="num">${st.stars}</b> stars. Earn more to unlock new looks.</p></div>
   <div class="avbig"><div style="width:190px;height:206px">${avatarSvg(av)}</div></div>
   <section class="card">${sw('skin',SKIN,'Skin')}${sw('hair',HAIR,'Hair color')}
@@ -1313,6 +1592,94 @@ function spResultsView(){
   <div class="row">${missed.length?`<button class="btn" data-act="spagain" data-v="missed">Practice my missed words</button>`:''}<button class="btn ${missed.length?'tint':''}" data-act="spagain" data-v="same">Play again</button><button class="btn tint" data-act="exit">Done</button></div></section>`;
 }
 
+/* football club screens */
+function dprog(d,inf){return`<span class="dprog" aria-label="${teamsIn(d).filter(t=>inf.mastered.has(t.id)).length} of 4 teams mastered">${teamsIn(d).map(t=>`<i class="${inf.mastered.has(t.id)?'m':['l','t'].includes(inf.level[t.id])?'l':''}"></i>`).join('')}</span>`}
+function fbView(){
+  const inf=nflInfo(nflSess()),today=nflSess().filter(s=>dayKey(s.ts)===fbDay()).length,left=Math.max(0,NFL_DAILY-today);
+  const g=(k,x)=>`<button class="mode ${x.lead?'lead':''}" data-act="fbstart" data-v="${k}"><span class="ic">${ICON[x.ic]}</span><span><h3>${x.name}</h3><span class="d">${x.d}</span></span>${ICON.next}</button>`;
+  const perks=[
+    ['Daily double',today?'Claimed today':'+3 stars on your first game today',!!today],
+    ['Perfect game','+5 stars for no misses and no hints',false],
+    ['Hot streak','+2 stars for every 5 right in a row',false],
+    ['Star limit',left?`${left} of ${NFL_DAILY} star games left today`:'Done for today. Games still fill your cards!',!left]
+  ];
+  const prizes=[...DIVS.map(d=>[d+' champion','+10 stars',inf.divsDone.includes(d)]),['AFC champion','+25 stars and a headband',inf.confsDone.includes('AFC')],['NFC champion','+25 stars and a headband',inf.confsDone.includes('NFC')],['Hall of Fame','+50 stars for all 32 teams',inf.all]];
+  const ci=x=>nflHas(x.id,inf);
+  return nav('Football Club')+`<div class="largehead"><h1>Football Club</h1><p class="mute">Just for fun, not schoolwork. Learn the teams and how the game works, and win bonus prizes.</p></div>
+  <section class="card"><div class="row between"><h3>Today's bonuses</h3><span class="pill">${inf.teamsM.length} of 32 teams</span></div>
+    <div class="perks">${perks.map(([a,b,d])=>`<div class="perk ${d?'done':''}"><b>${a}${d?' ✓':''}</b><span>${b}</span></div>`).join('')}</div></section>
+  <div class="sect">Play</div>
+  <section class="modes">${Object.entries(FB_GAMES).map(([k,x])=>g(k,x)).join('')}
+    <button class="mode" data-act="fbstudy"><span class="ic">${ICON.cards}</span><span><h3>Meet the Teams</h3><span class="d">Flip through the team cards. No score, just learning.</span></span>${ICON.next}</button></section>
+  <div class="sect">Your card collection</div>
+  <section class="card"><p class="mute">Master a team (right twice in a row with no help) to win its card. Gold dots are teams you are learning.</p>
+  ${DIVS.map(d=>`<div class="row between"><b>${d}</b>${dprog(d,inf)}</div><div class="tcards">${teamsIn(d).map(t=>{const lv=inf.level[t.id],got=inf.mastered.has(t.id);
+    return`<div class="tcard ${got?'':'lock'}" style="--dc:${DIV_COL[t.div]}">${helmetSvg(got?DIV_COL[t.div]:'#9a9aa8')}<b>${got?esc(t.nick):'???'}</b><small>${got?esc(t.place):lv&&lv!=='n'?'Keep going!':'Not won yet'}</small></div>`}).join('')}</div>`).join('')}</section>
+  <div class="sect">Prizes to win</div>
+  <section class="card"><div class="perks">${prizes.map(([a,b,d])=>`<div class="perk ${d?'done':''}"><b>${a}${d?' ✓':''}</b><span>${b}</span></div>`).join('')}
+    ${ITEMS.filter(x=>x.nfl).map(x=>`<div class="perk ${ci(x)?'done':''}"><b>${esc(x.name)}${ci(x)?' ✓':''}</b><span>Closet prize: ${esc(x.nfl)}</span></div>`).join('')}
+    <div class="perk ${inf.rulesM.length>=8?'done':''}"><b>Rules bonus</b><span>+5 stars for every 8 rules you master (${inf.rulesM.length} so far)</span></div></div></section>
+  <div class="sect">Your football bracelet</div>
+  <section class="card"><div class="bracelet">${nflBadges(inf).map(b=>`<div class="bead ${b.on?'':'off'}" title="${esc(b.n)}">${b.l}</div>`).join('')}</div>
+    <div class="dl">${nflBadges(inf).map(b=>`<div class="${b.on?'':'off'}"><b>${b.on?'★ ':''}${esc(b.n)}</b><span>${esc(b.d)}</span></div>`).join('')}</div></section>
+  ${tabbar('fb')}`;
+}
+function fbStudyView(){
+  const f=S.fbDiv||'all',open=S.fbOpen||(S.fbOpen=new Set());
+  const list=f==='all'?TEAMS:teamsIn(f);
+  return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Meet the Teams</span><span style="min-width:64px"></span></div>
+  <div class="largehead"><h1>Meet the Teams</h1><p class="mute">Tap a card to flip it and hear the name. The colored edge shows the division: blue East, purple North, green South, orange West.</p></div>
+  <div class="seg wrap">${['all',...DIVS].map(d=>`<button class="${f===d?'on':''}" data-act="fbdiv" data-v="${d}">${d==='all'?'All 32':d}</button>`).join('')}</div>
+  <section class="tcards">${list.map(t=>{const o=open.has(t.id);
+    return`<button class="tcard" style="--dc:${DIV_COL[t.div]}" data-act="fbflip" data-v="${t.id}" aria-pressed="${o}">${helmetSvg(DIV_COL[t.div])}<b>${esc(o?t.name:t.nick)}</b><small>${o?`${esc(t.place)}<br>${divOf(t)}${t.note?'<br>'+esc(t.note):''}`:'Tap to flip'}</small></button>`}).join('')}</section>`;
+}
+function nqRunView(){
+  const r=nq,q=r.qs[r.i],st=r.st[r.i],N=r.qs.length,last=r.i===N-1;
+  const top=`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Exit</button><span class="mid">${esc(FB_GAMES[r.game].name)}</span><span style="min-width:64px"></span></div>`;
+  const goals=r.st.filter(s=>s.ok).length,f=(r.i+(st.done?1:0))/N;
+  const opts=q.opts.map((o,i)=>{let cls='choice';if(st.wrong.includes(o))cls+=' bad';if(st.done&&o===q.ans)cls+=' ok';
+    return`<button class="${cls}" data-act="nqpick" data-v="${i}" ${st.done||st.wrong.includes(o)?'disabled':''}>${esc(o)}</button>`}).join('');
+  return top+`<section class="card"><div class="row between"><span class="pill">Question ${r.i+1} of ${N}</span><span class="score pill plain">Points <span class="num">${goals}</span></span></div>${raceTrack(r,f)}
+  <p class="qtext word">${esc(q.prompt)}</p><div class="choices w">${opts}</div>
+  ${st.done&&st.ok?`<div class="fb good">${esc(st.cheer)} ${st.h?'Right, on the second try.':'Right!'}</div><p>${esc(q.why)}</p>`:''}
+  ${!st.done&&st.wrong.length?`<div class="fb try">Not that one. Try again.</div>`:''}
+  ${st.done&&!st.ok?`<div class="fb try">The answer is <b>${esc(q.ans)}</b>.</div><p>${esc(q.why)}</p>`:''}
+  <div class="row between"><span></span>${st.done?`<button class="btn" data-act="nqnext">${last?'See my results':'Next question'}</button>`:''}</div></section>`;
+}
+function fdRunView(){
+  const r=fd.rounds[fd.i],N=fd.rounds.length,last=fd.i===N-1,col=DIV_COL[r.div.split(' ')[1]];
+  const top=`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Exit</button><span class="mid">Division Draft</span><span style="min-width:64px"></span></div>`;
+  const cards=r.show.map(id=>{const t=teamById(id);let cls='tcard';
+    if(r.sel.has(id))cls+=' sel';if(r.bad.includes(id))cls+=' bad';if(r.done&&r.ans.includes(id))cls+=' ok';
+    return`<button class="${cls}" style="--dc:${col}" data-act="fdtoggle" data-v="${id}" ${r.done||r.bad.includes(id)?'disabled':''}>${helmetSvg('#9a9aa8')}<b>${esc(t.nick)}</b></button>`}).join('');
+  return top+`<section class="card"><div class="row between"><span class="pill">Round ${fd.i+1} of ${N}</span><span class="score pill plain">Picked <span class="num">${r.sel.size}</span> of 4</span></div>
+  <p class="qtext word">Build the <b>${r.div}</b>. Tap the 4 teams that play in it.</p>
+  <div class="tcards">${cards}</div>
+  ${r.msg==='right'?`<div class="fb good">${esc(r.cheer)} ${r.tries>1?'Right, on the second try.':'A perfect draft!'}</div>`:''}
+  ${r.msg==='retry'?`<div class="fb try">Some of those belong in other divisions. They are faded out now. Pick again.</div>`:''}
+  ${r.msg==='reveal'?`<div class="fb try">The ${r.div} is ${r.ans.map(id=>teamById(id).nick).join(', ')}.</div>`:''}
+  <div class="row between">${r.done?'<span></span>':`<button class="btn" data-act="fdcheck" ${r.sel.size===4?'':'disabled'}>Check my draft</button>`}${r.done?`<button class="btn" data-act="fdnext">${last?'See my results':'Next round'}</button>`:''}</div></section>`;
+}
+function fbResView(){
+  const x=fbres,s=x.sess,p=pct(s);
+  const msg=p>=90?'All-star game! You really know your football.':p>=70?'Strong game. Keep building your collection.':'Good effort. Every game teaches you something new.';
+  const wins=[
+    ...x.cards.map(n=>`New card: ${n}`),...x.divs.map(d=>`${d} champion! Bonus stars added.`),...x.confs.map(c=>`${c} champion! Bonus stars and a prize.`),
+    ...(x.allNow?['Hall of Fame! You mastered all 32 teams.']:[]),...(x.rulesNew>0&&x.milestone>0&&!x.divs.length&&!x.confs.length?['Rules bonus earned!']:[]),
+    ...x.items.map(n=>`New in your closet: ${n}`),...x.stops.map(n=>`Your rocket reached ${n}!`)
+  ];
+  return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Final whistle!</span><span style="min-width:64px"></span></div>
+  <section class="card"><h2>${esc(FB_GAMES[x.game].name)} complete!</h2>
+  <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
+  <div><div class="bigscore"><span style="color:var(--gold)">★</span> +${s.stars+(x.milestone||0)}</div><span class="mute">stars earned</span></div></div>
+  <p>${msg}</p>
+  ${x.aw.capped?`<div class="fb try">You already earned stars in ${NFL_DAILY} games today. This one still counts toward your cards and prizes!</div>`
+    :`<div class="card" style="box-shadow:inset 0 0 0 1px var(--line);padding:14px;gap:6px"><h3>Bonus breakdown</h3>${x.aw.parts.map(([a,n])=>`<div class="bk"><span>${esc(a)}</span><span class="num">+${n}</span></div>`).join('')}${x.milestone?`<div class="bk"><span>Collection prize</span><span class="num">+${x.milestone}</span></div>`:''}</div>`}
+  ${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
+  ${x.missed.length?`<h3>Let's look at these</h3>${x.missed.map(m=>`<details><summary>${esc(m.prompt)}</summary><p style="margin-top:8px"><b>${esc(m.ans)}</b>. ${esc(m.why)}</p></details>`).join('')}`:'<div class="fb good">No misses. Perfect!</div>'}
+  <div class="row"><button class="btn" data-act="fbstart" data-v="${x.game}">Play again</button><button class="btn tint" data-act="exit">Done</button></div></section>`;
+}
+
 /* parent area */
 function parentView(){
   const head=nav('Parent area')+`<div class="largehead"><h1>Parent area</h1></div>`;
@@ -1321,8 +1688,8 @@ function parentView(){
     ${S.pinErr?'<div class="fb try">That PIN is not right. Try again.</div>':'<p class="mute">The starting PIN is 1234. Change it under Settings.</p>'}</section>`+tabbar('parent');
   }
   const seg=`<div class="seg">${[['progress','Progress'],['log','Practice log'],['settings','Settings']].map(([k,l])=>`<button class="${S.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</div>`;
-  const sub=S.tab==='progress'?`<div class="seg">${[['math','Math'],['spell','Spelling']].map(([k,l])=>`<button class="${S.psub===k?'on':''}" data-act="psub" data-v="${k}">${l}</button>`).join('')}</div>`:'';
-  return head+seg+sub+(S.tab==='progress'?(S.psub==='spell'?spellProgress():progressTab()):S.tab==='log'?logTab():settingsTab())+tabbar('parent');
+  const sub=S.tab==='progress'?`<div class="seg">${[['math','Math'],['spell','Spelling'],['fb','Football']].map(([k,l])=>`<button class="${S.psub===k?'on':''}" data-act="psub" data-v="${k}">${l}</button>`).join('')}</div>`:'';
+  return head+seg+sub+(S.tab==='progress'?(S.psub==='spell'?spellProgress():S.psub==='fb'?fbProgress():progressTab()):S.tab==='log'?logTab():settingsTab())+tabbar('parent');
 }
 function spellProgress(){
   const ss=spellSess();
@@ -1341,6 +1708,20 @@ function spellProgress(){
   <section class="card"><h3>Clean tries by activity</h3>${byGame.map(x=>bar(esc(SP_GAMES[x.k].name),Math.round(100*x.c/x.n),Math.round(100*x.c/x.n)+'%',x.c/x.n<.7)).join('')}</section>
   <section class="card"><h3>Mistake patterns</h3>${errRows.length?errRows.map(([k,n])=>bar(esc(SP_ERR[k]||k),Math.round(100*n/maxE),n,true)).join(''):'<p class="mute">No typed mistakes recorded yet.</p>'}
   <p class="mute">Share this with her teacher so school and home practice target the same kind of mistake.</p></section>`;
+}
+function fbProgress(){
+  const ss=nflSess();
+  if(!ss.length)return`<section class="card"><h3>No Football Club games yet</h3><p class="mute">This section is extra and separate from schoolwork. Her team and rules progress shows up here once she plays.</p></section>`;
+  const inf=nflInfo(ss),items=ss.flatMap(s=>s.items||[]);
+  const bar=(label,p,right,low)=>`<div class="bar"><span>${label}</span><span class="track2"><span class="fill ${low?'low':''}" style="width:${p}%"></span></span><span class="num">${right}</span></div>`;
+  const byGame=Object.keys(FB_GAMES).map(k=>{const a=items.filter(i=>i.g===k);return{k,n:a.length,c:a.filter(i=>i.ok&&!i.h).length}}).filter(x=>x.n);
+  const byCat=[['conf','Conference'],['div','Division'],['loc','State'],['who','Which team plays in a city'],['mates','Which team is in a division'],['draft','Division Draft'],['rules','Rules']].map(([k,l])=>{const a=items.filter(i=>i.c===k);return{l,n:a.length,c:a.filter(i=>i.ok&&!i.h).length}}).filter(x=>x.n);
+  const weak=TEAMS.filter(t=>inf.level[t.id]==='t');
+  return`<section class="card"><h3>Football Club (extra)</h3><p class="mute">${ss.length} games played. ${inf.teamsM.length} of 32 teams mastered, ${inf.rulesM.length} of ${RULES.length} rules mastered, ${inf.divsDone.length} of 8 divisions complete.</p>
+  ${DIVS.map(d=>bar(d,Math.round(25*teamsIn(d).filter(t=>inf.mastered.has(t.id)).length),teamsIn(d).filter(t=>inf.mastered.has(t.id)).length+'/4')).join('')}</section>
+  <section class="card"><h3>Teams that need work</h3>${weak.length?`<div class="wchips">${weak.map(t=>`<span class="wchip"><i class="t"></i>${esc(t.nick)}</span>`).join('')}</div>`:'<p class="mute">No tricky teams right now.</p>'}</section>
+  <section class="card"><h3>Clean answers by activity</h3>${byGame.map(x=>bar(esc(FB_GAMES[x.k].name),Math.round(100*x.c/x.n),Math.round(100*x.c/x.n)+'%',x.c/x.n<.7)).join('')}
+  ${byCat.map(x=>bar(esc(x.l),Math.round(100*x.c/x.n),Math.round(100*x.c/x.n)+'%',x.c/x.n<.7)).join('')}</section>`;
 }
 function chart(list){
   const pts=(list||mathSess()).slice(0,30).reverse();
@@ -1379,6 +1760,7 @@ function settingsTab(){
   return`<section class="card"><h3>Settings</h3>
   <label class="row">Exam length <select id="examLen">${[10,11,12,13,14,15].map(n=>`<option ${Number(S.settings.examLen)===n?'selected':''}>${n}</option>`).join('')}</select> questions</label>
   <label class="row">Exam timer <select id="examTimer"><option value="on" ${timerOn()?'selected':''}>${fmtT(EXAM_SECS)} per question</option><option value="off" ${timerOn()?'':'selected'}>Off</option></select></label>
+  <label class="row">Football Club <select id="fbOn"><option value="on" ${fbOn()?'selected':''}>Show (extra, just for fun)</option><option value="off" ${fbOn()?'':'selected'}>Hide</option></select></label>
   <label class="row">New parent PIN <input class="txt" id="newPin" type="password" inputmode="numeric" maxlength="8" placeholder="leave blank to keep" style="width:200px"></label>
   <div class="row"><button class="btn" data-act="saveSettings">Save settings</button><span id="saved" class="mute"></span></div>
   <p class="mute">Settings are saved on this device. Set the same PIN and exam length on each computer.</p></section>
@@ -1399,6 +1781,11 @@ function render(){
     case'results':h=resultsView();break;
     case'math':h=mathView();break;
     case'spell':h=spellView();break;
+    case'fb':h=fbView();break;
+    case'fbstudy':h=fbStudyView();break;
+    case'nqrun':h=nqRunView();break;
+    case'fdrun':h=fdRunView();break;
+    case'fbres':h=fbResView();break;
     case'sprun':h=spRunView();break;
     case'spresults':h=spResultsView();break;
     case'parent':h=parentView();break;
@@ -1488,6 +1875,15 @@ function act(a,v,d){
     case'home':S.view='home';S.unlocked=false;run=null;sp=null;render();break;
     case'exit':S.view=S.from||'home';S.unlocked=false;run=null;sp=null;render();break;
     case'psub':S.psub=v;render();break;
+    case'fbstart':if(v==='draft')startDraft();else startQuiz(v);break;
+    case'fbstudy':S.from='fb';S.view='fbstudy';render();break;
+    case'fbdiv':S.fbDiv=v;render();break;
+    case'fbflip':{const o=S.fbOpen||(S.fbOpen=new Set());if(o.has(v))o.delete(v);else{o.add(v);say(teamById(v).name)}render();break}
+    case'nqpick':nqPick(Number(v));render();break;
+    case'nqnext':if(nq.i<nq.qs.length-1){nq.i++;render()}else finishQuiz();break;
+    case'fdtoggle':fdToggle(v);render();break;
+    case'fdcheck':fdCheck();render();break;
+    case'fdnext':if(fd.i<fd.rounds.length-1){fd.i++;render()}else finishDraft();break;
     case'splist':S.splist=v;store.set('lmath.splist',v);render();break;
     case'sayword':say(v);break;
     case'spstart':startSpell(v);break;
@@ -1545,7 +1941,7 @@ function act(a,v,d){
     case'unlock':{const el=document.getElementById('pin');if(el&&el.value===String(S.settings.pin)){S.unlocked=true;S.pinErr=false}else S.pinErr=true;render();break}
     case'saveSettings':{
       const n=Number(document.getElementById('examLen').value),np=document.getElementById('newPin').value.trim();
-      S.settings.examLen=n;S.settings.examTimer=document.getElementById('examTimer').value!=='off';if(/^\d{4,8}$/.test(np))S.settings.pin=np;
+      S.settings.examLen=n;S.settings.examTimer=document.getElementById('examTimer').value!=='off';S.settings.football=document.getElementById('fbOn').value!=='off';if(/^\d{4,8}$/.test(np))S.settings.pin=np;
       store.set('lmath.settings',S.settings);
       render();const s=document.getElementById('saved');if(s)s.textContent=np&&!/^\d{4,8}$/.test(np)?'Saved. PIN must be 4 to 8 digits, so it was not changed.':'Saved.';break}
     case'pick':
