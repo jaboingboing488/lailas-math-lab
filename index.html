@@ -11,32 +11,35 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Laila's Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@600;700&family=Cinzel:wght@600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@600;700&family=Nunito:wght@600;700;800;900&display=swap">
 <style>
 /* Layout: iOS-style single column. Translucent top bar, big titles, grouped cards, floating tab bar.
    Palette: Hogwarts. Parchment and candlelight by day, the Great Hall at night. */
 :root{
-  --bg:#F6EEDC; --bg2:#E6D2A0; --card:#FFFBF0; --card2:#F8F0DD; --ink:#2B1B14; --mute:#78613F; --line:rgba(90,60,20,.18);
-  --accent:#8A1523; --accent-ink:#FFF3D6; --accent-soft:#F2DFC6; --lilac:#14275E;
-  --good:#1F6B3A; --good-bg:#DCEBCF; --warn:#9A4A00; --warn-bg:#F6E0BC; --gold:#C8921A; --spark:rgba(200,146,26,.5);
-  --hero1:#7A1220; --hero2:#14275E;
-  --shadow:0 8px 24px rgba(70,40,10,.16),0 1px 3px rgba(60,30,10,.12); --bar:rgba(246,238,220,.85);
-  --f-head:'Cinzel','Palatino Linotype',Palatino,'Book Antiqua',Georgia,serif;
-  --f-ui:-apple-system,BlinkMacSystemFont,'SF Pro Rounded','SF Pro Display','Inter',system-ui,'Segoe UI',sans-serif;
+  --bg:#F4F2FF; --bg2:#E4DDFF; --card:#FFFFFF; --card2:#F3F0FF; --ink:#1B1740; --mute:#625A8C; --line:rgba(60,40,140,.14);
+  --accent:#5B3DF5; --accent-ink:#FFFFFF; --accent-soft:#E9E4FF; --lilac:#C03DE0;
+  --good:#12805C; --good-bg:#D8F5EA; --warn:#B45309; --warn-bg:#FFF0D0; --gold:#F0A500; --spark:rgba(91,61,245,.22);
+  --hero1:#5B3DF5; --hero2:#C03DE0; --b1:#5B3DF5; --b2:#C03DE0;
+  --p0:#2F6BFF; --p1:#E5389B; --p2:#12A073;
+  --shadow:0 6px 20px rgba(60,40,140,.12),0 1px 2px rgba(40,20,100,.08); --bar:rgba(244,242,255,.9);
+  --f-head:'Nunito',-apple-system,BlinkMacSystemFont,'SF Pro Rounded','Segoe UI',system-ui,sans-serif;
+  --f-ui:'Nunito',-apple-system,BlinkMacSystemFont,'SF Pro Rounded','SF Pro Display','Segoe UI',system-ui,sans-serif;
   --f-num:'SF Mono','JetBrains Mono',ui-monospace,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0B0D1A; --bg2:#271B35; --card:#151729; --card2:#1E2038; --ink:#F5E9CC; --mute:#B8AB8C; --line:rgba(245,220,160,.14);
-  --accent:#E3B94F; --accent-ink:#1C1405; --accent-soft:#3A2F14; --lilac:#8FA6F0;
-  --good:#6FD09A; --good-bg:#123524; --warn:#FFB45C; --warn-bg:#3F2A10; --gold:#E9BE4A; --spark:rgba(240,200,110,.7);
-  --hero1:#5E0F1B; --hero2:#1A2A66;
-  --shadow:0 10px 30px rgba(0,0,0,.5); --bar:rgba(11,13,26,.85); color-scheme:dark}}
+  --bg:#0D0A22; --bg2:#1D1446; --card:#171336; --card2:#201A47; --ink:#F2EFFF; --mute:#A9A1D6; --line:rgba(190,170,255,.16);
+  --accent:#A18CFF; --accent-ink:#120B38; --accent-soft:#2B2360; --lilac:#E98BFF;
+  --good:#5EE0AA; --good-bg:#10382B; --warn:#FFB35C; --warn-bg:#40290E; --gold:#FFC93A; --spark:rgba(190,170,255,.5);
+  --hero1:#4B2FD6; --hero2:#A12DC4;
+  --p0:#7FA8FF; --p1:#FF8FCB; --p2:#5EE0AA;
+  --shadow:0 8px 24px rgba(0,0,0,.5); --bar:rgba(13,10,34,.9); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0B0D1A; --bg2:#271B35; --card:#151729; --card2:#1E2038; --ink:#F5E9CC; --mute:#B8AB8C; --line:rgba(245,220,160,.14);
-  --accent:#E3B94F; --accent-ink:#1C1405; --accent-soft:#3A2F14; --lilac:#8FA6F0;
-  --good:#6FD09A; --good-bg:#123524; --warn:#FFB45C; --warn-bg:#3F2A10; --gold:#E9BE4A; --spark:rgba(240,200,110,.7);
-  --hero1:#5E0F1B; --hero2:#1A2A66;
-  --shadow:0 10px 30px rgba(0,0,0,.5); --bar:rgba(11,13,26,.85); color-scheme:dark}
+  --bg:#0D0A22; --bg2:#1D1446; --card:#171336; --card2:#201A47; --ink:#F2EFFF; --mute:#A9A1D6; --line:rgba(190,170,255,.16);
+  --accent:#A18CFF; --accent-ink:#120B38; --accent-soft:#2B2360; --lilac:#E98BFF;
+  --good:#5EE0AA; --good-bg:#10382B; --warn:#FFB35C; --warn-bg:#40290E; --gold:#FFC93A; --spark:rgba(190,170,255,.5);
+  --hero1:#4B2FD6; --hero2:#A12DC4;
+  --p0:#7FA8FF; --p1:#FF8FCB; --p2:#5EE0AA;
+  --shadow:0 8px 24px rgba(0,0,0,.5); --bar:rgba(13,10,34,.9); color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background-color:var(--bg);
   background-image:radial-gradient(120% 60% at 15% 0%,var(--bg2),transparent 60%),radial-gradient(1.6px 1.6px at 18px 24px,var(--spark),transparent),radial-gradient(1.1px 1.1px at 66px 72px,var(--spark),transparent);
@@ -301,6 +304,84 @@ textarea.txt{font:inherit;padding:12px 14px;border:0;border-radius:14px;backgrou
 .prizecard{flex-direction:row;align-items:center;justify-content:space-between;text-align:left;gap:12px}
 .prizecard>span{display:flex;flex-direction:column;gap:2px}
 .prizecard b{font-size:2.2rem;color:var(--accent)}
+/* ===== modern look: each subject has its own color ===== */
+.th-math{--accent:#2F6BFF;--accent-soft:#E3ECFF;--lilac:#12A8E0;--b1:#2F6BFF;--b2:#12A8E0;}
+.th-spell{--accent:#E5389B;--accent-soft:#FFE1F2;--lilac:#FF8A3D;--b1:#E5389B;--b2:#FF8A3D;}
+.th-es{--accent:#E85D0C;--accent-soft:#FFE9D6;--lilac:#E5389B;--b1:#F26A1B;--b2:#E5389B;}
+.th-geo{--accent:#0E9468;--accent-soft:#D9F6EA;--lilac:#2BB8D6;--b1:#12A073;--b2:#2BB8D6;}
+.th-sport{--accent:#B45309;--accent-soft:#FFEBD2;--lilac:#E5A011;--b1:#C2570C;--b2:#E5A011;}
+.th-room{--accent:#8E3FE0;--accent-soft:#F0E4FF;--lilac:#E5389B;--b1:#8E3FE0;--b2:#E5389B;}
+@media (prefers-color-scheme:dark){
+:root:not([data-theme="light"]) .th-math{--accent:#86AEFF;--accent-soft:#1B2A5A;--lilac:#5CD0F5;--b1:#2F6BFF;--b2:#12A8E0;}
+:root:not([data-theme="light"]) .th-spell{--accent:#FF8FCB;--accent-soft:#4A1A3A;--lilac:#FFB070;--b1:#E5389B;--b2:#FF8A3D;}
+:root:not([data-theme="light"]) .th-es{--accent:#FFA864;--accent-soft:#4A2A12;--lilac:#FF8FCB;--b1:#F26A1B;--b2:#E5389B;}
+:root:not([data-theme="light"]) .th-geo{--accent:#5EE0AA;--accent-soft:#0F3A2C;--lilac:#6FD8F0;--b1:#12A073;--b2:#2BB8D6;}
+:root:not([data-theme="light"]) .th-sport{--accent:#FFB35C;--accent-soft:#402A0E;--lilac:#FFD86A;--b1:#C2570C;--b2:#E5A011;}
+:root:not([data-theme="light"]) .th-room{--accent:#C79BFF;--accent-soft:#35205E;--lilac:#FF8FCB;--b1:#8E3FE0;--b2:#E5389B;}
+}
+:root[data-theme="dark"] .th-math{--accent:#86AEFF;--accent-soft:#1B2A5A;--lilac:#5CD0F5;--b1:#2F6BFF;--b2:#12A8E0;}
+:root[data-theme="dark"] .th-spell{--accent:#FF8FCB;--accent-soft:#4A1A3A;--lilac:#FFB070;--b1:#E5389B;--b2:#FF8A3D;}
+:root[data-theme="dark"] .th-es{--accent:#FFA864;--accent-soft:#4A2A12;--lilac:#FF8FCB;--b1:#F26A1B;--b2:#E5389B;}
+:root[data-theme="dark"] .th-geo{--accent:#5EE0AA;--accent-soft:#0F3A2C;--lilac:#6FD8F0;--b1:#12A073;--b2:#2BB8D6;}
+:root[data-theme="dark"] .th-sport{--accent:#FFB35C;--accent-soft:#402A0E;--lilac:#FFD86A;--b1:#C2570C;--b2:#E5A011;}
+:root[data-theme="dark"] .th-room{--accent:#C79BFF;--accent-soft:#35205E;--lilac:#FF8FCB;--b1:#8E3FE0;--b2:#E5389B;}
+body{background-image:radial-gradient(120% 55% at 10% 0%,var(--bg2),transparent 60%);background-size:auto;background-attachment:fixed}
+h1,h2,h3{font-family:var(--f-head);font-weight:900;letter-spacing:0}
+h1{font-size:2rem}
+.num{font-family:var(--f-ui);font-variant-numeric:tabular-nums;font-weight:900}
+.card{border-radius:22px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.btn{background:linear-gradient(135deg,var(--accent),var(--lilac));color:var(--accent-ink);box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.btn.tint{background:var(--accent-soft);color:var(--accent);box-shadow:none;text-shadow:none}
+.btn.quiet{background:var(--card2);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line);text-shadow:none}
+.pill{background:var(--accent-soft);color:var(--accent)}
+.hero{background:linear-gradient(135deg,var(--hero1),var(--hero2));box-shadow:0 10px 28px rgba(80,40,200,.3);border:0}
+.hero .av{background:rgba(255,255,255,.2)}
+.stat{background:rgba(255,255,255,.18)}
+.journey{background:rgba(10,6,40,.35)}
+.tab.on{color:var(--accent);background:var(--accent-soft)}
+.tabbar .tab{font-size:.62rem;border-radius:14px;min-width:0}
+.mode{border:1px solid var(--line)}
+.mode .ic{background:var(--accent-soft);color:var(--accent)}
+.mode[style*="--c"] .ic{background:var(--accent-soft);background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c)}
+.mode.lead .ic{background:linear-gradient(135deg,var(--accent),var(--lilac));color:#fff}
+.mode[style*="--c"].lead .ic{background:var(--c);color:#fff}
+.mode.lead{box-shadow:inset 0 0 0 2px var(--accent),var(--shadow)}
+.sbanner{background:linear-gradient(135deg,var(--b1),var(--b2));color:#fff;border-radius:26px;padding:18px;display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;box-shadow:0 10px 26px rgba(0,0,0,.2);margin-top:14px}
+.sbanner .sbi{width:64px;height:64px;border-radius:20px;background:rgba(255,255,255,.22);display:grid;place-items:center}
+.sbanner .sbi svg{width:38px;height:38px;color:#fff}
+.sbanner h1{color:#fff;font-size:1.8rem}
+.sbanner p{opacity:.95;font-weight:700;font-size:.95rem}
+.sbc{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sbc div{background:rgba(255,255,255,.2);border-radius:16px;padding:8px 6px;text-align:center;display:flex;flex-direction:column}
+.sbc b{font-size:1.5rem;line-height:1.1}.sbc span{font-size:.72rem;font-weight:800;opacity:.95;text-transform:uppercase;letter-spacing:.05em}
+/* question screens */
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dots i{flex:1;min-width:10px;height:10px;border-radius:99px;background:var(--accent-soft)}
+.dots i.d{background:var(--good)}.dots i.x{background:var(--warn)}.dots i.c{background:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.qtext{color:var(--ink)}
+.pv0{color:var(--p0)}.pv1{color:var(--p1)}.pv2{color:var(--p2)}
+.stack b{font-weight:inherit}
+.choice{border-radius:20px;box-shadow:inset 0 -5px 0 var(--cc,var(--line)),inset 0 0 0 2px var(--line);background:var(--card)}
+.choices .choice:nth-child(4n+1){--cc:#2F6BFF}.choices .choice:nth-child(4n+2){--cc:#E5389B}.choices .choice:nth-child(4n+3){--cc:#12A073}.choices .choice:nth-child(4n){--cc:#F2A20C}
+.choice.sel{background:var(--accent-soft);box-shadow:inset 0 -5px 0 var(--accent),inset 0 0 0 3px var(--accent)}
+.choice.ok{background:var(--good-bg);box-shadow:inset 0 -5px 0 var(--good),inset 0 0 0 3px var(--good)}
+.choice.bad{background:var(--warn-bg);box-shadow:inset 0 -5px 0 var(--warn),inset 0 0 0 3px var(--warn)}
+.bigword,.esword{background:linear-gradient(135deg,var(--accent-soft),var(--card2));color:var(--ink);border:2px solid var(--line)}
+.tile{background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 -4px 0 var(--accent),inset 0 0 0 2px var(--line)}
+.fb{position:relative}
+.burst{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}
+.burst i{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--c)}
+@media (prefers-reduced-motion:no-preference){
+  .burst i{animation:fly .9s ease-out forwards}
+  @keyframes fly{from{transform:rotate(var(--a)) translateY(0);opacity:1}to{transform:rotate(var(--a)) translateY(-84px) scale(.3);opacity:0}}
+  .fb.good{animation:pop .45s ease-out}
+  @keyframes pop{0%{transform:scale(.9);opacity:.3}60%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+  .bigscore{animation:pop .6s ease-out}
+  .ct{transition:transform .12s}.ct:active{transform:scale(.96)}
+}
+.drive svg{box-shadow:var(--shadow)}
+.fb.good{background:var(--good-bg);color:var(--good);border:2px solid var(--good)}
+.fb.try{background:var(--warn-bg);color:var(--warn);border:2px solid var(--warn)}
 :root.hw{--spark:rgba(255,140,40,.65);--hero1:#7A2A00;--hero2:#2A0F4A}
 :root.hw .hero{box-shadow:inset 0 0 0 2px rgba(255,140,40,.7),var(--shadow)}
 </style>
@@ -1755,6 +1836,15 @@ function finishDraft(){
   finishNfl('draft',items,missed);
 }
 
+/* a colorful header for each subject, with the live session counter */
+function subjBanner(k,title,sub){
+  const c=subjectCounts()[k],L={math:mathSess,spell:spellSess,es:esSess,geo:geoSess}[k],stars=L?sumStars(L()):0,s=SUBJ.find(x=>x.k===k);
+  return`<section class="sbanner"><span class="sbi">${ICON[s.ic]}</span><div><h1>${title}</h1><p>${sub}</p></div>
+  <div class="sbc"><div><b class="num">${c.n}</b><span>sessions</span></div><div><b class="num">${c.t}</b><span>today</span></div><div><b class="num">${stars}</b><span>stars</span></div></div></section>`;
+}
+const BURST='<span class="burst" aria-hidden="true">'+Array.from({length:14},(_,i)=>`<i style="--a:${Math.round(i*25.7)}deg;--c:${['#FFD24D','#FF7BAF','#58D68D','#3AA0F0','#8E5CFF'][i%5]}"></i>`).join('')+'</span>';
+const pv=n=>String(n).split('').reverse().map((d,i)=>`<b class="pv${Math.min(i,2)}">${d}</b>`).reverse().join('');
+const dotsHtml=(cur,N,st)=>`<div class="dots" aria-hidden="true">${Array.from({length:N},(_,i)=>`<i class="${i===cur?'c':st(i)}"></i>`).join('')}</div>`;
 /* ---------- views ---------- */
 const modeName=m=>({smart:'Smart Practice',guided:'Guided Practice',exam:'Practice Exam',spell:'Spelling',nfl:'American Football',soc:'Soccer',geo:'Geography'}[m]||m);
 const sessName=s=>isEs(s)?'Español: '+((ES_GAMES[gameOf(s)]||{}).name||'practice'):s.mode==='spell'?'Spelling: '+((SP_GAMES[gameOf(s)]||{}).name||'practice'):s.mode==='nfl'?'Football: '+gameName(gameOf(s)):s.mode==='soc'?'Soccer: '+gameName(gameOf(s)):s.mode==='geo'?'Geography: '+gameName(gameOf(s)):modeName(s.mode);
@@ -1775,7 +1865,8 @@ function homeView(){
   const st=stats(),av=getAv(),last=S.sessions[0];
   let idx=0;STOPS.forEach((p,i)=>{if(st.stars>=p.at)idx=i});
   const nextTxt=idx<STOPS.length-1?`Next stop: ${STOPS[idx+1].n}, only ${STOPS[idx+1].at-st.stars} more stars`:'You reached the Tower! Amazing.';
-  const m=(k,ic,t,d,lead)=>`<button class="mode ${lead?'lead':''}" data-act="nav" data-v="${k}"><span class="ic">${ICON[ic]}</span><span><h3>${t}</h3><span class="d">${d}</span></span>${ICON.next}</button>`;
+  const MC={math:'#2F6BFF',spell:'#E5389B',es:'#F26A1B',geo:'#12A073',club:'#B45309'};
+  const m=(k,ic,t,d,lead)=>`<button class="mode ${lead?'lead':''}" style="--c:${MC[k]||'var(--accent)'}" data-act="nav" data-v="${k}"><span class="ic">${ICON[ic]}</span><span><h3>${t}</h3><span class="d">${d}</span></span>${ICON.next}</button>`;
   const fact=FACTS[Math.floor(Date.now()/86400000)%FACTS.length];
   const wst=wordStats(),cur=spLists().find(l=>l.id===S.splist)||UNIT3[0];
   const mastered=cur.words.filter(w=>wordLevel(wst[w.toLowerCase()])==='m').length;
@@ -1816,7 +1907,7 @@ function mathView(){
   const chips=GROUPS.map(g=>`<button class="chip ${S.topics.includes(g.k)?'on':''}" aria-pressed="${S.topics.includes(g.k)}" data-act="topic" data-v="${g.k}">${g.label}</button>`).join('');
   const skill=k=>{const a=acc[k],p=a.n?Math.round(100*a.c/a.n):null;
     return`<button class="skill" data-act="skill" data-v="${k}"><b>${esc(TYPES[k].label)}</b><span class="track2"><span class="fill ${p!==null&&p<70?'low':''}" style="width:${p||0}%"></span></span><small>${p===null?'Not tried yet':p+'% right'}</small></button>`};
-  return nav('Math')+`<div class="largehead"><h1>Math</h1><p class="mute">Pick one skill to practice, or play a mix.</p></div>
+  return nav('Math')+`${subjBanner('math','Math','Pick one skill to practice, or play a mix.')}
   <div class="sect">Practice one skill</div>
   ${SKILL_SECTIONS.map(([t,ks])=>`<div class="sect" style="padding-top:0;color:var(--accent)">${t}</div><section class="skills">${ks.map(skill).join('')}</section>`).join('')}
   <div class="sect">Mixed practice</div>
@@ -1839,7 +1930,7 @@ function spellView(){
   const note=sel==='tricky'?(words.length?'Words that need more practice, picked from everything Laila has tried.':'No tricky words yet. Every activity below uses a mix from all the lists until some words need more practice.'):sel==='all'?'A mix from every list. Each activity picks 12 words.':cur.note;
   const chips=words.length?words.map(w=>`<button class="wchip" data-act="sayword" data-v="${esc(w)}" aria-label="Hear ${esc(w)}"><i class="${wordLevel(st[w])==='n'?'':wordLevel(st[w])}"></i>${esc(w)}</button>`).join(''):'<p class="mute">No tricky words yet. Practice a list first and the words she misses will show up here.</p>';
   const game=(k,g)=>`<button class="mode ${g.lead?'lead':''}" ${words.length||sel==='tricky'?'':'disabled'} data-act="spstart" data-v="${k}"><span class="ic">${ICON[g.ic]}</span><span><h3>${g.name}</h3><span class="d">${g.d}</span></span>${ICON.next}</button>`;
-  return nav('Spelling')+`<div class="largehead"><h1>Spelling</h1><p class="mute">Choose a word list, then choose how to practice.</p></div>
+  return nav('Spelling')+`${subjBanner('spell','Spelling','Choose a word list, then choose how to practice.')}
   <div class="seg wrap">${opts.map(([k,l])=>`<button class="${sel===k?'on':''}" data-act="splist" data-v="${esc(k)}">${esc(l)}</button>`).join('')}</div>
   <section class="card"><div class="row between"><h3>${sel==='tricky'?'Tricky words':sel==='all'?'All words':esc(cur.name)}</h3><span class="pill">${mastered} of ${words.length} mastered</span></div>
     <p class="mute">${esc(note)} Tap a word to hear it.</p>
@@ -1865,7 +1956,7 @@ function answerArea(q,st,exam,val,locked){
 }
 const qLabel=q=>wordish(q)?`${q.a} ${opSym(q.op)} ${q.b} = ${q.ans}`:q.text.replace('?',q.ans);
 function qHtml(q,exam){
-  if(!exam&&!wordish(q)&&!missish(q))return`<div class="stack" role="img" aria-label="${esc(q.text)}"><div>${q.a}</div><div><span>${opSym(q.op)}</span><span>${q.b}</span></div></div><p class="mute num">${esc(q.text)}</p>`;
+  if(!exam&&!wordish(q)&&!missish(q))return`<div class="stack" role="img" aria-label="${esc(q.text)}"><div>${pv(q.a)}</div><div><span>${opSym(q.op)}</span><span>${pv(q.b)}</span></div></div><p class="mute num">${esc(q.text)}</p>`;
   return`<p class="qtext ${wordish(q)?'word':''}">${esc(q.text)}</p>`;
 }
 function raceTrack(r,f){
@@ -1886,13 +1977,14 @@ function runView(){
   const goals=r.st.filter(s=>s.ok).length;
   const f=exam?r.answers.filter(a=>a!=='').length/N:(r.i+(st.done?1:0))/N;
   let body=`<div class="row between"><span class="pill">Question ${r.i+1} of ${N}</span>${exam?examPill(r):`<span class="score pill plain">Spells <span class="num">${goals}</span></span>`}</div>
+  ${dotsHtml(r.i,N,i=>exam?(r.answers[i]!==''?'d':''):r.st[i].done?(r.st[i].ok?'d':'x'):'')}
   ${raceTrack(r,f)}
   ${exam&&timerOn()?timerBar(r):''}
   <div class="paper">Paper first: write your work on your paper. Then ${q.fmt==='mc'?'tap':'type'} your answer.</div>
   ${qHtml(q,exam)}`;
   body+=answerArea(q,st,exam,val,isLocked(r));
   if(!exam){
-    if(st.msg==='right')body+=`<div class="fb good">${esc(st.cheer||'Goal!')} ${st.helped?'Correct, and you learned something on the way.':'Correct!'}</div>`;
+    if(st.msg==='right')body+=`<div class="fb good">${BURST}${esc(st.cheer||'Goal!')} ${st.helped?'Correct, and you learned something on the way.':'Correct!'}</div>`;
     if(st.msg==='retry')body+=`<div class="fb try">Not yet. Read the steps and try again.</div>`;
     if(st.msg==='reveal')body+=`<div class="fb try">The answer is ${q.ans}. Read the steps so it clicks next time.</div>`;
     if(st.hint||st.msg==='reveal'){const s=st.msg==='reveal'||st.done?steps(q):hintSteps(q);body+=`<ol class="steps">${s.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>${arrayHtml(q)}`}
@@ -1934,7 +2026,7 @@ function resultsView(){
 /* spelling run screens */
 const hearBtn=(label,a)=>canSpeak()?`<button class="btn tint" data-act="${a||'sphear'}">${ICON.speaker}${label||'Hear it'}</button>`:'';
 function typedFb(it){
-  if(it.msg==='right')return`<div class="fb good">${esc(it.cheer||'Nice!')} ${it.helped?'Right, with a little help.':'Spelled right!'}</div>`;
+  if(it.msg==='right')return`<div class="fb good">${BURST}${esc(it.cheer||'Nice!')} ${it.helped?'Right, with a little help.':'Spelled right!'}</div>`;
   if(it.msg==='retry')return`<div class="fb try">Not quite. Look at the letters, then try again.</div>${diffHtml(it.given,it.w)}`;
   if(it.msg==='reveal')return`<div class="fb try">The word is <b>${esc(it.w)}</b>. Look at the letters you missed.</div>${diffHtml(it.given,it.w)}`;
   return'';
@@ -1966,7 +2058,7 @@ const SPB={
     const tiles=it.done?'':it.opts.map(c=>`<button class="tile ${it.badTiles.includes(c)?'bad':''} ${it.hint&&c===need?'hintt':''}" data-act="sptile" data-v="${c}" ${it.badTiles.includes(c)?'disabled':''}>${c}</button>`).join('');
     return[`<p class="mute">Tap the letter that belongs in the empty box.</p><div class="lts">${letters}</div>
       ${b?`<p class="mute">Clue: ${esc(b)}</p>`:''}<div class="row">${hearBtn('Hear it')}</div>
-      ${it.done?`<div class="fb good">${esc(it.cheer||'Nice!')} ${it.helped?'Done, with a little help.':'Spelled right!'}</div>`:`<div class="tiles">${tiles}</div>`}`,`<button class="btn quiet" data-act="sphint">Hint</button>`];
+      ${it.done?`<div class="fb good">${BURST}${esc(it.cheer||'Nice!')} ${it.helped?'Done, with a little help.':'Spelled right!'}</div>`:`<div class="tiles">${tiles}</div>`}`,`<button class="btn quiet" data-act="sphint">Hint</button>`];
   },
   scramble(it){
     const full=!it.slots.includes(null),b=blankSent(it.w);
@@ -1979,7 +2071,7 @@ const SPB={
     return[`<p class="mute">Tap the letters in the right order to spell the word. You can also type on a keyboard.</p><div class="lts">${slots}</div>
       <div class="tiles">${tiles}</div>${b?`<p class="mute">Clue: ${esc(b)}</p>`:''}<div class="row">${hearBtn('Hear it')}</div>
       ${it.msg==='retry'?`<div class="fb try">Almost! Green letters are in the right spot. Tap a letter to take it out.</div>`:''}
-      ${it.done?`<div class="fb good">${esc(it.cheer||'Nice!')} ${it.helped?'Solved, with a little help.':'Solved!'}</div>`:''}`,`<button class="btn quiet" data-act="sphint">Hint</button>`];
+      ${it.done?`<div class="fb good">${BURST}${esc(it.cheer||'Nice!')} ${it.helped?'Solved, with a little help.':'Solved!'}</div>`:''}`,`<button class="btn quiet" data-act="sphint">Hint</button>`];
   },
   sent(it){
     const b=blankSent(it.w);
@@ -1994,7 +2086,7 @@ const SPB={
       ${it.hint&&ex?`<div class="spark"><b>Example</b><p>${esc(ex)}</p></div>`:''}
       ${it.done?'':`<div class="row"><input class="ans w" id="spin" type="text" autocomplete="off" autocapitalize="sentences" autocorrect="off" spellcheck="false" aria-label="Your sentence" placeholder="Type your sentence" style="max-width:none;font-size:1.2rem" value="${esc(it.msg==='retry'?it.given:'')}"></div>`}
       ${it.chk&&it.msg!=='skipped'?`<ul class="chk">${it.chk.map(([y,t])=>`<li class="${y?'y':'n'}">${y?'✓':'○'} ${esc(t)}</li>`).join('')}</ul>`:''}
-      ${it.msg==='right'?`<div class="fb good">${esc(it.cheer||'Nice!')} Great sentence!</div>`:''}
+      ${it.msg==='right'?`<div class="fb good">${BURST}${esc(it.cheer||'Nice!')} Great sentence!</div>`:''}
       ${it.msg==='skipped'?`<div class="fb try">No problem. We will see this word again soon.</div>`:''}`,
       `<button class="btn" data-act="spcheck">Check</button><button class="btn quiet" data-act="sphint">Show an example</button><button class="btn quiet" data-act="spskip">Skip</button>`];
   },
@@ -2004,7 +2096,7 @@ const SPB={
       const dis=it.done||it.wrong.includes(o)||it.gone===o;
       return`<button class="${cls}" data-act="spopt" data-v="${esc(o)}" ${dis?'disabled':''} ${it.gone===o?'style="visibility:hidden"':''}>${esc(o)}</button>`}).join('')}</div>
       <div class="row">${hearBtn('Hear it')}</div>
-      ${it.msg==='right'?`<div class="fb good">${esc(it.cheer||'Nice!')} ${it.helped?'Right, on the second look.':'Spelled right!'}</div>`:''}
+      ${it.msg==='right'?`<div class="fb good">${BURST}${esc(it.cheer||'Nice!')} ${it.helped?'Right, on the second look.':'Spelled right!'}</div>`:''}
       ${it.msg==='retry'?`<div class="fb try">Not that one. Look closely at every letter and try again.</div>`:''}
       ${it.msg==='reveal'?`<div class="fb try">The right spelling is <b>${esc(it.w)}</b>.</div>`:''}`,`<button class="btn quiet" data-act="sphint">Hint</button>`];
   }
@@ -2037,7 +2129,7 @@ function spRunView(){
   const[body,btns]=SPB[r.game](it);
   const showBtns=!it.done&&btns;
   const next=test?`<button class="btn" data-act="spnext">${last?'Turn in test':'Next word'}</button>`:it.done?`<button class="btn" data-act="spnext">${last?'See my results':'Next word'}</button>`:'';
-  const head=`<div class="row between"><span class="pill">Word ${r.i+1} of ${N}</span>${test?'':`<span class="score pill plain">Right <span class="num">${okN}</span></span>`}</div>${raceTrack(r,f)}`;
+  const head=`<div class="row between"><span class="pill">Word ${r.i+1} of ${N}</span>${test?'':`<span class="score pill plain">Right <span class="num">${okN}</span></span>`}</div>${dotsHtml(r.i,N,i=>r.items[i].done?(r.items[i].ok?'d':'x'):'')}${raceTrack(r,f)}`;
   return top+`<section class="card">${head}${body}<div class="row between"><div class="row">${test?'':showBtns?btns:''}</div>${next}</div></section>`;
 }
 function spResultsView(){
@@ -2501,7 +2593,7 @@ function socStudyView(){
 function geoView(){
   const gi=geoInfo(),inf=gi.inf;
   const dot=id=>{const l=inf.level[id];return!l||l==='n'?'':l};
-  return nav('Geography')+`<div class="largehead"><h1>Geography</h1><p class="mute">All 50 states and their capitals. Master a state by getting it right twice in a row with no help.</p></div>
+  return nav('Geography')+`${subjBanner('geo','Geography','All 50 states and their capitals. Master a state by getting it right twice in a row with no help.')}
   <section class="card"><div class="row between"><h3>Florida spotlight</h3><span class="pill">${gi.fl.length} of ${FLQ.length} facts</span></div>
     <p class="mute">We live in Florida, so let's know it best.</p>
     <div class="dl">${FLFACTS.map(([a,b])=>`<div><b>${esc(a)}</b><span>${esc(b)}</span></div>`).join('')}</div>
@@ -2702,7 +2794,7 @@ function esBadges(){
 const esHear=label=>canSpeak()?`<button class="btn tint" data-act="eshear">${ICON.speaker}${label||'Escucha'}</button>`:'';
 const esInput=val=>`<div class="row"><input class="ans w" id="esin" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Type the Spanish word" placeholder="Escribe aquí" value="${esc(val||'')}"></div><p class="mute">Accents are optional. Type n for ñ if you need to.</p>`;
 function esTypedFb(it){
-  if(it.msg==='right')return`<div class="fb good">${esc(it.cheer||'¡Muy bien!')} ${it.helped?'Right, with a little help.':'Spelled right!'} <b>${esc(it.es)}</b></div>`;
+  if(it.msg==='right')return`<div class="fb good">${BURST}${esc(it.cheer||'¡Muy bien!')} ${it.helped?'Right, with a little help.':'Spelled right!'} <b>${esc(it.es)}</b></div>`;
   if(it.msg==='retry')return`<div class="fb try">Not quite. Look at the letters, then try again.</div>${diffHtml(plainEs(it.given),plainEs(it.es))}`;
   if(it.msg==='reveal')return`<div class="fb try">The word is <b>${esc(it.es)}</b>. Say it out loud.</div>${diffHtml(plainEs(it.given),plainEs(it.es))}`;
   return'';
@@ -2714,7 +2806,7 @@ const ESB={
       return`<button class="${cls}" data-act="esopt" data-v="${esc(o.es)}" ${it.done||it.wrong.includes(o.es)?'disabled':''}><span class="ee">${esc(o.e)}</span> ${esc(o.en)}</button>`}).join('');
     return[`<p class="mute">Listen to the word, then tap what it means.</p><div class="esword">${esc(it.es)}</div><div class="row">${esHear('Escucha')}</div>
       <div class="choices w">${opts}</div>
-      ${it.msg==='right'?`<div class="fb good">${esc(it.cheer)} <b>${esc(it.es)}</b> means ${esc(it.wd.en)}.</div>`:''}
+      ${it.msg==='right'?`<div class="fb good">${BURST}${esc(it.cheer)} <b>${esc(it.es)}</b> means ${esc(it.wd.en)}.</div>`:''}
       ${it.msg==='retry'?`<div class="fb try">Not that one. Listen again and try once more.</div>`:''}
       ${it.msg==='reveal'?`<div class="fb try"><b>${esc(it.es)}</b> means ${esc(it.wd.en)}.</div>`:''}`,''];
   },
@@ -2734,7 +2826,7 @@ const ESB={
     const need=it.done?'':it.w[it.blanks[it.filled.length]];
     const tiles=it.done?'':it.opts.map(c=>`<button class="tile ${it.badTiles.includes(c)?'bad':''} ${it.hint&&c===need?'hintt':''}" data-act="estile" data-v="${c}" ${it.badTiles.includes(c)?'disabled':''}>${c}</button>`).join('');
     return[`<p class="mute">Tap the letter that belongs in the empty box.</p>${esPrompt(it.wd)}<div class="lts">${letters}</div><div class="row">${esHear('Escucha')}</div>
-      ${it.done?`<div class="fb good">${esc(it.cheer||'¡Muy bien!')} ${it.helped?'Done, with a little help.':'Spelled right!'}</div>`:`<div class="tiles">${tiles}</div>`}`,`<button class="btn quiet" data-act="eshint">Hint</button>`];
+      ${it.done?`<div class="fb good">${BURST}${esc(it.cheer||'¡Muy bien!')} ${it.helped?'Done, with a little help.':'Spelled right!'}</div>`:`<div class="tiles">${tiles}</div>`}`,`<button class="btn quiet" data-act="eshint">Hint</button>`];
   },
   scramble(it){
     const full=!it.slots.includes(null);
@@ -2746,7 +2838,7 @@ const ESB={
     const tiles=it.order.map(id=>`<button class="tile" data-act="estile" data-v="${id}" ${it.slots.includes(id)||it.done?'disabled':''}>${esc(it.w[id])}</button>`).join('');
     return[`<p class="mute">Tap the letters in the right order to spell the word.</p>${esPrompt(it.wd)}<div class="lts">${slots}</div><div class="tiles">${tiles}</div><div class="row">${esHear('Escucha')}</div>
       ${it.msg==='retry'?`<div class="fb try">Almost! Green letters are in the right spot. Tap a letter to take it out.</div>`:''}
-      ${it.done?`<div class="fb good">${esc(it.cheer||'¡Muy bien!')} ${it.helped?'Solved, with a little help.':'Solved!'}</div>`:''}`,`<button class="btn quiet" data-act="eshint">Hint</button>`];
+      ${it.done?`<div class="fb good">${BURST}${esc(it.cheer||'¡Muy bien!')} ${it.helped?'Solved, with a little help.':'Solved!'}</div>`:''}`,`<button class="btn quiet" data-act="eshint">Hint</button>`];
   },
   quiz(it){
     if(it.kind==='type')return[`<p class="mute">Type the Spanish word for:</p>${esPrompt(it.wd)}${esInput(it.val)}`,''];
@@ -2774,7 +2866,7 @@ function esRunView(){
   const okN=r.items.filter(x=>x.ok).length,f=(r.i+(it.done?1:0))/N;
   const[body,btns]=ESB[r.game](it);
   const next=quiz?`<button class="btn" data-act="esnext">${last?'Turn in test':'Next'}</button>`:it.done?`<button class="btn" data-act="esnext">${last?'See my results':'Next word'}</button>`:'';
-  const head=`<div class="row between"><span class="pill">Word ${r.i+1} of ${N}</span>${quiz?'':`<span class="score pill plain">Right <span class="num">${okN}</span></span>`}</div>${raceTrack(r,f)}`;
+  const head=`<div class="row between"><span class="pill">Word ${r.i+1} of ${N}</span>${quiz?'':`<span class="score pill plain">Right <span class="num">${okN}</span></span>`}</div>${dotsHtml(r.i,N,i=>r.items[i].done?(r.items[i].ok?'d':'x'):'')}${raceTrack(r,f)}`;
   return top+`<section class="card">${head}${body}<div class="row between"><div class="row">${!quiz&&!it.done&&btns?btns:''}</div>${next}</div></section>`;
 }
 function esResultsView(){
@@ -2805,7 +2897,7 @@ function esView(){
   const note=sel==='tricky'?(words.length?'Words that need more practice.':'No tricky words yet. Every activity uses a mix from all the lists until some words need more practice.'):sel==='all'?'A mix from every list. Each activity picks 12 words.':(ES_LISTS.find(l=>l.id===sel).note);
   const chips=words.length?words.map(w=>`<button class="wchip" data-act="esay" data-v="${esc(w.es)}" aria-label="Hear ${esc(w.es)}"><i class="${wordLevel(st[w.es])==='n'?'':wordLevel(st[w.es])}"></i><span class="ee">${esc(w.e)}</span> ${esc(w.es)} <span class="mute">${esc(w.en)}</span></button>`).join(''):'<p class="mute">No tricky words yet. Practice a list first and the words she misses will show up here.</p>';
   const game=(k,g)=>`<button class="mode ${g.lead?'lead':''}" data-act="esstart" data-v="${k}"><span class="ic">${ICON[g.ic]}</span><span><h3>${g.name}</h3><span class="d">${g.d}</span></span>${ICON.next}</button>`;
-  return nav('Español')+`<div class="largehead"><h1>Español</h1><p class="mute">${c.n} Spanish ${c.n===1?'session':'sessions'} so far, ${c.t} today. ${esMastered()} of ${ES_ALL.length} words mastered.</p></div>
+  return nav('Español')+`${subjBanner('es','Español',esMastered()+' of '+ES_ALL.length+' words mastered')}
   ${esBanner()}
   ${esListChips()}
   <section class="card"><div class="row between"><h3>${esc(cur)}</h3><span class="pill">${mastered} of ${words.length} mastered</span></div>
@@ -3732,6 +3824,11 @@ function buildView(){
   }
   return h;
 }
+const THEME_OF={math:'math',run:'math',results:'math',spell:'spell',sprun:'spell',spresults:'spell',es:'es',esstudy:'es',esrun:'es',esresults:'es',geo:'geo',geostudy:'geo',club:'sport',soc:'sport',socstudy:'sport',fb:'sport',fbstudy:'sport',nqrun:'sport',fdrun:'sport',fbres:'sport',closet:'room'};
+function themeClass(){
+  if((S.view==='nqrun'&&nq&&nq.sport==='geo')||(S.view==='fbres'&&fbres&&fbres.sport==='geo'))return'th-geo';
+  return THEME_OF[S.view]?'th-'+THEME_OF[S.view]:'';
+}
 function render(){
   let h;
   try{h=buildView()}
@@ -3741,6 +3838,7 @@ function render(){
     catch(e2){h='<section class="card"><h2>Something went wrong</h2><p class="mute">Your progress is safe. Tap the button to start again.</p><button class="btn" onclick="location.reload()">Reload</button></section>'}
   }
   $app.innerHTML=h;
+  $app.className=themeClass();
   if(lastView!==S.view){window.scrollTo(0,0);lastView=S.view}
   const a=document.getElementById('ans')||document.getElementById('spin')||document.getElementById('esin');
   if(a&&!a.disabled)a.focus({preventScroll:true});
