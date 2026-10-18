@@ -11,35 +11,32 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Laila's Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@600;700&family=Nunito:wght@600;700;800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@600;700&family=Cinzel:wght@600;700;800&display=swap">
 <style>
 /* Layout: iOS-style single column. Translucent top bar, big titles, grouped cards, floating tab bar.
    Palette: Hogwarts. Parchment and candlelight by day, the Great Hall at night. */
 :root{
-  --bg:#F4F2FF; --bg2:#E4DDFF; --card:#FFFFFF; --card2:#F3F0FF; --ink:#1B1740; --mute:#625A8C; --line:rgba(60,40,140,.14);
-  --accent:#5B3DF5; --accent-ink:#FFFFFF; --accent-soft:#E9E4FF; --lilac:#C03DE0;
-  --good:#12805C; --good-bg:#D8F5EA; --warn:#B45309; --warn-bg:#FFF0D0; --gold:#F0A500; --spark:rgba(91,61,245,.22);
-  --hero1:#5B3DF5; --hero2:#C03DE0; --b1:#5B3DF5; --b2:#C03DE0;
-  --p0:#2F6BFF; --p1:#E5389B; --p2:#12A073;
-  --shadow:0 6px 20px rgba(60,40,140,.12),0 1px 2px rgba(40,20,100,.08); --bar:rgba(244,242,255,.9);
-  --f-head:'Nunito',-apple-system,BlinkMacSystemFont,'SF Pro Rounded','Segoe UI',system-ui,sans-serif;
-  --f-ui:'Nunito',-apple-system,BlinkMacSystemFont,'SF Pro Rounded','SF Pro Display','Segoe UI',system-ui,sans-serif;
+  --bg:#F6EEDC; --bg2:#E6D2A0; --card:#FFFBF0; --card2:#F8F0DD; --ink:#2B1B14; --mute:#78613F; --line:rgba(90,60,20,.18);
+  --accent:#8A1523; --accent-ink:#FFF3D6; --accent-soft:#F2DFC6; --lilac:#14275E;
+  --good:#1F6B3A; --good-bg:#DCEBCF; --warn:#9A4A00; --warn-bg:#F6E0BC; --gold:#C8921A; --spark:rgba(200,146,26,.5);
+  --hero1:#7A1220; --hero2:#14275E;
+  --shadow:0 8px 24px rgba(70,40,10,.16),0 1px 3px rgba(60,30,10,.12); --bar:rgba(246,238,220,.85);
+  --f-head:'Cinzel','Palatino Linotype',Palatino,'Book Antiqua',Georgia,serif;
+  --f-ui:-apple-system,BlinkMacSystemFont,'SF Pro Rounded','SF Pro Display','Inter',system-ui,'Segoe UI',sans-serif;
   --f-num:'SF Mono','JetBrains Mono',ui-monospace,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0D0A22; --bg2:#1D1446; --card:#171336; --card2:#201A47; --ink:#F2EFFF; --mute:#A9A1D6; --line:rgba(190,170,255,.16);
-  --accent:#A18CFF; --accent-ink:#120B38; --accent-soft:#2B2360; --lilac:#E98BFF;
-  --good:#5EE0AA; --good-bg:#10382B; --warn:#FFB35C; --warn-bg:#40290E; --gold:#FFC93A; --spark:rgba(190,170,255,.5);
-  --hero1:#4B2FD6; --hero2:#A12DC4;
-  --p0:#7FA8FF; --p1:#FF8FCB; --p2:#5EE0AA;
-  --shadow:0 8px 24px rgba(0,0,0,.5); --bar:rgba(13,10,34,.9); color-scheme:dark}}
+  --bg:#0B0D1A; --bg2:#271B35; --card:#151729; --card2:#1E2038; --ink:#F5E9CC; --mute:#B8AB8C; --line:rgba(245,220,160,.14);
+  --accent:#E3B94F; --accent-ink:#1C1405; --accent-soft:#3A2F14; --lilac:#8FA6F0;
+  --good:#6FD09A; --good-bg:#123524; --warn:#FFB45C; --warn-bg:#3F2A10; --gold:#E9BE4A; --spark:rgba(240,200,110,.7);
+  --hero1:#5E0F1B; --hero2:#1A2A66;
+  --shadow:0 10px 30px rgba(0,0,0,.5); --bar:rgba(11,13,26,.85); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0D0A22; --bg2:#1D1446; --card:#171336; --card2:#201A47; --ink:#F2EFFF; --mute:#A9A1D6; --line:rgba(190,170,255,.16);
-  --accent:#A18CFF; --accent-ink:#120B38; --accent-soft:#2B2360; --lilac:#E98BFF;
-  --good:#5EE0AA; --good-bg:#10382B; --warn:#FFB35C; --warn-bg:#40290E; --gold:#FFC93A; --spark:rgba(190,170,255,.5);
-  --hero1:#4B2FD6; --hero2:#A12DC4;
-  --p0:#7FA8FF; --p1:#FF8FCB; --p2:#5EE0AA;
-  --shadow:0 8px 24px rgba(0,0,0,.5); --bar:rgba(13,10,34,.9); color-scheme:dark}
+  --bg:#0B0D1A; --bg2:#271B35; --card:#151729; --card2:#1E2038; --ink:#F5E9CC; --mute:#B8AB8C; --line:rgba(245,220,160,.14);
+  --accent:#E3B94F; --accent-ink:#1C1405; --accent-soft:#3A2F14; --lilac:#8FA6F0;
+  --good:#6FD09A; --good-bg:#123524; --warn:#FFB45C; --warn-bg:#3F2A10; --gold:#E9BE4A; --spark:rgba(240,200,110,.7);
+  --hero1:#5E0F1B; --hero2:#1A2A66;
+  --shadow:0 10px 30px rgba(0,0,0,.5); --bar:rgba(11,13,26,.85); color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background-color:var(--bg);
   background-image:radial-gradient(120% 60% at 15% 0%,var(--bg2),transparent 60%),radial-gradient(1.6px 1.6px at 18px 24px,var(--spark),transparent),radial-gradient(1.1px 1.1px at 66px 72px,var(--spark),transparent);
@@ -272,9 +269,8 @@ textarea.txt{font:inherit;padding:12px 14px;border:0;border-radius:14px;backgrou
 .roomsvg{display:block;width:100%;height:auto}
 .roomsvg .hot{cursor:pointer}
 .sw{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:7px;vertical-align:-1px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
-.esban{border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;background:linear-gradient(135deg,#FF8A1F,#E5409B);color:#fff;box-shadow:var(--shadow)}
+.esban{border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;background:linear-gradient(140deg,var(--hero1),var(--hero2));color:#fff;box-shadow:var(--shadow)}
 .esban b{font-size:1.1rem}.esban span{font-weight:600;opacity:.96}
-.esban.thu{background:linear-gradient(135deg,#E5409B,#8E5CFF);box-shadow:inset 0 0 0 3px rgba(255,255,255,.55),var(--shadow)}
 .ee{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-style:normal}
 .ee.big{font-size:3rem;line-height:1}
 .esword{font-size:clamp(2.2rem,10vw,3.4rem);font-weight:800;text-align:center;padding:14px 8px;background:var(--accent-soft);border-radius:22px;overflow-wrap:anywhere}
@@ -304,70 +300,20 @@ textarea.txt{font:inherit;padding:12px 14px;border:0;border-radius:14px;backgrou
 .prizecard{flex-direction:row;align-items:center;justify-content:space-between;text-align:left;gap:12px}
 .prizecard>span{display:flex;flex-direction:column;gap:2px}
 .prizecard b{font-size:2.2rem;color:var(--accent)}
-/* ===== modern look: each subject has its own color ===== */
-.th-math{--accent:#2F6BFF;--accent-soft:#E3ECFF;--lilac:#12A8E0;--b1:#2F6BFF;--b2:#12A8E0;}
-.th-spell{--accent:#E5389B;--accent-soft:#FFE1F2;--lilac:#FF8A3D;--b1:#E5389B;--b2:#FF8A3D;}
-.th-es{--accent:#E85D0C;--accent-soft:#FFE9D6;--lilac:#E5389B;--b1:#F26A1B;--b2:#E5389B;}
-.th-geo{--accent:#0E9468;--accent-soft:#D9F6EA;--lilac:#2BB8D6;--b1:#12A073;--b2:#2BB8D6;}
-.th-sport{--accent:#B45309;--accent-soft:#FFEBD2;--lilac:#E5A011;--b1:#C2570C;--b2:#E5A011;}
-.th-room{--accent:#8E3FE0;--accent-soft:#F0E4FF;--lilac:#E5389B;--b1:#8E3FE0;--b2:#E5389B;}
-@media (prefers-color-scheme:dark){
-:root:not([data-theme="light"]) .th-math{--accent:#86AEFF;--accent-soft:#1B2A5A;--lilac:#5CD0F5;--b1:#2F6BFF;--b2:#12A8E0;}
-:root:not([data-theme="light"]) .th-spell{--accent:#FF8FCB;--accent-soft:#4A1A3A;--lilac:#FFB070;--b1:#E5389B;--b2:#FF8A3D;}
-:root:not([data-theme="light"]) .th-es{--accent:#FFA864;--accent-soft:#4A2A12;--lilac:#FF8FCB;--b1:#F26A1B;--b2:#E5389B;}
-:root:not([data-theme="light"]) .th-geo{--accent:#5EE0AA;--accent-soft:#0F3A2C;--lilac:#6FD8F0;--b1:#12A073;--b2:#2BB8D6;}
-:root:not([data-theme="light"]) .th-sport{--accent:#FFB35C;--accent-soft:#402A0E;--lilac:#FFD86A;--b1:#C2570C;--b2:#E5A011;}
-:root:not([data-theme="light"]) .th-room{--accent:#C79BFF;--accent-soft:#35205E;--lilac:#FF8FCB;--b1:#8E3FE0;--b2:#E5389B;}
-}
-:root[data-theme="dark"] .th-math{--accent:#86AEFF;--accent-soft:#1B2A5A;--lilac:#5CD0F5;--b1:#2F6BFF;--b2:#12A8E0;}
-:root[data-theme="dark"] .th-spell{--accent:#FF8FCB;--accent-soft:#4A1A3A;--lilac:#FFB070;--b1:#E5389B;--b2:#FF8A3D;}
-:root[data-theme="dark"] .th-es{--accent:#FFA864;--accent-soft:#4A2A12;--lilac:#FF8FCB;--b1:#F26A1B;--b2:#E5389B;}
-:root[data-theme="dark"] .th-geo{--accent:#5EE0AA;--accent-soft:#0F3A2C;--lilac:#6FD8F0;--b1:#12A073;--b2:#2BB8D6;}
-:root[data-theme="dark"] .th-sport{--accent:#FFB35C;--accent-soft:#402A0E;--lilac:#FFD86A;--b1:#C2570C;--b2:#E5A011;}
-:root[data-theme="dark"] .th-room{--accent:#C79BFF;--accent-soft:#35205E;--lilac:#FF8FCB;--b1:#8E3FE0;--b2:#E5389B;}
-body{background-image:radial-gradient(120% 55% at 10% 0%,var(--bg2),transparent 60%);background-size:auto;background-attachment:fixed}
-h1,h2,h3{font-family:var(--f-head);font-weight:900;letter-spacing:0}
-h1{font-size:2rem}
-.num{font-family:var(--f-ui);font-variant-numeric:tabular-nums;font-weight:900}
-.card{border-radius:22px;box-shadow:var(--shadow);border:1px solid var(--line)}
-.btn{background:linear-gradient(135deg,var(--accent),var(--lilac));color:var(--accent-ink);box-shadow:0 4px 12px rgba(0,0,0,.18)}
-.btn.tint{background:var(--accent-soft);color:var(--accent);box-shadow:none;text-shadow:none}
-.btn.quiet{background:var(--card2);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line);text-shadow:none}
-.pill{background:var(--accent-soft);color:var(--accent)}
-.hero{background:linear-gradient(135deg,var(--hero1),var(--hero2));box-shadow:0 10px 28px rgba(80,40,200,.3);border:0}
-.hero .av{background:rgba(255,255,255,.2)}
-.stat{background:rgba(255,255,255,.18)}
-.journey{background:rgba(10,6,40,.35)}
-.tab.on{color:var(--accent);background:var(--accent-soft)}
-.tabbar .tab{font-size:.62rem;border-radius:14px;min-width:0}
-.mode{border:1px solid var(--line)}
-.mode .ic{background:var(--accent-soft);color:var(--accent)}
-.mode[style*="--c"] .ic{background:var(--accent-soft);background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c)}
-.mode.lead .ic{background:linear-gradient(135deg,var(--accent),var(--lilac));color:#fff}
-.mode[style*="--c"].lead .ic{background:var(--c);color:#fff}
-.mode.lead{box-shadow:inset 0 0 0 2px var(--accent),var(--shadow)}
-.sbanner{background:linear-gradient(135deg,var(--b1),var(--b2));color:#fff;border-radius:26px;padding:18px;display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;box-shadow:0 10px 26px rgba(0,0,0,.2);margin-top:14px}
+/* ===== counters, progress dots and celebration (uses the Hogwarts colors) ===== */
+.sbanner{background:linear-gradient(140deg,var(--hero1),var(--hero2));color:#fff;border-radius:26px;padding:18px;display:grid;grid-template-columns:auto 1fr;gap:12px 14px;align-items:center;box-shadow:inset 0 0 0 2px rgba(233,190,74,.55),var(--shadow);margin-top:14px}
 .sbanner .sbi{width:64px;height:64px;border-radius:20px;background:rgba(255,255,255,.22);display:grid;place-items:center}
 .sbanner .sbi svg{width:38px;height:38px;color:#fff}
-.sbanner h1{color:#fff;font-size:1.8rem}
-.sbanner p{opacity:.95;font-weight:700;font-size:.95rem}
+.sbanner h1{color:#fff;font-size:1.7rem}
+.sbanner p{opacity:.95;font-weight:600;font-size:.95rem}
 .sbc{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .sbc div{background:rgba(255,255,255,.2);border-radius:16px;padding:8px 6px;text-align:center;display:flex;flex-direction:column}
 .sbc b{font-size:1.5rem;line-height:1.1}.sbc span{font-size:.72rem;font-weight:800;opacity:.95;text-transform:uppercase;letter-spacing:.05em}
-/* question screens */
 .dots{display:flex;gap:6px;flex-wrap:wrap}
 .dots i{flex:1;min-width:10px;height:10px;border-radius:99px;background:var(--accent-soft)}
 .dots i.d{background:var(--good)}.dots i.x{background:var(--warn)}.dots i.c{background:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.qtext{color:var(--ink)}
-.pv0{color:var(--p0)}.pv1{color:var(--p1)}.pv2{color:var(--p2)}
+.pv0{color:#2B6FD6}.pv1{color:#C21E7A}.pv2{color:var(--good)}
 .stack b{font-weight:inherit}
-.choice{border-radius:20px;box-shadow:inset 0 -5px 0 var(--cc,var(--line)),inset 0 0 0 2px var(--line);background:var(--card)}
-.choices .choice:nth-child(4n+1){--cc:#2F6BFF}.choices .choice:nth-child(4n+2){--cc:#E5389B}.choices .choice:nth-child(4n+3){--cc:#12A073}.choices .choice:nth-child(4n){--cc:#F2A20C}
-.choice.sel{background:var(--accent-soft);box-shadow:inset 0 -5px 0 var(--accent),inset 0 0 0 3px var(--accent)}
-.choice.ok{background:var(--good-bg);box-shadow:inset 0 -5px 0 var(--good),inset 0 0 0 3px var(--good)}
-.choice.bad{background:var(--warn-bg);box-shadow:inset 0 -5px 0 var(--warn),inset 0 0 0 3px var(--warn)}
-.bigword,.esword{background:linear-gradient(135deg,var(--accent-soft),var(--card2));color:var(--ink);border:2px solid var(--line)}
-.tile{background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 -4px 0 var(--accent),inset 0 0 0 2px var(--line)}
 .fb{position:relative}
 .burst{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}
 .burst i{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--c)}
@@ -377,11 +323,7 @@ h1{font-size:2rem}
   .fb.good{animation:pop .45s ease-out}
   @keyframes pop{0%{transform:scale(.9);opacity:.3}60%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
   .bigscore{animation:pop .6s ease-out}
-  .ct{transition:transform .12s}.ct:active{transform:scale(.96)}
 }
-.drive svg{box-shadow:var(--shadow)}
-.fb.good{background:var(--good-bg);color:var(--good);border:2px solid var(--good)}
-.fb.try{background:var(--warn-bg);color:var(--warn);border:2px solid var(--warn)}
 :root.hw{--spark:rgba(255,140,40,.65);--hero1:#7A2A00;--hero2:#2A0F4A}
 :root.hw .hero{box-shadow:inset 0 0 0 2px rgba(255,140,40,.7),var(--shadow)}
 </style>
@@ -746,13 +688,11 @@ function badges(st){
     {l:'X',n:'Times Titan',d:'Get 20 multiplication problems right',on:mulOk>=20}
   ];
 }
-/* ---------- subjects, stars, and the touchdown drive ---------- */
-const THURSDAY=()=>new Date().getDay()===4;
-/* Math and spelling pay about double what they used to. Español pays the most, and double again on Thursdays
-   (her Spanish class day). The database rules cap one session at 100 stars. */
+/* ---------- subjects and stars ---------- */
+/* Math and spelling pay about double what they used to. Español pays the most. The database rules cap one session at 100 stars. */
 function starsFor(kind,n){
   const base={math:n*2+4,exam:n*3+6,spell:n*2+4,spelltest:n*3+6,es:n*3+6,estest:n*4+10}[kind]||0;
-  return Math.min(100,THURSDAY()&&(kind==='es'||kind==='estest')?base*2:base);
+  return Math.min(100,base);
 }
 const sumStars=l=>l.reduce((n,s)=>n+(s.stars||0),0);
 /* school stars = math, spelling, Español and geography. Sports quizzes do not count. */
@@ -778,37 +718,19 @@ function counterHtml(){
   return`<section class="card cnt" aria-label="Sessions so far"><div class="row between"><h3>Sessions so far</h3><span class="pill">${c.all} in all</span></div>
   <div class="cgrid">${SUBJ.map(s=>`<button class="ct" style="--c:${s.c}" data-act="nav" data-v="${s.v}" aria-label="${s.n}: ${c[s.k].n} sessions, ${c[s.k].t} today"><span class="ci">${ICON[s.ic]}</span><b class="num">${c[s.k].n}</b><span class="cl">${s.n}</span><small>${c[s.k].t?'+'+c[s.k].t+' today':'none today'}</small></button>`).join('')}</div></section>`;
 }
-const driveInfo=stars=>({td:Math.floor(stars/100),yd:stars%100});
-function driveNote(b0,now){
-  const a=Math.floor(b0/100),b=Math.floor(now/100);
-  return b>a?[b-a>1?`TOUCHDOWNS! ${b-a} more, ${b} in all!`:`TOUCHDOWN! That is touchdown number ${b}.`]:[];
-}
 function journeyNew(before){const now=stats().stars;return STOPS.filter(p=>p.at>0&&p.at>before&&p.at<=now).map(p=>p.n)}
-function driveSvg(yd){
-  const X=y=>26+248*y/100,bx=X(yd);
-  let g=`<rect width="300" height="64" rx="12" fill="#2F8F55"/><rect width="26" height="64" rx="12" fill="#1F5FA0"/><rect x="14" width="12" height="64" fill="#1F5FA0"/><rect x="274" width="26" height="64" rx="12" fill="#E3B94F"/><rect x="274" width="12" height="64" fill="#E3B94F"/>`;
-  for(let i=0;i<=10;i++)g+=`<path d="M${X(i*10).toFixed(1)} 6V58" stroke="#fff" stroke-width="${i%5===0?2:1}" opacity="${i%5===0?.8:.4}"/>`;
-  g+=`<text x="13" y="37" text-anchor="middle" font-size="8" font-weight="800" fill="#fff" transform="rotate(-90 13 34)">START</text><text x="287" y="37" text-anchor="middle" font-size="8" font-weight="800" fill="#6B4A0C" transform="rotate(90 287 34)">TOUCHDOWN</text>`;
-  g+=`<path d="M26 32H${bx.toFixed(1)}" stroke="#fff" stroke-width="5" opacity=".45" stroke-linecap="round"/>`;
-  g+=`<g transform="translate(${bx.toFixed(1)} 32) rotate(-20)"><ellipse rx="12" ry="7.4" fill="#9A5B33" stroke="#2A1630" stroke-width="1.4"/><path d="M-4 0H4M-2.5-2.4V2.4M0-2.4V2.4M2.5-2.4V2.4" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></g>`;
-  return`<svg viewBox="0 0 300 64" role="img" aria-label="${yd} yards down the field" style="width:100%;display:block;border-radius:12px">${g}</svg>`;
-}
-function driveHtml(){
-  const d=driveInfo(schoolStars());
-  return`<section class="card drive"><div class="row between"><h3>Touchdown drive</h3><span class="pill">${d.td} touchdown${d.td===1?'':'s'}</span></div>${driveSvg(d.yd)}
-  <p class="mute"><b>${100-d.yd} yards</b> to the end zone. Every school star is a yard, and Español pays the most.</p></section>`;
-}
+
 
 /* ---------- prizes: one rule decides whether anything is unlocked ---------- */
-/* Cooler prizes belong to a school-subject track and open with that subject's own stars (Scholar counts touchdowns). */
+/* Cooler prizes belong to a school-subject track and open with that subject's own stars (Scholar counts all school stars). */
 const TRACKS=[
   {k:'math',n:'Math',c:'#3A7BFF',unit:'Math stars'},
   {k:'spell',n:'Spelling',c:'#E5409B',unit:'Spelling stars'},
   {k:'es',n:'Español',c:'#FF8A1F',unit:'Español stars'},
   {k:'geo',n:'Geography',c:'#1FA971',unit:'Geography stars'},
-  {k:'sch',n:'Scholar',c:'#8E5CFF',unit:'touchdowns'}
+  {k:'sch',n:'Scholar',c:'#8E5CFF',unit:'school stars'}
 ];
-const trackVals=()=>({math:sumStars(mathSess()),spell:sumStars(spellSess()),es:sumStars(esSess()),geo:sumStars(geoSess()),sch:Math.floor(schoolStars()/100)});
+const trackVals=()=>({math:sumStars(mathSess()),spell:sumStars(spellSess()),es:sumStars(esSess()),geo:sumStars(geoSess()),sch:schoolStars()});
 function prizeEnv(){return{stars:stats().stars,school:schoolStars(),tv:trackVals(),inf:nflInfo(nflSess()),memo:{}}}
 const reqKey=x=>typeof x.r==='string'?x.r:typeof x.at==='string'?x.at:null;
 function prizeUnlocked(x,env){
@@ -1566,7 +1488,7 @@ function finishSpell(){
   const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-sp.t0)/1000)),stars:starsFor(g==='test'?'spelltest':'spell',correct),
     items:items.map(i=>({t:'sp',g,w:i.w,ok:i.ok,h:i.h,err:i.err}))};
   saveSession(sess);
-  sp.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),td:driveNote(b0,schoolStars())});
+  sp.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before)});
   S.view='spresults';render();
 }
 function spBadges(){
@@ -1878,13 +1800,12 @@ function homeView(){
     <div class="journey">${journeySvg(st.stars)}<p>${nextTxt}</p></div></section>
   ${halloween()?halloweenCard():''}
   ${counterHtml()}
-  ${driveHtml()}
   ${prizeCardHtml()}
   <div class="sect">Pick a subject</div>
   <section class="modes">
-    ${m('math','math','Math',lastMath?`Last time: ${lastMath.correct} of ${lastMath.total} right on ${fmtDate(lastMath.ts)}`:'Pick a skill or play a mix. Add, subtract and multiply.',!THURSDAY())}
+    ${m('math','math','Math',lastMath?`Last time: ${lastMath.correct} of ${lastMath.total} right on ${fmtDate(lastMath.ts)}`:'Pick a skill or play a mix. Add, subtract and multiply.',true)}
     ${m('spell','spell','Spelling',`${esc(cur.name)}: ${mastered} of ${cur.words.length} words mastered`)}
-    ${m('es','es','Español',THURSDAY()?'Thursday is Spanish day. Double stars today!':`${esMastered()} of ${ES_ALL.length} words mastered. Pays the most stars.`,THURSDAY())}
+    ${m('es','es','Español',`${esMastered()} of ${ES_ALL.length} words mastered. Pays the most stars.`,false)}
     ${m('geo','globe','Geography',`${geoInfo().st.length} of 50 state capitals mastered. Florida spotlight inside.`)}
   </section>
   ${fbOn()?`<div class="sect">Just for fun</div><section class="modes">${m('club','football','Sports Club',`Soccer rules and American football teams. Bonus prizes inside!`)}</section>`:''}
@@ -2008,7 +1929,7 @@ function resultsView(){
   const msg=p>=90?'Amazing work! You really know this.':p>=75?'Strong work. A little more practice and it will be even better.':'Good effort. Every try builds the skill. Keep going.';
   const missed=run.qs.map((q,i)=>({q,it:s.items[i]})).filter(x=>!x.it.ok);
   const fact=FACTS[Math.floor(Math.random()*FACTS.length)];
-  const wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.td||[])];
+  const wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`)];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Full time!</span><span style="min-width:64px"></span></div>`+`
   <section class="card"><h2>${exam?'Final whistle!':'Great session!'}</h2>
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
@@ -2136,7 +2057,7 @@ function spResultsView(){
   const s=sp.result,p=pct(s),test=sp.game==='test';
   const msg=p>=90?'Amazing spelling! You really know these words.':p>=75?'Strong work. A little more practice and every word will stick.':'Good effort. Every try builds the skill. Keep going.';
   const missed=s.items.filter(i=>!i.ok),helped=s.items.filter(i=>i.ok&&i.h).length;
-  const wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.td||[])];
+  const wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`)];
   const fact=FACTS[Math.floor(Math.random()*FACTS.length)];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Great job!</span><span style="min-width:64px"></span></div>
   <section class="card"><h2>${test?'Test complete!':'Nice practice!'}</h2>
@@ -2648,7 +2569,7 @@ function geoProgress(){
   <section class="card"><h3>Clean answers by quiz</h3>${byGame.map(x=>bar(esc(GEO_GAMES[x.k].name),Math.round(100*x.c/x.n),Math.round(100*x.c/x.n)+'%',x.c/x.n<.7)).join('')}</section>`;
 }
 
-/* ===== Español: a school elective (Thursdays). It pays the most stars. ===== */
+/* ===== Español: a school subject. It pays the most stars. ===== */
 const ES_RAW=[
 ['saludos','Saludos','Greetings and manners',[['hola','hello','👋'],['adiós','goodbye','🖐️'],['buenos días','good morning','🌅'],['buenas tardes','good afternoon','☀️'],['buenas noches','good night','🌙'],['por favor','please','🙏'],['gracias','thank you','😊'],['de nada','you are welcome','🤗'],['¿cómo estás?','how are you?','🙂'],['muy bien','very well','👍'],['mucho gusto','nice to meet you','🤝'],['me llamo','my name is','🏷️']]],
 ['num1','Números 1 a 10','Count in Spanish',[['uno','one','1️⃣'],['dos','two','2️⃣'],['tres','three','3️⃣'],['cuatro','four','4️⃣'],['cinco','five','5️⃣'],['seis','six','6️⃣'],['siete','seven','7️⃣'],['ocho','eight','8️⃣'],['nueve','nine','9️⃣'],['diez','ten','🔟']]],
@@ -2773,7 +2694,7 @@ function finishEs(){
   const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-es.t0)/1000)),stars:starsFor(g==='quiz'?'estest':'es',correct),
     items:items.map(i=>({t:'es',g,w:i.w,ok:i.ok,h:i.h,err:null,given:i.given}))};
   saveSession(sess);
-  es.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(bs),td:driveNote(b0,schoolStars()),thu:THURSDAY()});
+  es.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(bs),});
   S.view='esresults';render();
 }
 function esBadges(){
@@ -2781,7 +2702,6 @@ function esBadges(){
   const days=new Set(ss.map(s=>dayKey(s.ts))).size,m=ES_ALL.filter(w=>wordLevel(st[w.es])==='m').length;
   return[
     {l:'H',n:'¡Hola!',d:'Finish your first Spanish activity',on:ss.length>=1},
-    {l:'J',n:'Jueves',d:'Practice Spanish on a Thursday',on:ss.some(s=>new Date(s.ts).getDay()===4)},
     {l:'3',n:'Tres días',d:'Practice Spanish on 3 different days',on:days>=3},
     {l:'10',n:'Diez palabras',d:'Master 10 Spanish words',on:m>=10},
     {l:'25',n:'Veinticinco',d:'Master 25 Spanish words',on:m>=25},
@@ -2872,12 +2792,11 @@ function esRunView(){
 function esResultsView(){
   const s=es.result,p=pct(s),quiz=es.game==='quiz';
   const msg=p>=90?'¡Fantástico! You really know these words.':p>=75?'¡Muy bien! A little more practice and every word will stick.':'¡Buen trabajo! Every try builds the skill. Keep going.';
-  const missed=s.items.filter(i=>!i.ok),wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.td||[])];
+  const missed=s.items.filter(i=>!i.ok),wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`)];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">¡Buen trabajo!</span><span style="min-width:64px"></span></div>
   <section class="card"><h2>${quiz?'¡Examen completo!':'¡Qué bien!'}</h2>
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
-  <div><div class="bigscore"><span style="color:var(--gold)">★</span> +${s.stars}</div><span class="mute">stars = ${s.stars} yards</span></div></div>
-  ${s.thu?`<div class="fb good">¡Es jueves! Your Thursday double is already counted in these stars.</div>`:''}
+  <div><div class="bigscore"><span style="color:var(--gold)">★</span> +${s.stars}</div><span class="mute">stars earned</span></div></div>
   <p>${msg}</p>${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
   ${missed.length?`<h3>Words to look at again</h3><div class="wchips">${missed.map(i=>{const w=ES_BY[i.w]||{es:i.w,en:'',e:''};return`<button class="wchip" data-act="esay" data-v="${esc(w.es)}"><span class="ee">${esc(w.e)}</span> <b>${esc(w.es)}</b> <span class="mute">${esc(w.en)}</span></button>`}).join('')}</div>`:'<div class="fb good">Every word right. ¡Perfecto!</div>'}
   <div class="row">${missed.length?`<button class="btn" data-act="esagain" data-v="missed">Practice my missed words</button>`:''}<button class="btn ${missed.length?'tint':''}" data-act="esagain" data-v="same">Play again</button><button class="btn tint" data-act="exit">Done</button></div></section>`;
@@ -2887,9 +2806,7 @@ function esListChips(){
   return`<div class="chips">${opts.map(([k,l])=>`<button class="chip ${sel===k?'on':''}" aria-pressed="${sel===k}" data-act="eslist" data-v="${esc(k)}">${esc(l)}</button>`).join('')}</div>`;
 }
 function esBanner(){
-  return THURSDAY()
-    ?`<section class="esban thu"><b>¡Hoy es jueves!</b><span>Spanish class day. Every Español star counts <b>double</b> today.</span></section>`
-    :`<section class="esban"><b>Español pays the most stars</b><span>More than math or spelling, and double on Thursdays, your Spanish class day.</span></section>`;
+  return`<section class="esban"><b>Español pays the most stars</b><span>More than math or spelling, so every Spanish activity moves her prizes along fastest.</span></section>`;
 }
 function esView(){
   const st=esStats(),sel=esSel(),words=esWordsOf(sel),cur=sel==='all'?'All words':sel==='tricky'?'Tricky words':ES_LISTS.find(l=>l.id===sel).name;
@@ -2921,7 +2838,7 @@ function esStudyView(){
 }
 function esProgress(){
   const ss=esSess();
-  if(!ss.length)return`<section class="card"><h3>No Spanish sessions yet</h3><p class="mute">Español is the Thursday elective. Her word progress shows up here once she practices.</p></section>`;
+  if(!ss.length)return`<section class="card"><h3>No Spanish sessions yet</h3><p class="mute">Her Spanish word progress shows up here once she practices.</p></section>`;
   const st=esStats(),items=ss.flatMap(s=>s.items||[]),lvl=w=>wordLevel(st[w.es]);
   const bar=(label,p,right,low)=>`<div class="bar"><span>${label}</span><span class="track2"><span class="fill ${low?'low':''}" style="width:${p}%"></span></span><span class="num">${right}</span></div>`;
   const byGame=Object.keys(ES_GAMES).map(k=>{const a=items.filter(i=>i.g===k);return{k,n:a.length,c:a.filter(i=>i.ok&&!i.h).length}}).filter(x=>x.n);
@@ -3547,7 +3464,7 @@ const LADDER=['shelltiara','earrings','beanie','sorting','gamehoodie','rainbow',
 LADDER.forEach((id,k)=>{const x=ITEMS.find(i=>i.id===id);if(x){x.at=Math.max(450+k*60,Math.round((450+5550*Math.pow(k/(LADDER.length-1),1.3))/10)*10);x.school=true}});
 ROOM_G.forEach(g=>g.opts.forEach(o=>{if(typeof o.at==='number'&&o.at>0)o.at=ECON(o.at)}));
 /* ===== the 365-prize catalog =====
-   Every cool prize belongs to a school-subject track and opens with that subject's own stars (Scholar uses touchdowns).
+   Every cool prize belongs to a school-subject track and opens with that subject's own stars (Scholar uses all school stars).
    The prizes Laila already owns are untouched. */
 const PRZ_META=[];
 const C_=(slot,id,name,track,w)=>{const x={id,slot,name,at:1,tr:track};ITEMS.push(x);PRZ_META.push({x,track,w})};
@@ -3604,7 +3521,7 @@ const POSTER_NEW=[
   ['p_world','Our world','geo',3,'#14246A',`<circle cx="20" cy="26" r="15" fill="#3A8FE0" stroke="#fff" stroke-width="1.4"/><path d="M10 22Q14 14 22 18Q22 24 14 26ZM22 30Q30 28 31 36Q25 41 21 37Z" fill="#7CCB8A"/><path d="M5 26H35M8 16H32M8 36H32" stroke="#fff" stroke-width=".5" opacity=".5"/>${star(7,8,2,'#fff')}${star(34,48,2,'#fff')}`],
   ['p_compass','Compass rose','geo',5,'#F6EEDC',`<circle cx="20" cy="28" r="15" fill="#fff" stroke="#C8621A" stroke-width="2"/><path d="M20 14L23 28L20 42L17 28Z" fill="#C21E3A"/><path d="M6 28L20 25L34 28L20 31Z" fill="#35456A"/><text x="20" y="11" text-anchor="middle" font-size="6" font-weight="800" fill="#7A520E" style="${TX}">N</text><circle cx="20" cy="28" r="2" fill="#E3B94F"/>`],
   ['p_scholar','Honor roll','sch',4,'#2A2F4A',`${star(20,24,11,'#FFD24D')}<path d="M7 38Q4 24 12 14M33 38Q36 24 28 14" stroke="#58D68D" stroke-width="2.4" fill="none" stroke-linecap="round"/><text x="20" y="48" text-anchor="middle" font-size="5.4" font-weight="800" fill="#FFE680" style="${TX}">HONOR ROLL</text>`],
-  ['p_td','Touchdown!','sch',6,'#1F6B3A',`<path d="M10 8V30M30 8V30M10 20H30M20 20V44" stroke="#FFD24D" stroke-width="2.4" stroke-linecap="round" fill="none"/><ellipse cx="20" cy="14" rx="6" ry="3.6" transform="rotate(-25 20 14)" fill="#9A5B33" stroke="#2A1630" stroke-width=".8"/><text x="20" y="53" text-anchor="middle" font-size="5.4" font-weight="800" fill="#fff" style="${TX}">TOUCHDOWN</text>`]
+  ['p_td','Goal posts','sch',6,'#1F6B3A',`<path d="M10 8V30M30 8V30M10 20H30M20 20V44" stroke="#FFD24D" stroke-width="2.4" stroke-linecap="round" fill="none"/><ellipse cx="20" cy="14" rx="6" ry="3.6" transform="rotate(-25 20 14)" fill="#9A5B33" stroke="#2A1630" stroke-width=".8"/><text x="20" y="53" text-anchor="middle" font-size="5.4" font-weight="800" fill="#fff" style="${TX}">GOAL!</text>`]
 ];
 POSTER_NEW.forEach(p=>R_('poster',O(p[0],p[1],0,{bg:p[4],art:p[5]}),p[2],p[3]));
 R_('hook',O('hk_bookbag','Book bag',0),'spell',3);R_('hook',O('hk_sombrero','Sombrero',0),'es',5);R_('hook',O('hk_cap','Graduation cap',0),'sch',5);
@@ -3614,13 +3531,12 @@ R_('windec',O('wn_nook','Reading nook',0),'spell',3);R_('windec',O('wn_cactus','
 R_('dcol',O('ds_blue','Sky dresser',0,{sw:'#9AD3F5'}),'math',1);R_('dcol',O('ds_teal','Teal dresser',0,{sw:'#2BB8B0'}),'spell',1);R_('dcol',O('ds_red','Rojo dresser',0,{sw:'#E5484D'}),'es',1);R_('dcol',O('ds_gold','Gold dresser',0,{sw:'#E0B24A'}),'sch',4);
 R_('dtop',O('dt_bee','Spelling bee statue',0),'spell',4);R_('dtop',O('dt_pinata','Mini piñata',0),'es',3);
 R_('floorx',O('fx_robot','Helper robot',0),'math',6);R_('floorx',O('fx_bookpile','Giant book pile',0),'spell',4);R_('floorx',O('fx_guitar','Guitarra',0),'es',5);
-/* prizes that used to sit on the star ladder now belong to Scholar (touchdowns), so they come from school work too */
+/* prizes that used to sit on the star ladder now belong to Scholar (school stars), so they come from school work too */
 LADDER.forEach((id,k)=>{const x=ITEMS.find(i=>i.id===id);if(x){x.tr='sch';delete x.school;PRZ_META.push({x,track:'sch',w:1+k*.4})}});
 /* each track is spaced out by its coolness score, from a quick first prize to a marathon finish */
-const TR_RANGE={math:[100,24000],spell:[100,24000],es:[120,36000],geo:[100,10000],sch:[5,365]};
+const TR_RANGE={math:[100,24000],spell:[100,24000],es:[120,36000],geo:[100,10000],sch:[500,36500]};
 function trThr(tk,k,n){
   const f=TR_RANGE[tk][0],l=TR_RANGE[tk][1],v=f+(l-f)*(n>1?Math.pow(k/(n-1),1.7):0);
-  if(tk==='sch')return Math.max(1,Math.round(v));
   const s=v>5000?500:v>2000?100:10;
   return Math.max(10,Math.round(v/s)*s);
 }
@@ -3669,7 +3585,7 @@ function prizeBook(){
   const rest=list.filter(p=>!p.x.tr),rw=rest.filter(p=>prizeUnlocked(p.x,env)).length;
   return`<section class="card"><div class="row between"><h3>Prize book</h3><span class="pill">${won} of ${list.length}</span></div>
   <div class="pbar big"><i style="width:${Math.round(100*won/list.length)}%"></i></div>
-  <p class="mute">The cool prizes come from school work. Every subject has its own track, and its stars only count for that track. Scholar prizes count touchdowns, and every 100 school stars is a touchdown.</p></section>
+  <p class="mute">The cool prizes come from school work. Every subject has its own track, and its stars only count for that track. Scholar prizes count every school star from math, spelling, Español and geography.</p></section>
   ${rows}
   <section class="card"><div class="row between"><h3>Starter, achievement and sports prizes</h3><span class="pill">${rw} of ${rest.length}</span></div><p class="mute">These open with total stars, a streak, or a Sports Club goal.</p></section>`;
 }
@@ -3826,6 +3742,7 @@ function buildView(){
 }
 const THEME_OF={math:'math',run:'math',results:'math',spell:'spell',sprun:'spell',spresults:'spell',es:'es',esstudy:'es',esrun:'es',esresults:'es',geo:'geo',geostudy:'geo',club:'sport',soc:'sport',socstudy:'sport',fb:'sport',fbstudy:'sport',nqrun:'sport',fdrun:'sport',fbres:'sport',closet:'room'};
 function themeClass(){
+  return'';
   if((S.view==='nqrun'&&nq&&nq.sport==='geo')||(S.view==='fbres'&&fbres&&fbres.sport==='geo'))return'th-geo';
   return THEME_OF[S.view]?'th-'+THEME_OF[S.view]:'';
 }
@@ -3857,7 +3774,7 @@ function finish(){
   const correct=items.filter(i=>i.ok).length;
   const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-run.t0)/1000)),stars:starsFor(exam?'exam':'math',correct),items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,h:i.h||0,to:i.to||0,err:i.err}))};
   saveSession(sess);
-  run.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),td:driveNote(b0,schoolStars())});S.view='results';render();
+  run.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before)});S.view='results';render();
 }
 function guidedSubmit(val){
   const q=run.qs[run.i],st=run.st[run.i];
