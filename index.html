@@ -269,6 +269,38 @@ textarea.txt{font:inherit;padding:12px 14px;border:0;border-radius:14px;backgrou
 .roomsvg{display:block;width:100%;height:auto}
 .roomsvg .hot{cursor:pointer}
 .sw{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:7px;vertical-align:-1px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+.esban{border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;background:linear-gradient(135deg,#FF8A1F,#E5409B);color:#fff;box-shadow:var(--shadow)}
+.esban b{font-size:1.1rem}.esban span{font-weight:600;opacity:.96}
+.esban.thu{background:linear-gradient(135deg,#E5409B,#8E5CFF);box-shadow:inset 0 0 0 3px rgba(255,255,255,.55),var(--shadow)}
+.ee{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-style:normal}
+.ee.big{font-size:3rem;line-height:1}
+.esword{font-size:clamp(2.2rem,10vw,3.4rem);font-weight:800;text-align:center;padding:14px 8px;background:var(--accent-soft);border-radius:22px;overflow-wrap:anywhere}
+.esprompt{display:flex;align-items:center;gap:14px;background:var(--accent-soft);border-radius:22px;padding:14px 18px}
+.esprompt b{font-size:1.5rem}
+.matchgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mcol{display:flex;flex-direction:column;gap:8px}
+.choice.mt{font-family:var(--f-ui);font-size:1.05rem;padding:12px 10px;min-height:56px}
+.fcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.fcard{background:var(--card2);border-radius:20px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:inset 0 0 0 2px var(--line);min-height:128px}
+.fcard.flip{background:var(--accent-soft);box-shadow:inset 0 0 0 3px var(--accent)}
+.fcard small{color:var(--mute);font-weight:700}
+.cgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ct{--c:#888;background:var(--card2);border-radius:18px;padding:12px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:1px;box-shadow:inset 0 -4px 0 var(--c),inset 0 0 0 1px var(--line)}
+.ct .ci svg{width:30px;height:30px;color:var(--c)}
+.ct b{font-size:1.7rem;line-height:1.1}.ct .cl{font-weight:800;font-size:.8rem}.ct small{color:var(--mute);font-weight:700;font-size:.7rem}
+@media(max-width:380px){.cgrid{gap:6px}.ct b{font-size:1.4rem}}
+.items{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.item{flex-direction:row;align-items:center;gap:10px}
+.item .th{flex:none;width:60px;height:52px;border-radius:12px;background:linear-gradient(160deg,var(--accent-soft),var(--card));overflow:hidden;display:grid;place-items:center}
+.item .th svg{width:100%;height:100%;display:block}
+.item .tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.td{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.pbar{height:12px;border-radius:99px;background:var(--accent-soft);overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--c,var(--accent));border-radius:99px}
+.pbar.big{height:18px}
+.trk{box-shadow:inset 6px 0 0 var(--c),var(--shadow)}
+.prizecard{flex-direction:row;align-items:center;justify-content:space-between;text-align:left;gap:12px}
+.prizecard>span{display:flex;flex-direction:column;gap:2px}
+.prizecard b{font-size:2.2rem;color:var(--accent)}
 :root.hw{--spark:rgba(255,140,40,.65);--hero1:#7A2A00;--hero2:#2A0F4A}
 :root.hw .hero{box-shadow:inset 0 0 0 2px rgba(255,140,40,.7),var(--shadow)}
 </style>
@@ -476,7 +508,7 @@ const S={
   home:store.get('lmath.home',null),
   view:'home',tab:'progress',unlocked:false,pinErr:false,psub:'math',from:'home',
   topics:store.get('lmath.topics',['sub','add','word','miss']),
-  splist:store.get('lmath.splist','u3w1'),huntClues:false,
+  splist:store.get('lmath.splist','u3w1'),huntClues:false,eslist:store.get('lmath.eslist','all'),
   sync:'local'
 };
 let run=null,sp=null,db=null;
@@ -587,8 +619,11 @@ function saveSession(s){
 }
 
 /* ---------- derived stats ---------- */
-const mathSess=()=>S.sessions.filter(s=>!['spell','nfl','soc','geo'].includes(s.mode));
-const spellSess=()=>S.sessions.filter(s=>s.mode==='spell');
+/* Español sessions are stored as spelling-mode sessions whose words are marked t:'es', so the database rules need no change */
+const isEs=s=>s.mode==='spell'&&!!(s.items&&s.items[0]&&s.items[0].t==='es');
+const mathSess=()=>S.sessions.filter(s=>['smart','guided','exam'].includes(s.mode));
+const spellSess=()=>S.sessions.filter(s=>s.mode==='spell'&&!isEs(s));
+const esSess=()=>S.sessions.filter(isEs);
 const nflSess=()=>S.sessions.filter(s=>s.mode==='nfl');
 function stats(){
   /* football is extra: its sessions give stars (plus collection prizes) but do not count toward the school streak */
@@ -626,10 +661,100 @@ function badges(st){
     {l:'S',n:'Zero Hero',d:'Get 8 across-zeros problems right',on:zeroOk>=8},
     {l:'T',n:'Match Ready',d:'Score 85% or more on 3 exams',on:big>=3},
     {l:'A',n:'Comeback',d:'Raise an exam score by 10 points',on:jump},
-    {l:'R',n:'Lucky 13',d:'A perfect practice session with no hints (13 stars!)',on:perfect},
+    {l:'R',n:'Perfect Ten',d:'A perfect practice session with no hints (24 stars!)',on:perfect},
     {l:'X',n:'Times Titan',d:'Get 20 multiplication problems right',on:mulOk>=20}
   ];
 }
+/* ---------- subjects, stars, and the touchdown drive ---------- */
+const THURSDAY=()=>new Date().getDay()===4;
+/* Math and spelling pay about double what they used to. Español pays the most, and double again on Thursdays
+   (her Spanish class day). The database rules cap one session at 100 stars. */
+function starsFor(kind,n){
+  const base={math:n*2+4,exam:n*3+6,spell:n*2+4,spelltest:n*3+6,es:n*3+6,estest:n*4+10}[kind]||0;
+  return Math.min(100,THURSDAY()&&(kind==='es'||kind==='estest')?base*2:base);
+}
+const sumStars=l=>l.reduce((n,s)=>n+(s.stars||0),0);
+/* school stars = math, spelling, Español and geography. Sports quizzes do not count. */
+const schoolStars=()=>sumStars(S.sessions.filter(s=>!['nfl','soc'].includes(s.mode)));
+const SUBJ=[
+  {k:'math',n:'Math',v:'math',c:'#3A7BFF',ic:'math'},
+  {k:'spell',n:'Spelling',v:'spell',c:'#E5409B',ic:'spell'},
+  {k:'es',n:'Español',v:'es',c:'#FF8A1F',ic:'es'},
+  {k:'geo',n:'States',v:'geo',c:'#1FA971',ic:'globe'},
+  {k:'soc',n:'Soccer',v:'soc',c:'#0E9F6E',ic:'ball'},
+  {k:'nfl',n:'Football',v:'fb',c:'#B45309',ic:'football'}
+];
+/* one place that counts sessions, so the home screen, the subject pages and the parent area always agree */
+function subjectCounts(){
+  const today=dayKey(Date.now()),o={all:S.sessions.length};
+  [['math',mathSess],['spell',spellSess],['es',esSess],['geo',geoSess],['soc',socSess],['nfl',nflSess]].forEach(([k,f])=>{
+    const l=f();o[k]={n:l.length,t:l.filter(s=>dayKey(s.ts)===today).length};
+  });
+  return o;
+}
+function counterHtml(){
+  const c=subjectCounts();
+  return`<section class="card cnt" aria-label="Sessions so far"><div class="row between"><h3>Sessions so far</h3><span class="pill">${c.all} in all</span></div>
+  <div class="cgrid">${SUBJ.map(s=>`<button class="ct" style="--c:${s.c}" data-act="nav" data-v="${s.v}" aria-label="${s.n}: ${c[s.k].n} sessions, ${c[s.k].t} today"><span class="ci">${ICON[s.ic]}</span><b class="num">${c[s.k].n}</b><span class="cl">${s.n}</span><small>${c[s.k].t?'+'+c[s.k].t+' today':'none today'}</small></button>`).join('')}</div></section>`;
+}
+const driveInfo=stars=>({td:Math.floor(stars/100),yd:stars%100});
+function driveNote(b0,now){
+  const a=Math.floor(b0/100),b=Math.floor(now/100);
+  return b>a?[b-a>1?`TOUCHDOWNS! ${b-a} more, ${b} in all!`:`TOUCHDOWN! That is touchdown number ${b}.`]:[];
+}
+function journeyNew(before){const now=stats().stars;return STOPS.filter(p=>p.at>0&&p.at>before&&p.at<=now).map(p=>p.n)}
+function driveSvg(yd){
+  const X=y=>26+248*y/100,bx=X(yd);
+  let g=`<rect width="300" height="64" rx="12" fill="#2F8F55"/><rect width="26" height="64" rx="12" fill="#1F5FA0"/><rect x="14" width="12" height="64" fill="#1F5FA0"/><rect x="274" width="26" height="64" rx="12" fill="#E3B94F"/><rect x="274" width="12" height="64" fill="#E3B94F"/>`;
+  for(let i=0;i<=10;i++)g+=`<path d="M${X(i*10).toFixed(1)} 6V58" stroke="#fff" stroke-width="${i%5===0?2:1}" opacity="${i%5===0?.8:.4}"/>`;
+  g+=`<text x="13" y="37" text-anchor="middle" font-size="8" font-weight="800" fill="#fff" transform="rotate(-90 13 34)">START</text><text x="287" y="37" text-anchor="middle" font-size="8" font-weight="800" fill="#6B4A0C" transform="rotate(90 287 34)">TOUCHDOWN</text>`;
+  g+=`<path d="M26 32H${bx.toFixed(1)}" stroke="#fff" stroke-width="5" opacity=".45" stroke-linecap="round"/>`;
+  g+=`<g transform="translate(${bx.toFixed(1)} 32) rotate(-20)"><ellipse rx="12" ry="7.4" fill="#9A5B33" stroke="#2A1630" stroke-width="1.4"/><path d="M-4 0H4M-2.5-2.4V2.4M0-2.4V2.4M2.5-2.4V2.4" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></g>`;
+  return`<svg viewBox="0 0 300 64" role="img" aria-label="${yd} yards down the field" style="width:100%;display:block;border-radius:12px">${g}</svg>`;
+}
+function driveHtml(){
+  const d=driveInfo(schoolStars());
+  return`<section class="card drive"><div class="row between"><h3>Touchdown drive</h3><span class="pill">${d.td} touchdown${d.td===1?'':'s'}</span></div>${driveSvg(d.yd)}
+  <p class="mute"><b>${100-d.yd} yards</b> to the end zone. Every school star is a yard, and Español pays the most.</p></section>`;
+}
+
+/* ---------- prizes: one rule decides whether anything is unlocked ---------- */
+/* Cooler prizes belong to a school-subject track and open with that subject's own stars (Scholar counts touchdowns). */
+const TRACKS=[
+  {k:'math',n:'Math',c:'#3A7BFF',unit:'Math stars'},
+  {k:'spell',n:'Spelling',c:'#E5409B',unit:'Spelling stars'},
+  {k:'es',n:'Español',c:'#FF8A1F',unit:'Español stars'},
+  {k:'geo',n:'Geography',c:'#1FA971',unit:'Geography stars'},
+  {k:'sch',n:'Scholar',c:'#8E5CFF',unit:'touchdowns'}
+];
+const trackVals=()=>({math:sumStars(mathSess()),spell:sumStars(spellSess()),es:sumStars(esSess()),geo:sumStars(geoSess()),sch:Math.floor(schoolStars()/100)});
+function prizeEnv(){return{stars:stats().stars,school:schoolStars(),tv:trackVals(),inf:nflInfo(nflSess()),memo:{}}}
+const reqKey=x=>typeof x.r==='string'?x.r:typeof x.at==='string'?x.at:null;
+function prizeUnlocked(x,env){
+  if(x.tr)return env.tv[x.tr]>=x.at;
+  if(x.nfl)return nflHas(x.id,env.inf);
+  if(x.u)return extraHas(x.id);
+  const k=reqKey(x);
+  if(k){if(!(k in env.memo))env.memo[k]=!!REQ[k][1]();return env.memo[k]}
+  return(x.school?env.school:env.stars)>=x.at;
+}
+function lockText(x,env){
+  if(x.tr){const T=TRACKS.find(t=>t.k===x.tr);return`${T.n} prize: ${Math.min(env.tv[x.tr],x.at)} of ${x.at} ${T.unit}`}
+  if(x.nfl)return`Football Club prize: ${x.nfl}`;
+  if(x.u)return`Prize: ${x.u}`;
+  const k=reqKey(x);
+  if(k)return REQ[k][0];
+  return x.school?`Unlocks at ${x.at} school stars`:`Unlocks at ${x.at} stars`;
+}
+/* every prize she can win: closet things and room things (not seasonal costumes, the empty choices, or the make-your-own poster) */
+function prizeList(){
+  const out=ITEMS.filter(x=>!x.season).map(x=>({key:'c:'+x.id,x,name:x.name,kind:'closet'}));
+  ROOM_G.forEach(g=>g.opts.forEach(o=>{if(o.id==='none'||o.id==='mine')return;out.push({key:'r:'+g.k+':'+o.id,x:o,name:o.name+' ('+g.label.toLowerCase()+')',kind:'room',g})}));
+  return out;
+}
+function prizeSnap(){const env=prizeEnv();return new Set(prizeList().filter(p=>prizeUnlocked(p.x,env)).map(p=>p.key))}
+function prizeNew(snap){const env=prizeEnv();return prizeList().filter(p=>!snap.has(p.key)&&prizeUnlocked(p.x,env)).map(p=>p.name)}
+
 /* ---------- run setup ---------- */
 const PRIOR={sub2:3,sub3o:3,sub3t:3,sub3b:3,subz:3,sub32:3,add3:1,word:1.5,miss:1.5,mulA:2,mulB:2,mulC:2,mulD:2,mul10:2,mulmiss:1.5,mulword:1.5};
 const WEIGHT={sub3b:2,sub3t:2,word:2};
@@ -741,6 +866,7 @@ function avatarSvg(c){
   let top=`<path d="${BODY}" fill="${lg('tee',lighten(out,.14),darken(out,.2))}"/><path d="M26 128C28 108 40 98 52 95" stroke="#fff" stroke-width="2" fill="none" opacity=".16" stroke-linecap="round"/>`;
   let topD=`<path d="M47 94Q60 105 73 94" fill="none" stroke="${darken(out,.3)}" stroke-width="2.6" stroke-linecap="round"/>`;
   const sleeves=`<path d="M18 130C19 112 24 102 32 98M102 130C101 112 96 102 88 98" stroke="rgba(0,0,0,.18)" stroke-width="1.4" fill="none"/>`;
+  const X={lg,rg,sp,D,GOLD,GOLDH,TXT,INK,BODY,sleeves,out,hs,skin,hair};
   if(c.top==='jersey'){
     top=`<path d="${BODY}" fill="${lg('jn','#244A8A','#0F2147')}"/><path d="M26 130C27 112 31 102 38 98L44 130Z" fill="#fff" opacity=".1"/><path d="M40 130L44 96M80 130L76 96" stroke="#fff" stroke-width="4" opacity=".92"/><path d="M42 130L46 96M78 130L74 96" stroke="#9FB6E0" stroke-width=".8" opacity=".7"/>${sleeves}`;
     topD=`<path d="M46 94Q60 108 74 94L70 93Q60 101 50 93Z" fill="#fff"/><path d="M47 94Q60 105 73 94" fill="none" stroke="#0F2147" stroke-width=".8"/><text x="60" y="124" text-anchor="middle" style="fill:#fff;stroke:#0F2147;stroke-width:.9;paint-order:stroke;font:800 17px Inter,system-ui,sans-serif">42</text>`;
@@ -807,6 +933,7 @@ function avatarSvg(c){
     top=`<path d="${BODY}" fill="${lg('lcb','#FFFFFF','#D3D9E6')}"/><path d="M60 100V130" stroke="#B8C0D2" stroke-width="1.4"/><path d="M28 130C29 112 35 102 44 97M92 130C91 112 85 102 76 97" stroke="#B8C0D2" stroke-width="1.2" fill="none" opacity=".8"/><rect x="66" y="112" width="15" height="13" rx="1.6" fill="#F4F6FB" stroke="#B8C0D2" stroke-width="1"/><path d="M71 112V106M74 112V105.4" stroke="#E5484D" stroke-width="1.8" stroke-linecap="round"/><path d="M76 112V105" stroke="#2B7BD6" stroke-width="1.8" stroke-linecap="round"/><circle cx="60" cy="108" r="1.5" fill="#8D96AC"/><circle cx="60" cy="118" r="1.5" fill="#8D96AC"/>${sleeves}`;
     topD=`<path d="M50 94L60 112L70 94Z" fill="#FF8FB8"/><path d="M45 92L58 112L52 94ZM75 92L62 112L68 94Z" fill="${lg('lcl','#FFFFFF','#CBD2E2')}" stroke="#B8C0D2" stroke-width=".8"/><rect x="41" y="112" width="15" height="7" rx="1" fill="#fff" stroke="#8FA6F0" stroke-width=".8"/><path d="M43 115.4H53" stroke="#8FA6F0" stroke-width="1"/>`;
   }
+  if(PRZ.top[c.top]){const r=PRZ.top[c.top](X);top=r.top;topD=r.topD||topD}
   const head=`<rect x="52" y="82" width="16" height="16" rx="6" fill="${darken(skin,.08)}"/><circle cx="60" cy="58" r="30" fill="${rg('skin',lighten(skin,.1),skin,.4,.35)}"/>`;
   /* hair cap: covers the whole top of the head (arc a bit larger than the head), with a soft hairline */
   let fringe=`<path d="M27 58A33 33 0 0 1 93 58C89 49 80 43 71 41.5C64 44 56 44 49 41.5C40 43 31 49 27 58Z" fill="${hair}"/><path d="M36 44C46 34 62 32 76 38" stroke="#fff" stroke-width="2.4" fill="none" opacity=".16" stroke-linecap="round"/>`;
@@ -837,6 +964,7 @@ function avatarSvg(c){
     const SIL=lg('tis','#FFFFFF','#9AA3B8');
     hd=`<path d="M32 46Q60 33 88 46" stroke="${SIL}" stroke-width="3" fill="none" stroke-linecap="round"/>${[[38,43.6,5.4],[49,39.2,8],[60,36.6,13],[71,39.2,8],[82,43.6,5.4]].map(p=>`<path d="M${p[0]-3.2} ${p[1]+3}L${p[0]} ${p[1]-p[2]}L${p[0]+3.2} ${p[1]+3}Z" fill="${SIL}" stroke="#7A8299" stroke-width=".6"/>`).join('')}<path d="M60 31.4L63.4 34.8L60 38.6L56.6 34.8Z" fill="${lg('tig','#FFB3D4','#E0307A')}" stroke="#fff" stroke-width=".6"/>${[[49,36.2],[71,36.2]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="1.7" fill="#9FE0FF"/>`).join('')}${[[38,42],[82,42]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="1.3" fill="#fff"/>`).join('')}${sp(60,27,2.4,'#fff')}`;
   }
+  if(PRZ.head[c.head])hd=PRZ.head[c.head](X);
   let ex='';
   if(c.extra.includes('earrings'))ex+=[29,91].map(x=>`<path d="M${x} 68Q${x+(x<60?-2:2)} 71 ${x} 73" stroke="${GOLD}" stroke-width="1.2" fill="none"/><path d="M${x} 73L${x+3} 77.5Q${x} 81 ${x-3} 77.5Z" fill="${lg('gem','#FFD27A','#C2670C')}" stroke="#A8741A" stroke-width=".7"/><circle cx="${x-.8}" cy="76.2" r=".9" fill="#fff" opacity=".9"/>`).join('');
   if(c.extra.includes('scarf'))ex+=`<path d="M38 90Q60 106 82 90L85 101Q60 118 35 101Z" fill="${lg('sc',lighten(hs[1],.15),darken(hs[1],.25))}"/><path d="M44 96L47 108M54 101L56 113M64 102L66 113M74 99L76 110" stroke="${hs[2]}" stroke-width="3.4" stroke-linecap="round" opacity=".95"/><path d="M40 95Q60 109 80 95" stroke="#fff" stroke-width=".8" fill="none" opacity=".3" stroke-dasharray="1.4 1.2"/><path d="M66 104L68 128L82 126L80 102Z" fill="${lg('sc2',lighten(hs[1],.1),darken(hs[1],.3))}"/><path d="M67 112L81 110M67.6 119L81.4 117" stroke="${hs[2]}" stroke-width="3"/><path d="M68 128L67.5 133M71 127.6L70.6 133M74 127.2L73.8 133M77 126.8L77 133M80 126.4L80.4 132" stroke="${hs[1]}" stroke-width="1.3" stroke-linecap="round"/>`;
@@ -870,9 +998,121 @@ function avatarSvg(c){
   if(c.extra.includes('telescope'))ex+=`<g transform="translate(99 108) rotate(-38)"><rect x="-4.6" y="-5" width="9.2" height="30" rx="2" fill="${lg('ts1','#4A5078','#171A2C','h')}"/><rect x="-5.6" y="-17" width="11.2" height="14" rx="2.4" fill="${lg('ts2','#6B73A8','#232842','h')}"/><rect x="-6.8" y="-27" width="13.6" height="11" rx="2.8" fill="${lg('ts3','#8A93C8','#2E3358','h')}"/><ellipse cx="0" cy="-27" rx="6.8" ry="2.2" fill="#9FE0FF" stroke="#2E3358" stroke-width=".8"/><path d="M-6.8-17H6.8M-5.6-4H5.6M-4.6 24H4.6" stroke="${GOLD}" stroke-width="1.8"/><path d="M-3-24V-6" stroke="#fff" stroke-width="1" opacity=".35" stroke-linecap="round"/><path d="M-8 25L-3 8M8 25L3 8" stroke="#6B4A2A" stroke-width="1.6" stroke-linecap="round"/></g>`;
   if(c.extra.includes('butterfly'))ex+=[[24,30,1,-14],[100,52,.7,16]].map(b=>`<g transform="translate(${b[0]} ${b[1]}) rotate(${b[3]}) scale(${b[2]})"><path d="M0 0C-4-14-18-14-16-2C-15 5-6 5 0 0Z" fill="${lg('bfw','#FF9AC9','#8E3FD0','h')}" stroke="#5A2A8A" stroke-width=".6"/><path d="M0 0C4-14 18-14 16-2C15 5 6 5 0 0Z" fill="${lg('bfw','#FF9AC9','#8E3FD0','h')}" stroke="#5A2A8A" stroke-width=".6"/><path d="M0 1C-3 8-12 11-9 5C-7 1-3 1 0 1ZM0 1C3 8 12 11 9 5C7 1 3 1 0 1Z" fill="#FFD24D" opacity=".9"/><circle cx="-9" cy="-4" r="2" fill="#fff" opacity=".7"/><circle cx="9" cy="-4" r="2" fill="#fff" opacity=".7"/><ellipse cx="0" cy="1" rx="1.1" ry="5" fill="#2A1630"/><path d="M0-3Q-2-7-4-7M0-3Q2-7 4-7" stroke="#2A1630" stroke-width=".6" fill="none"/></g>`).join('');
   if(c.extra.includes('candybucket'))ex+=`<g transform="translate(98 114)"><path d="M-12-9Q0-24 12-9" stroke="#1A1020" stroke-width="2" fill="none"/><circle cx="-4" cy="-10" r="3" fill="#FF7BAF"/><circle cx="3" cy="-12" r="3" fill="#FFD24D"/><path d="M5-8L9-12L11-8Z" fill="#58D68D"/><path d="M-13-6Q-15 6-8 12Q0 15 8 12Q15 6 13-6Q0-10-13-6Z" fill="${rg('pb','#FFA23A','#C8520A')}" stroke="#8A3A00" stroke-width=".8"/><path d="M-7-1L-4-4L-3 0ZM7-1L4-4L3 0Z" fill="#2A1630"/><path d="M-6 5Q0 9 6 5L4 3L2 5L0 3L-2 5L-4 3Z" fill="#2A1630"/><path d="M-9-6Q-11 2-8 8" stroke="#fff" stroke-width="1.2" fill="none" opacity=".4"/></g>`;
+  c.extra.forEach(id=>{if(PRZ.extra[id])ex+=PRZ.extra[id](X)});
   if(c._parts)return{D:D.join(''),back,top,head,topD,fringe,face,ex,hd};
   return`<svg viewBox="0 0 120 130" width="100%" height="100%" role="img" aria-label="Laila's avatar"><defs>${D.join('')}</defs>${back}${top}${head}${topD}${fringe}${face}${ex}${hd}</svg>`;
 }
+/* ===== 365 prizes: new closet art. Each one is drawn from a shared kit so they all look like one family. ===== */
+const PRZ={top:{},head:{},extra:{}};
+const collar=c=>`<path d="M47 94Q60 105 73 94" fill="none" stroke="${darken(c,.3)}" stroke-width="2.6" stroke-linecap="round"/>`;
+const heartAt=(x,y,s,c)=>`<path d="M${x} ${y+3*s}C${x-5*s} ${y-1*s} ${x-3*s} ${y-5*s} ${x} ${y-2.4*s}C${x+3*s} ${y-5*s} ${x+5*s} ${y-1*s} ${x} ${y+3*s}Z" fill="${c}"/>`;
+const PATTILE={
+  stripes:c=>[20,12,`<rect y="6" width="20" height="5" fill="${c}"/>`],
+  vstripes:c=>[12,20,`<rect x="6" width="5" height="20" fill="${c}"/>`],
+  dots:c=>[14,14,`<circle cx="3.5" cy="3.5" r="2.4" fill="${c}"/><circle cx="10.5" cy="10.5" r="2.4" fill="${c}"/>`],
+  stars:c=>[16,16,star(4,4,3.4,c)+star(12,12,3.4,c)],
+  hearts:c=>[16,16,heartAt(4,5,1,c)+heartAt(12,13,1,c)],
+  checks:c=>[12,12,`<rect width="6" height="6" fill="${c}"/><rect x="6" y="6" width="6" height="6" fill="${c}"/>`],
+  zigzag:c=>[16,10,`<path d="M0 8L4 2L8 8L12 2L16 8" stroke="${c}" stroke-width="2.4" fill="none"/>`],
+  plaid:c=>[24,24,`<rect x="8" width="5" height="24" fill="${c}" opacity=".5"/><rect y="8" width="24" height="5" fill="${c}" opacity=".5"/><rect x="18" width="2" height="24" fill="#fff" opacity=".45"/><rect y="18" width="24" height="2" fill="#fff" opacity=".45"/>`],
+  waves:c=>[20,10,`<path d="M0 6Q5 0 10 6T20 6" stroke="${c}" stroke-width="2" fill="none"/>`],
+  diamonds:c=>[14,14,`<path d="M7 1L13 7L7 13L1 7Z" fill="${c}"/>`],
+  confetti:c=>[24,24,`<rect x="3" y="4" width="5" height="2" fill="${c}" transform="rotate(30 5 5)"/><circle cx="16" cy="6" r="1.8" fill="#FFD24D"/><rect x="12" y="15" width="5" height="2" fill="#FF7BAF" transform="rotate(-40 14 16)"/><circle cx="4" cy="18" r="1.8" fill="#58D68D"/><rect x="19" y="19" width="4" height="2" fill="${c}" transform="rotate(60 21 20)"/>`]
+};
+/* a tee in one color with a repeating pattern on top */
+const patTee=(pid,c1,c2,kind,collarCol)=>X=>{
+  const id='pt'+pid,t=PATTILE[kind](c2);
+  X.D.push(`<pattern id="${id}" width="${t[0]}" height="${t[1]}" patternUnits="userSpaceOnUse">${t[2]}</pattern>`);
+  return{top:`<path d="${X.BODY}" fill="${X.lg('pb'+pid,lighten(c1,.15),darken(c1,.2))}"/><path d="${X.BODY}" fill="url(#${id})"/><path d="M26 128C28 108 40 98 52 95" stroke="#fff" stroke-width="2" fill="none" opacity=".16" stroke-linecap="round"/>${X.sleeves}`,topD:collar(collarCol||c1)};
+};
+const jersey=(pid,c1,trim,num,numCol)=>X=>({
+  top:`<path d="${X.BODY}" fill="${X.lg('jy'+pid,lighten(c1,.14),darken(c1,.3))}"/><path d="M20 118H100" stroke="${trim}" stroke-width="3" opacity=".9"/><path d="M26 100L40 97M94 100L80 97" stroke="${trim}" stroke-width="3.4" stroke-linecap="round"/><path d="M24 126C26 110 31 102 38 98" stroke="#fff" stroke-width="1.6" fill="none" opacity=".18"/>${X.sleeves}`,
+  topD:`<path d="M46 94Q60 108 74 94L70 93Q60 101 50 93Z" fill="${trim}"/><path d="M47 94Q60 105 73 94" fill="none" stroke="${darken(c1,.4)}" stroke-width=".8"/><circle cx="46" cy="108" r="4.2" fill="#fff" stroke="${trim}" stroke-width="1.2"/>${star(46,108,2.4,trim)}<text x="64" y="114" text-anchor="middle" style="fill:${numCol};stroke:${darken(c1,.5)};stroke-width:.8;paint-order:stroke;font:800 17px Inter,system-ui,sans-serif">${num}</text>`
+});
+Object.assign(PRZ.top,{
+  mintdots:patTee('mint','#6FD6B2','#FFFFFF','dots'),
+  heartstee:patTee('hrt','#FF8FB8','#FFFFFF','hearts'),
+  candystripe:patTee('cdy','#FFFFFF','#FF5C9A','stripes','#FF5C9A'),
+  oceanwave:patTee('wav','#3AA0F0','#CFEBFF','waves'),
+  starnavy:patTee('snv','#1E2F66','#FFD24D','stars'),
+  plaidshirt:X=>{const r=patTee('pld','#7BC043','#1F6B3A','plaid')(X);r.topD=`<path d="M47 93L60 108L73 93L69 91Q60 99 51 91Z" fill="#fff" stroke="#1F6B3A" stroke-width=".8"/><path d="M60 108V130" stroke="#1F6B3A" stroke-width="1.2"/><circle cx="60" cy="114" r="1.3" fill="#fff"/><circle cx="60" cy="122" r="1.3" fill="#fff"/>`;return r},
+  zigsweater:X=>{const r=patTee('zig','#2BA5A5','#FFF1C9','zigzag')(X);r.top+=`<path d="M18 126H102" stroke="${darken('#2BA5A5',.25)}" stroke-width="4"/>`;return r},
+  sunsetombre:X=>({top:`<path d="${X.BODY}" fill="${X.lg('sob','#FFB54A','#E5409B')}"/><circle cx="60" cy="118" r="11" fill="#FFE08A" opacity=".5"/><path d="M26 128C28 108 40 98 52 95" stroke="#fff" stroke-width="2" fill="none" opacity=".2" stroke-linecap="round"/>${X.sleeves}`,topD:collar('#F0707A')}),
+  colorblock:X=>{X.D.push(`<clipPath id="cbc"><path d="${X.BODY}"/></clipPath>`);return{top:`<path d="${X.BODY}" fill="${X.lg('cb1','#5BB6FF','#2B6FD0')}"/><g clip-path="url(#cbc)"><path d="M60 80L110 80L110 140L40 140Z" fill="${X.lg('cb2','#FFD24D','#E0A81A')}"/><path d="M85 80L130 80L130 140L70 140Z" fill="${X.lg('cb3','#FF7BAF','#C21E7A')}"/></g><path d="M26 128C28 108 40 98 52 95" stroke="#fff" stroke-width="2" fill="none" opacity=".2" stroke-linecap="round"/>${X.sleeves}`,topD:collar('#2B6FD0')}},
+  tiedye:X=>{X.D.push(`<clipPath id="tdc"><path d="${X.BODY}"/></clipPath><radialGradient id="tdg" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="#FFE14D"/><stop offset=".3" stop-color="#FF7BAF"/><stop offset=".6" stop-color="#8E5CFF"/><stop offset="1" stop-color="#2BC4E8"/></radialGradient>`);return{top:`<path d="${X.BODY}" fill="${X.lg('tdb','#B06BE8','#2B9BD6')}"/><g clip-path="url(#tdc)"><ellipse cx="60" cy="118" rx="56" ry="26" fill="url(#tdg)"/><path d="M60 118m-4 0a4 4 0 1 1 8 0a8 8 0 1 1-16 0a12 12 0 1 1 24 0a16 16 0 1 1-32 0a20 20 0 1 1 40 0" stroke="#fff" stroke-width="1.3" fill="none" opacity=".55"/></g>${X.sleeves}`,topD:collar('#7B5CD6')}},
+  mathtee:X=>({top:`<path d="${X.BODY}" fill="${X.lg('mth','#2F58C8','#14246A')}"/><path d="M26 128C28 108 40 98 52 95" stroke="#fff" stroke-width="2" fill="none" opacity=".16" stroke-linecap="round"/>${[['π',38,112,13],['+',58,108,11],['÷',78,114,12],['×',48,125,10],['=',72,126,10],['√',90,106,9]].map(s=>`<text x="${s[1]}" y="${s[2]}" text-anchor="middle" style="fill:#fff;opacity:.92;font:800 ${s[3]}px Inter,system-ui,sans-serif">${s[0]}</text>`).join('')}${X.sleeves}`,topD:collar('#14246A')}),
+  beetee:X=>({top:`<path d="${X.BODY}" fill="${X.lg('bet','#FFE066','#F2B81A')}"/><path d="M26 128C28 108 40 98 52 95" stroke="#fff" stroke-width="2" fill="none" opacity=".25" stroke-linecap="round"/><g transform="translate(60 114)"><ellipse rx="10" ry="7" fill="#FFB400" stroke="#2A1630" stroke-width="1.2"/><path d="M-3-6.4V6.4M3-6.4V6.4" stroke="#2A1630" stroke-width="2.4"/><ellipse cx="-4" cy="-8" rx="5" ry="3.4" fill="#fff" stroke="#2A1630" stroke-width=".8" transform="rotate(-20 -4 -8)"/><ellipse cx="4" cy="-8" rx="5" ry="3.4" fill="#fff" stroke="#2A1630" stroke-width=".8" transform="rotate(20 4 -8)"/><circle cx="-8.6" cy="-1" r="1.2" fill="#2A1630"/></g><text x="34" y="106" style="fill:#2A1630;font:800 10px Inter,system-ui,sans-serif">A</text><text x="80" y="106" style="fill:#2A1630;font:800 10px Inter,system-ui,sans-serif">B</text><text x="82" y="126" style="fill:#2A1630;font:800 10px Inter,system-ui,sans-serif">C</text>${X.sleeves}`,topD:collar('#C8921A')}),
+  holatee:X=>({top:`<path d="${X.BODY}" fill="${X.lg('hol','#FF9A3C','#E5671A')}"/><path d="M26 128C28 108 40 98 52 95" stroke="#fff" stroke-width="2" fill="none" opacity=".2" stroke-linecap="round"/><path d="M34 102H86Q90 102 90 106V118Q90 122 86 122H66L58 130L58 122H34Q30 122 30 118V106Q30 102 34 102Z" fill="#fff"/><text x="60" y="116" text-anchor="middle" style="fill:#E5409B;font:800 12px Inter,system-ui,sans-serif">¡HOLA!</text>${X.sleeves}`,topD:collar('#E5671A')}),
+  mexjersey:jersey('mex','#1F8A4C','#FFFFFF','10','#FFFFFF'),
+  espjersey:jersey('esp','#D12A2A','#FFD24D','7','#FFD24D'),
+  flamenco:X=>{X.D.push(`<pattern id="fld" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1.8" fill="#fff"/><circle cx="9" cy="9" r="1.8" fill="#fff"/></pattern>`);return{top:`<path d="${X.BODY}" fill="${X.lg('fla','#E5484D','#8F1020')}"/><path d="${X.BODY}" fill="url(#fld)"/><path d="M18 116Q30 124 42 116Q54 124 66 116Q78 124 90 116Q96 120 102 116V130H18Z" fill="${X.lg('flb','#F26A6E','#A81428')}"/><path d="M18 116Q30 124 42 116Q54 124 66 116Q78 124 90 116Q96 120 102 116" stroke="#fff" stroke-width="1.2" fill="none" opacity=".7"/><path d="M20 123Q31 130 42 123Q54 130 66 123Q78 130 90 123" stroke="#fff" stroke-width="1" fill="none" opacity=".4"/>${X.sleeves}`,topD:`<path d="M44 93Q50 98 55 93Q60 99 65 93Q70 98 76 93L74 90Q60 98 46 90Z" fill="#fff"/><path d="M47 94Q60 105 73 94" fill="none" stroke="#8F1020" stroke-width="1" opacity=".6"/>`}},
+  poncho:X=>{X.D.push(`<clipPath id="pnc"><path d="M12 130C14 98 36 90 60 90C84 90 106 98 108 130Z"/></clipPath>`);const cols=['#E5484D','#FF9A3C','#FFD24D','#58D68D','#3AA0F0','#8E5CFF'];return{top:`<path d="M12 130C14 98 36 90 60 90C84 90 106 98 108 130Z" fill="${X.lg('pon','#FF9A3C','#C8521A')}"/><g clip-path="url(#pnc)">${[10,22,34,46,58,70,82,94,106].map((x,i)=>`<rect x="${x}" y="88" width="12" height="46" fill="${cols[i%6]}"/>`).join('')}<path d="M12 120H108" stroke="#2A1630" stroke-width="1.2" opacity=".25"/><path d="M12 126H108" stroke="#fff" stroke-width="2" opacity=".5"/></g><path d="M26 128C28 108 38 98 50 94" stroke="#fff" stroke-width="2" fill="none" opacity=".22" stroke-linecap="round"/>`,topD:`<path d="M44 92Q60 112 76 92L72 90Q60 102 48 90Z" fill="#3A2A1F"/><path d="M60 100V108" stroke="#3A2A1F" stroke-width="1.4"/>`}},
+  explorervest:X=>({top:`<path d="${X.BODY}" fill="${X.lg('exv','#F4F1EA','#D5D0C2')}"/><path d="M18 130C20 100 36 94 46 92L52 130Z" fill="${X.lg('exw','#C8B27A','#8E7A44')}"/><path d="M102 130C100 100 84 94 74 92L68 130Z" fill="${X.lg('exw','#C8B27A','#8E7A44')}"/><rect x="26" y="108" width="15" height="14" rx="1.6" fill="#B09A5E" stroke="#6B5A2A" stroke-width=".8"/><rect x="79" y="108" width="15" height="14" rx="1.6" fill="#B09A5E" stroke="#6B5A2A" stroke-width=".8"/><path d="M26 112H41M79 112H94" stroke="#6B5A2A" stroke-width=".8"/><circle cx="33.5" cy="112" r="1.2" fill="#E3B94F"/><circle cx="86.5" cy="112" r="1.2" fill="#E3B94F"/>${X.sleeves}`,topD:`<path d="M44 92L55 106L50 94ZM76 92L65 106L70 94Z" fill="#8E7A44"/><circle cx="48" cy="118" r="1.2" fill="#E3B94F"/><circle cx="72" cy="118" r="1.2" fill="#E3B94F"/>`}),
+  globetee:X=>({top:`<path d="${X.BODY}" fill="${X.lg('glt','#2BB8B0','#126E78')}"/><path d="M26 128C28 108 40 98 52 95" stroke="#fff" stroke-width="2" fill="none" opacity=".18" stroke-linecap="round"/><g transform="translate(60 114)"><circle r="12" fill="#3A8FE0" stroke="#fff" stroke-width="1.4"/><path d="M-8-4Q-3-9 2-4Q0 2-5 1ZM2 3Q8 0 9 6Q4 10 1 8Z" fill="#7CCB8A"/><ellipse rx="5" ry="12" fill="none" stroke="#fff" stroke-width=".7" opacity=".6"/><path d="M-12 0H12M-10-6H10M-10 6H10" stroke="#fff" stroke-width=".7" opacity=".6"/></g>${X.sleeves}`,topD:collar('#126E78')}),
+  varsity:X=>({top:`<path d="${X.BODY}" fill="${X.lg('vsy','#26407F','#101E45')}"/><path d="M60 94V130" stroke="#E7E1EE" stroke-width="1.6"/><circle cx="60" cy="104" r="1.5" fill="#E3B94F"/><circle cx="60" cy="114" r="1.5" fill="#E3B94F"/><circle cx="60" cy="124" r="1.5" fill="#E3B94F"/><path d="M18 124H102" stroke="#F4F1E8" stroke-width="5"/><path d="M18 124H102" stroke="#C0303F" stroke-width="1.6"/><path d="M24 126C26 110 31 102 38 98" stroke="#fff" stroke-width="1.6" fill="none" opacity=".18"/><path d="M34 103H46V117Q40 121 34 117Z" fill="#E3B94F" stroke="#8A5A0C" stroke-width=".8"/><text x="40" y="114.6" text-anchor="middle" style="fill:#101E45;font:800 11px Inter,system-ui,sans-serif">L</text>${X.sleeves}`,topD:`<path d="M44 92Q60 106 76 92L72 90Q60 98 48 90Z" fill="#F4F1E8" stroke="#C0303F" stroke-width="1.2"/>`}),
+  astronaut:X=>({top:`<path d="M14 130C16 99 38 90 60 90C82 90 104 99 106 130Z" fill="${X.lg('ast','#FFFFFF','#C9D0E0')}"/><rect x="40" y="106" width="40" height="18" rx="4" fill="#E7EBF5" stroke="#9AA3BC" stroke-width="1"/><circle cx="48" cy="115" r="2.6" fill="#E5484D"/><circle cx="56" cy="115" r="2.6" fill="#FFD24D"/><circle cx="64" cy="115" r="2.6" fill="#58D68D"/><rect x="70" y="111" width="7" height="8" rx="1.4" fill="#2B7BD6"/><path d="M26 108h-8v8h8z" fill="#2B4590"/><path d="M14 123H106" stroke="#2B7BD6" stroke-width="3"/><path d="M30 130C32 114 38 102 46 96M90 130C88 114 82 102 74 96" stroke="#9AA3BC" stroke-width="1.2" fill="none"/>${X.sleeves}`,topD:`<ellipse cx="60" cy="94" rx="15" ry="5" fill="none" stroke="#9AA3BC" stroke-width="4"/><ellipse cx="60" cy="93.4" rx="15" ry="5" fill="none" stroke="#fff" stroke-width="1.4" opacity=".8"/>`}),
+  champcape:X=>({top:`<path d="M12 130C14 98 36 90 60 90C84 90 108 98 108 130Z" fill="${X.lg('chc','#E5484D','#7A0E24')}"/><path d="M30 130C32 112 38 100 46 95M90 130C88 112 82 100 74 95M44 130L48 108M76 130L72 108" stroke="#000" stroke-width="1.6" fill="none" opacity=".3"/><path d="M12 124H108" stroke="#FFD24D" stroke-width="3"/><path d="M12 128H108" stroke="#FFD24D" stroke-width="1" opacity=".7"/>`,topD:`<path d="M40 93Q46 100 52 94Q56 101 60 95Q64 101 68 94Q74 100 80 93L76 90Q60 99 44 90Z" fill="#fff"/>${[48,58,66,76].map((x,i)=>`<circle cx="${x}" cy="${95+(i%2)}" r="1.1" fill="#2A1630"/>`).join('')}<circle cx="60" cy="103" r="4" fill="${X.GOLD}" stroke="#8A5A0C" stroke-width=".8"/>${X.sp(60,103,2.6,'#fff')}`})
+});
+Object.assign(PRZ.head,{
+  suncap:X=>`<path d="M30 49Q29 19 60 17Q91 19 90 49Z" fill="${X.lg('scp','#FFE066','#E8A81A')}"/><path d="M60 17V49M44 21Q42 36 42 49M76 21Q78 36 78 49" stroke="#B07A0A" stroke-width=".9" fill="none" opacity=".5"/><circle cx="60" cy="16.6" r="2.4" fill="#B07A0A"/><path d="M24 50Q60 66 96 50Q60 44 24 50Z" fill="${X.lg('scb','#FFF3B0','#E0A81A')}"/><path d="M28 51Q60 62 92 51" stroke="#B07A0A" stroke-width=".8" fill="none" opacity=".55"/>${star(60,34,6,'#fff')}`,
+  partyhat:X=>`<g transform="rotate(12 60 44)"><path d="M38 46L60 4L82 46Z" fill="${X.lg('pty','#FF7BAF','#C21E7A')}"/><path d="M45 36L74 30M41 44L79 38M52 24L69 21" stroke="#FFD24D" stroke-width="3" opacity=".9"/>${[[54,32],[66,40],[60,18],[48,42]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="1.6" fill="#fff"/>`).join('')}<path d="M36 46Q60 54 84 46Q60 42 36 46Z" fill="#FFD24D"/>${cloud(60,3,3.6,8,2.2,'#7FF0E4')}</g>`,
+  tophat:X=>`<rect x="40" y="6" width="40" height="38" rx="3" fill="${X.lg('tph','#3A3F5C','#0E1020','h')}"/><path d="M42 33H78V40H42Z" fill="#C0303F"/><ellipse cx="60" cy="43" rx="40" ry="8" fill="${X.lg('tpb','#2A2F4A','#0A0C18')}"/><ellipse cx="60" cy="6" rx="20" ry="4" fill="#4A5078"/><path d="M46 14V30" stroke="#fff" stroke-width="1.6" opacity=".25" stroke-linecap="round"/>${X.sp(70,22,3.2,'#FFE680')}${X.sp(54,26,2,'#fff')}`,
+  alienant:X=>`<path d="M32 46Q60 30 88 46" stroke="${X.lg('aab','#5A6190','#232842')}" stroke-width="3.4" fill="none" stroke-linecap="round"/><path d="M42 40Q38 26 40 14M78 40Q82 26 80 14" stroke="#3E9B5E" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="40" cy="12" r="5" fill="${X.rg('aal','#B8FF9A','#2E9B4E')}"/><circle cx="80" cy="12" r="5" fill="${X.rg('aal','#B8FF9A','#2E9B4E')}"/><circle cx="38.6" cy="10.4" r="1.4" fill="#fff" opacity=".8"/><circle cx="78.6" cy="10.4" r="1.4" fill="#fff" opacity=".8"/>`,
+  beeband:X=>`<path d="M30 47Q60 28 90 47" stroke="#2A1630" stroke-width="4.4" fill="none" stroke-linecap="round"/><path d="M34 44Q60 27 86 44" stroke="#FFD24D" stroke-width="3" fill="none" stroke-dasharray="6 4"/><path d="M44 36Q40 24 44 14M76 36Q80 24 76 14" stroke="#2A1630" stroke-width="1.6" fill="none"/>${[44,76].map(x=>`<g transform="translate(${x} 11)"><ellipse rx="6" ry="4.6" fill="#FFB400" stroke="#2A1630" stroke-width="1"/><path d="M-1.6-4.4V4.4M2 -4.2V4.2" stroke="#2A1630" stroke-width="1.8"/><ellipse cx="-2" cy="-5" rx="3.4" ry="2.4" fill="#fff" stroke="#2A1630" stroke-width=".6" opacity=".9"/><circle cx="-4" cy="-.4" r=".8" fill="#2A1630"/></g>`).join('')}`,
+  unicornband:X=>`<path d="M30 47Q60 30 90 47" stroke="${X.lg('unb','#FFD6EC','#C58BFF')}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M52 40L60 4L68 40Z" fill="${X.lg('unh','#FFF1A8','#E0A81A')}" stroke="#B07A0A" stroke-width=".7"/><path d="M54 33L65 29M55.4 25L64 21.6M57 17L62.6 14.6" stroke="#B07A0A" stroke-width="1.2"/><path d="M36 40L33 28L46 36ZM84 40L87 28L74 36Z" fill="#FFD6EC" stroke="#C58BFF" stroke-width=".8"/>${[[40,42,'#FF7BAF'],[80,42,'#7FD0FF'],[60,44,'#FFD24D']].map(f=>`<circle cx="${f[0]}" cy="${f[1]}" r="3.4" fill="${f[2]}" stroke="#fff" stroke-width=".8"/>`).join('')}${X.sp(60,3,2.6,'#fff')}`,
+  bunnyears:X=>`<path d="M30 48Q60 34 90 48" stroke="${X.lg('bnb','#FFFFFF','#D9D3EA')}" stroke-width="4" fill="none" stroke-linecap="round"/>${[[44,-8],[76,8]].map(e=>`<g transform="rotate(${e[1]} ${e[0]} 40)"><ellipse cx="${e[0]}" cy="20" rx="8.4" ry="21" fill="${X.lg('bne','#FFFFFF','#DDD7EE')}" stroke="#C9C0E0" stroke-width=".8"/><ellipse cx="${e[0]}" cy="21" rx="4.2" ry="16" fill="#FFB3D4"/></g>`).join('')}`,
+  rainbowband:X=>`<path d="M26 48Q60 20 94 48" stroke="#8E5CFF" stroke-width="3" fill="none"/><path d="M26 45Q60 17 94 45" stroke="#3AA0F0" stroke-width="3" fill="none"/><path d="M26 42Q60 14 94 42" stroke="#58D68D" stroke-width="3" fill="none"/><path d="M26 39Q60 11 94 39" stroke="#FFD24D" stroke-width="3" fill="none"/><path d="M26 36Q60 8 94 36" stroke="#FF9A3C" stroke-width="3" fill="none"/><path d="M26 33Q60 5 94 33" stroke="#E5484D" stroke-width="3" fill="none"/>${cloud(27,47,4,6,3.2,'#fff')}${cloud(93,47,4,6,3.2,'#fff')}`,
+  sombrero:X=>`<ellipse cx="60" cy="42" rx="58" ry="12" fill="${X.lg('sbr','#F2D58A','#B88A2E')}" stroke="#7A520E" stroke-width="1"/><path d="M5 42Q60 56 115 42" stroke="#C0303F" stroke-width="2.6" fill="none"/><path d="M38 42Q36 10 60 7Q84 10 82 42Q60 50 38 42Z" fill="${X.lg('sbc','#F6E3A8','#C8962E')}" stroke="#7A520E" stroke-width="1"/><path d="M39 36Q60 44 81 36V30Q60 38 39 30Z" fill="#C0303F"/><path d="M39 33Q60 41 81 33" stroke="#FFD24D" stroke-width="1.6" fill="none" stroke-dasharray="3 2"/>${X.sp(60,16,3,'#fff')}<path d="M16 46Q60 60 104 46" stroke="#fff" stroke-width="1" fill="none" opacity=".35"/>${[12,28,92,108].map(x=>`<circle cx="${x}" cy="${47+Math.abs(60-x)*.02}" r="2.4" fill="#C0303F"/>`).join('')}`,
+  flamrose:X=>`<g transform="translate(86 36)"><path d="M-8 6Q-14 0-10-6Q-4-2-4 4Z" fill="#2E8A4F"/><path d="M6 6Q12 0 8-6Q2-2 2 4Z" fill="#2E8A4F"/><circle r="9" fill="${X.rg('rsa','#FF6B6B','#9A0F26')}"/><path d="M0-6Q6-4 5 2Q2 6-3 4Q-6 0-3-3Q0-5 2-2Q3 1 0 1" stroke="#FFB3B3" stroke-width="1.2" fill="none" opacity=".8" stroke-linecap="round"/><circle cx="-3" cy="-4" r="1.6" fill="#fff" opacity=".4"/></g>`,
+  beret:X=>`<path d="M26 44Q26 20 62 16Q96 18 94 40Q60 52 26 44Z" fill="${X.lg('brt','#E5484D','#7A0E24')}"/><path d="M32 42Q60 48 90 38" stroke="#5A0A18" stroke-width="2.2" fill="none" opacity=".5"/><path d="M40 26Q56 20 74 22" stroke="#fff" stroke-width="2" fill="none" opacity=".22" stroke-linecap="round"/><path d="M64 17Q66 10 70 11" stroke="#5A0A18" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+  chefhat:X=>`<rect x="38" y="30" width="44" height="16" rx="3" fill="${X.lg('chb','#FFFFFF','#DCD6EC')}"/>${cloud(60,18,12,7,9,X.lg('chp','#FFFFFF','#E3DEF2'))}<path d="M40 38H80" stroke="#C9C0E0" stroke-width="1"/>`,
+  bearhat:X=>`<path d="M29 50Q28 18 60 16Q92 18 91 50Q60 44 29 50Z" fill="${X.lg('brh','#B07A4A','#6B4220')}"/><circle cx="36" cy="22" r="11" fill="${X.lg('bre','#B07A4A','#6B4220')}"/><circle cx="84" cy="22" r="11" fill="${X.lg('bre','#B07A4A','#6B4220')}"/><circle cx="36" cy="22" r="6" fill="#F2BE96"/><circle cx="84" cy="22" r="6" fill="#F2BE96"/><path d="M30 46Q60 40 90 46V53Q60 47 30 53Z" fill="#8A5A34"/>`,
+  cowgirlhat:X=>`<path d="M6 40Q6 28 16 36Q34 50 60 50Q86 50 104 36Q114 28 114 40Q104 52 60 54Q16 52 6 40Z" fill="${X.lg('cwb','#D9A66A','#8A5A2A')}" stroke="#5A3A1A" stroke-width="1"/><path d="M36 44Q34 14 50 10Q60 20 70 10Q86 14 84 44Q60 52 36 44Z" fill="${X.lg('cwc','#E0B27A','#9A6A34')}" stroke="#5A3A1A" stroke-width="1"/><path d="M36 42Q60 50 84 42V36Q60 44 36 36Z" fill="#5A3A1A"/>${star(60,41,3.4,'#FFD24D')}`,
+  safarihat:X=>`<ellipse cx="60" cy="44" rx="50" ry="10" fill="${X.lg('sfb','#D9C58A','#9A8348')}" stroke="#6B5A2A" stroke-width="1"/><path d="M34 44Q32 16 60 12Q88 16 86 44Q60 52 34 44Z" fill="${X.lg('sfc','#E6D6A0','#A8934E')}" stroke="#6B5A2A" stroke-width="1"/><path d="M34 40Q60 48 86 40V34Q60 42 34 34Z" fill="#6B4A2A"/><circle cx="60" cy="14.4" r="2" fill="#6B5A2A"/><path d="M48 22Q54 18 62 18" stroke="#fff" stroke-width="1.6" fill="none" opacity=".35" stroke-linecap="round"/>`,
+  pirateband:X=>`<path d="M27 52Q60 34 93 52V43Q60 22 27 43Z" fill="${X.lg('prb','#E5484D','#8F1020')}"/>${[[40,40],[52,35],[64,34],[76,37],[86,43]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="1.8" fill="#fff"/>`).join('')}<path d="M90 44Q104 42 108 52Q100 50 96 54ZM90 46Q100 54 104 62Q94 58 92 52Z" fill="#C0303F"/><circle cx="91" cy="46" r="4" fill="#8F1020"/>`,
+  vikinghelm:X=>`<path d="M30 52Q28 18 60 15Q92 18 90 52Q60 46 30 52Z" fill="${X.lg('vkh','#C9CFDC','#6B7388')}" stroke="#4A5068" stroke-width="1"/><path d="M30 44Q60 38 90 44V50Q60 44 30 50Z" fill="#8A93A8"/><path d="M60 15V44" stroke="#4A5068" stroke-width="2"/>${[36,60,84].map(x=>`<circle cx="${x}" cy="47" r="1.4" fill="#4A5068"/>`).join('')}<path d="M32 36Q16 36 12 18Q16 12 20 18Q22 28 34 28Z" fill="${X.lg('vkr','#FFF6DC','#C9B27A')}" stroke="#8A7A4A" stroke-width=".8"/><path d="M88 36Q104 36 108 18Q104 12 100 18Q98 28 86 28Z" fill="${X.lg('vkr','#FFF6DC','#C9B27A')}" stroke="#8A7A4A" stroke-width=".8"/>`,
+  gradcap:X=>`<path d="M32 44Q60 52 88 44V36Q60 44 32 36Z" fill="${X.lg('grb','#3A3F5C','#14172A')}"/><path d="M60 18L108 32L60 46L12 32Z" fill="${X.lg('grt','#4A5078','#14172A')}" stroke="#0A0C18" stroke-width=".8"/><path d="M20 31L60 20" stroke="#fff" stroke-width="1" opacity=".25"/><circle cx="60" cy="32" r="2.4" fill="${X.GOLD}"/><path d="M60 32L100 36V50" stroke="${X.GOLD}" stroke-width="1.6" fill="none"/><path d="M96 50L100 48L104 50L102 60L98 60Z" fill="${X.GOLDH}"/>`,
+  halo:X=>`<ellipse cx="60" cy="14" rx="22" ry="6" fill="none" stroke="${X.GOLDH}" stroke-width="4.4"/><ellipse cx="60" cy="14" rx="22" ry="6" fill="none" stroke="#fff" stroke-width="1" opacity=".6"/><ellipse cx="60" cy="14" rx="26" ry="9" fill="${X.rg('hal','rgba(255,240,170,.55)','rgba(255,240,170,0)',.5,.5)}"/>${X.sp(84,8,3,'#fff')}${X.sp(36,10,2.2,'#FFE680')}`,
+  laurel:X=>{const leaf=(x,y,r)=>`<ellipse cx="${x}" cy="${y}" rx="2.4" ry="6" transform="rotate(${r} ${x} ${y})" fill="${X.lg('lrl','#9AD66A','#3E8A3A')}" stroke="#2E6A2A" stroke-width=".5"/>`;
+    let s='<path d="M30 52Q28 30 60 24" stroke="#3E8A3A" stroke-width="1.8" fill="none"/><path d="M90 52Q92 30 60 24" stroke="#3E8A3A" stroke-width="1.8" fill="none"/>';
+    [[32,48,-20],[31,40,-10],[35,32,10],[42,27,30],[50,24,50]].forEach(p=>{s+=leaf(p[0],p[1],p[2]);s+=leaf(120-p[0],p[1],-p[2])});
+    return s+`<circle cx="60" cy="23" r="3" fill="${X.GOLD}" stroke="#8A5A0C" stroke-width=".6"/>`},
+  goldtiara:X=>`<path d="M30 46Q60 33 90 46" stroke="${X.GOLDH}" stroke-width="3.4" fill="none" stroke-linecap="round"/>${[[36,43.4,7],[46,39,11],[60,36.4,19],[74,39,11],[84,43.4,7]].map(p=>`<path d="M${p[0]-3.6} ${p[1]+3}L${p[0]} ${p[1]-p[2]}L${p[0]+3.6} ${p[1]+3}Z" fill="${X.GOLDH}" stroke="#8A5A0C" stroke-width=".7"/><circle cx="${p[0]}" cy="${p[1]-p[2]}" r="2" fill="#fff" stroke="#B07A1C" stroke-width=".5"/>`).join('')}<path d="M60 26L64.6 32L60 40L55.4 32Z" fill="${X.lg('gtr','#FF6B8A','#A0123A')}" stroke="#fff" stroke-width=".6"/>${[[46,36.4],[74,36.4]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="2" fill="#6FB6FF" stroke="#fff" stroke-width=".5"/>`).join('')}${X.sp(60,8,3,'#fff')}`,
+  pilot:X=>`<path d="M28 54Q28 18 60 17Q92 18 92 54Q90 44 82 40Q60 34 38 40Q30 44 28 54Z" fill="${X.lg('plt','#9A6A3A','#52331A')}" stroke="#3A2210" stroke-width="1"/><path d="M28 52L24 66Q30 70 36 62ZM92 52L96 66Q90 70 84 62Z" fill="${X.lg('plf','#8A5A2A','#52331A')}" stroke="#3A2210" stroke-width=".8"/><path d="M34 32Q60 24 86 32" stroke="#fff" stroke-width="2" fill="none" opacity=".2" stroke-linecap="round"/><path d="M34 40Q60 34 86 40" stroke="#2A1810" stroke-width="3.4" fill="none"/>${[46,74].map(x=>`<circle cx="${x}" cy="38" r="8" fill="${X.rg('plg','#BFE6FF','#3A7AC0')}" stroke="${X.GOLD}" stroke-width="2.2"/><path d="M${x-4} 35Q${x-1} 32 ${x+3} 33" stroke="#fff" stroke-width="1.2" fill="none" opacity=".8"/>`).join('')}<rect x="55" y="36" width="10" height="4" fill="${X.GOLD}"/>`
+});
+const FLAGPOLE=(x,y)=>`<path d="M${x} ${y}V${y+34}" stroke="#8A5A34" stroke-width="2" stroke-linecap="round"/><circle cx="${x}" cy="${y}" r="1.8" fill="#E3B94F"/>`;
+Object.assign(PRZ.extra,{
+  calc:X=>`<g transform="translate(99 112) rotate(8)"><rect x="-12" y="-16" width="24" height="32" rx="4" fill="${X.lg('cal','#6B73A8','#232842')}" stroke="#0E1020" stroke-width=".8"/><rect x="-9" y="-13" width="18" height="8" rx="1.6" fill="#C8F5D0"/><text x="8" y="-6.6" text-anchor="end" style="fill:#14502A;font:800 6px Inter,system-ui,sans-serif">42</text>${[-6,0,6].flatMap(x=>[-1,5,11].map(y=>`<circle cx="${x}" cy="${y}" r="2.2" fill="${x===6&&y===11?'#FF9A3C':'#E7E9F0'}"/>`)).join('')}</g>`,
+  abacus:X=>`<g transform="translate(99 110) rotate(6)"><rect x="-15" y="-13" width="30" height="26" rx="2.4" fill="none" stroke="${X.lg('abf','#B07A4A','#6B4220')}" stroke-width="3.4"/>${[-7,-2,3,8].map((y,i)=>`<path d="M-13 ${y}H13" stroke="#6B4220" stroke-width=".9"/>${[0,1,2,3].map(k=>`<circle cx="${-9+k*4.6+(i%2?6:0)}" cy="${y}" r="2.2" fill="${['#E5484D','#FFD24D','#58D68D','#3AA0F0'][i]}" stroke="#2A1630" stroke-width=".5"/>`).join('')}`).join('')}</g>`,
+  protractor:X=>`<g transform="translate(100 112) rotate(-12)"><path d="M-15 8A15 15 0 0 1 15 8Z" fill="rgba(120,190,255,.5)" stroke="#2B6FD0" stroke-width="1"/>${Array.from({length:7},(_,i)=>{const a=Math.PI*(i/6);return`<path d="M${(-13.4*Math.cos(a)).toFixed(1)} ${(8-13.4*Math.sin(a)).toFixed(1)}L${(-15*Math.cos(a)).toFixed(1)} ${(8-15*Math.sin(a)).toFixed(1)}" stroke="#2B6FD0" stroke-width=".8"/>`}).join('')}<path d="M-15 8H15" stroke="#2B6FD0" stroke-width="1"/><path d="M-4 8L-13 8L-4 -2Z" fill="rgba(255,210,77,.7)" stroke="#B07A0A" stroke-width=".8" transform="translate(6 12)"/></g>`,
+  dice:X=>`<g transform="translate(21 114) rotate(-14)"><rect x="-10" y="-10" width="20" height="20" rx="4" fill="${X.lg('dic','#FFFFFF','#D3D9E6')}" stroke="#7A8299" stroke-width="1"/>${[[-5,-5],[5,-5],[0,0],[-5,5],[5,5]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="1.9" fill="#E5484D"/>`).join('')}</g><g transform="translate(34 122) rotate(18)"><rect x="-7" y="-7" width="14" height="14" rx="3" fill="${X.lg('dic','#FFFFFF','#D3D9E6')}" stroke="#7A8299" stroke-width=".9"/>${[[-3,-3],[3,3],[0,0]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="1.4" fill="#2B6FD0"/>`).join('')}</g>`,
+  bulb:X=>`<g transform="translate(100 26)"><circle r="19" fill="${X.rg('blg','rgba(255,240,140,.7)','rgba(255,240,140,0)',.5,.5)}"/><path d="M-6 8V13H6V8Q12 2 12-4A12 12 0 0 0-12-4Q-12 2-6 8Z" fill="${X.rg('blb','#FFFBD0','#FFC93A',.4,.3)}" stroke="#C8921A" stroke-width="1"/><rect x="-5" y="12" width="10" height="5" rx="1.6" fill="#9AA3B8"/><path d="M-3-1L0 5L3-1" stroke="#C8921A" stroke-width="1" fill="none"/><path d="M-10-12Q-6-16-2-16" stroke="#fff" stroke-width="1.6" fill="none" opacity=".8" stroke-linecap="round"/><path d="M-20-6L-16-4M20-6L16-4M-17-18L-13-15M17-18L13-15M0-24V-20" stroke="#FFC93A" stroke-width="1.6" stroke-linecap="round"/></g>`,
+  rockettoy:X=>`<g transform="translate(99 106) rotate(28)"><path d="M0-20Q9-10 8 8H-8Q-9-10 0-20Z" fill="${X.lg('rkb','#FFFFFF','#C9D0E0','h')}" stroke="#7A8299" stroke-width=".9"/><path d="M0-20Q5-17 6-12H-6Q-5-17 0-20Z" fill="#E5484D"/><circle cx="0" cy="-3" r="3.6" fill="#7FD1FF" stroke="#2B6FD0" stroke-width="1"/><path d="M-8 4L-14 14L-8 10ZM8 4L14 14L8 10Z" fill="#E5484D"/><path d="M-4 8H4L2 18L0 14L-2 18Z" fill="#FFB400"/><path d="M-2 8H2L1 14L0 12L-1 14Z" fill="#FFF3B0"/></g>`,
+  dictionary:X=>`<g transform="translate(21 112) rotate(-6)"><rect x="-12" y="-16" width="24" height="32" rx="2" fill="${X.lg('dcb','#B8283A','#6A0F1E')}"/><rect x="-12" y="-16" width="4" height="32" rx="1.4" fill="#4A0A14"/><rect x="-4" y="-11" width="12" height="9" rx="1" fill="#F4E4B0" stroke="#8A5A0C" stroke-width=".6"/><text x="2" y="-4" text-anchor="middle" style="fill:#6A0F1E;font:800 6px Inter,system-ui,sans-serif">ABC</text><path d="M-4 4H8M-4 8H6" stroke="#E3B94F" stroke-width="1.2" stroke-linecap="round"/></g>`,
+  quill:X=>`<g transform="translate(99 112)"><path d="M-8 4H8L10 14H-10Z" fill="${X.lg('qlk','#3A3F5C','#14172A')}" stroke="#0A0C18" stroke-width=".8"/><ellipse cx="0" cy="4" rx="8" ry="2.4" fill="#0A0C18"/><path d="M-1 4Q-10-12 4-26Q8-18 4-6Z" fill="${X.lg('qlf','#FFFFFF','#8FB6F0')}" stroke="#5A7AB0" stroke-width=".8"/><path d="M-1 4Q-2-8 3-22" stroke="#5A7AB0" stroke-width="1" fill="none"/><path d="M0-6L5-8M-1-10L4-13" stroke="#5A7AB0" stroke-width=".6"/></g>`,
+  blocks:X=>`<g transform="translate(99 118)">${[[-9,6,'#FF7BAF','A'],[5,6,'#FFD24D','B'],[-2,-7,'#3AA0F0','C']].map(b=>`<rect x="${b[0]-7}" y="${b[1]-7}" width="14" height="14" rx="2.4" fill="${b[2]}" stroke="#fff" stroke-width=".8"/><text x="${b[0]}" y="${b[1]+4}" text-anchor="middle" style="fill:#fff;font:800 10px Inter,system-ui,sans-serif">${b[3]}</text>`).join('')}</g>`,
+  lens:X=>`<g transform="translate(98 108) rotate(-30)"><rect x="-2.4" y="6" width="4.8" height="16" rx="2.2" fill="${X.lg('lnh','#8A5A34','#4A2C14','h')}"/><circle cy="-4" r="11" fill="rgba(190,230,255,.45)" stroke="${X.GOLD}" stroke-width="3"/><path d="M-6-8Q-4-12 0-12" stroke="#fff" stroke-width="1.6" fill="none" opacity=".8" stroke-linecap="round"/></g>`,
+  letter:X=>`<g transform="translate(21 114) rotate(-8)"><rect x="-13" y="-9" width="26" height="18" rx="2" fill="#FFFFFF" stroke="#9AA3BC" stroke-width="1"/><path d="M-13-9L0 2L13-9" fill="#EDF1FA" stroke="#9AA3BC" stroke-width="1"/>${heartAt(0,2,1.2,'#E5484D')}<rect x="6" y="-8" width="5" height="6" fill="#FFD24D" stroke="#B07A0A" stroke-width=".5"/></g>`,
+  maracas:X=>`<g transform="translate(22 108)">${[[-16,'#E5484D','#FFD24D'],[16,'#3AA0F0','#FF9A3C']].map(m=>`<g transform="rotate(${m[0]} 0 10)"><rect x="-1.6" y="2" width="3.2" height="18" rx="1.6" fill="#8A5A34"/><ellipse cx="0" cy="-6" rx="7" ry="9.4" fill="${m[1]}" stroke="#2A1630" stroke-width=".9"/>${[[-3,-9],[3,-4],[-2,-1],[2,-11]].map(d=>`<circle cx="${d[0]}" cy="${d[1]}" r="1.4" fill="${m[2]}"/>`).join('')}<path d="M-4-12Q-2-14 1-14" stroke="#fff" stroke-width="1" fill="none" opacity=".6"/></g>`).join('')}</g>`,
+  pinata:X=>`<path d="M100 60V80" stroke="#8A5A34" stroke-width="1.2"/><g transform="translate(100 96) rotate(8)">${star(0,0,19,X.lg('pnb','#FF7BAF','#C21E7A'))}<clipPath id="pnt"><path d="${(()=>{let d='';for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,r=i%2?19*.45:19;d+=(i?'L':'M')+(r*Math.cos(a)).toFixed(1)+' '+(r*Math.sin(a)).toFixed(1)}return d+'Z'})()}"/></clipPath><g clip-path="url(#pnt)">${['#FFD24D','#58D68D','#3AA0F0','#8E5CFF'].map((c,i)=>`<rect x="-20" y="${-10+i*7}" width="40" height="3.4" fill="${c}"/>`).join('')}</g><path d="M-16 2Q-18 8-14 10M16 2Q18 8 14 10" stroke="#FFD24D" stroke-width="1.2" fill="none" stroke-dasharray="1.6 1.4"/></g>`,
+  abanico:X=>`<g transform="translate(98 112) rotate(18)"><path d="M0 14L-17-8A19 19 0 0 1 17-8Z" fill="${X.lg('abn','#FF7BAF','#C21E3A')}" stroke="#7A0E24" stroke-width=".8"/>${[-12,-6,0,6,12].map(a=>`<path d="M0 14L${(a*1.5).toFixed(1)} -11" stroke="#FFD24D" stroke-width=".9"/>`).join('')}<path d="M-17-8A19 19 0 0 1 17-8" stroke="${X.GOLD}" stroke-width="2.4" fill="none"/>${X.sp(0,-3,3,'#fff')}<rect x="-1.6" y="14" width="3.2" height="7" rx="1.4" fill="#6A0F1E"/></g>`,
+  castanets:X=>`<g transform="translate(21 112)"><path d="M0-14Q-8-18-10-12" stroke="#C0303F" stroke-width="1.4" fill="none"/>${[[-7,8],[7,-8]].map(c=>`<g transform="rotate(${c[1]})"><ellipse cx="${c[0]}" cy="0" rx="8" ry="10" fill="${X.lg('cas','#E5484D','#7A0E24')}" stroke="#4A0A14" stroke-width=".9"/><circle cx="${c[0]}" cy="-6" r="1.8" fill="#FFD24D"/><path d="M${c[0]-3} 1H${c[0]+3}M${c[0]-3} 4H${c[0]+3}" stroke="#FFD24D" stroke-width=".8"/></g>`).join('')}</g>`,
+  mexflag:X=>`${FLAGPOLE(98,84)}<path d="M99 86Q110 82 124 86V102Q110 98 99 102Z" fill="#fff" stroke="#C9CFDC" stroke-width=".5"/><path d="M99 86Q104 84.2 109 85.2V100.2Q104 99.4 99 102Z" fill="#1F8A4C"/><path d="M114 85.8Q119 85.2 124 86V102Q119 100.4 114 100.8Z" fill="#D12A2A"/><circle cx="111.5" cy="94" r="2.4" fill="#8A5A34"/>`,
+  espflag:X=>`${FLAGPOLE(98,84)}<path d="M99 86Q110 82 124 86V102Q110 98 99 102Z" fill="#D12A2A"/><path d="M99 91Q110 87 124 91V97Q110 93 99 97Z" fill="#FFD24D"/>`,
+  argflag:X=>`${FLAGPOLE(98,84)}<path d="M99 86Q110 82 124 86V102Q110 98 99 102Z" fill="#74C7F0"/><path d="M99 91Q110 87 124 91V97Q110 93 99 97Z" fill="#fff"/><circle cx="111.5" cy="94" r="2" fill="#FFD24D"/>`,
+  cactuspet:X=>`<g transform="translate(21 116)"><path d="M-9 4H9L7 16H-7Z" fill="${X.lg('cap','#E08A5A','#A8522A')}"/><rect x="-10" y="1" width="20" height="4" rx="1.4" fill="#C8643A"/><path d="M-6 1V-8Q-6-14 0-14T6-8V1Z" fill="${X.lg('cac','#58D68D','#2E8A4F','h')}" stroke="#1F6B3A" stroke-width=".8"/><path d="M-6-5Q-12-5-12-10M6-3Q12-3 12-9" stroke="#2E8A4F" stroke-width="3.2" fill="none" stroke-linecap="round"/><circle cx="-2.2" cy="-7" r="1" fill="#2A1630"/><circle cx="2.2" cy="-7" r="1" fill="#2A1630"/><path d="M-1.4-4Q0-3 1.4-4" stroke="#2A1630" stroke-width=".8" fill="none"/><circle cx="0" cy="-15" r="2.4" fill="#FF7BAF"/><path d="M-3-9V-11M3-9V-11M0-12V-13.6" stroke="#fff" stroke-width=".6"/></g>`,
+  taco:X=>`<g transform="translate(98 114) rotate(-12)"><path d="M-14 4Q-14-14 0-14Q14-14 14 4Z" fill="${X.lg('tac','#FFE28A','#E0A81A')}" stroke="#A8741A" stroke-width="1"/><path d="M-12-2Q-6-9 0-6Q6-10 12-2" stroke="#58D68D" stroke-width="3.4" fill="none" stroke-linecap="round"/><path d="M-8-3Q-3-5 2-3" stroke="#E5484D" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="6" cy="-4" r="1.6" fill="#fff"/><path d="M-14 4Q0 8 14 4" stroke="#A8741A" stroke-width="1" fill="none"/></g>`,
+  globepal:X=>`<g transform="translate(99 110)"><path d="M-8 18H8M0 14V18" stroke="#8A5A34" stroke-width="2.2" stroke-linecap="round"/><path d="M-13 4A14 14 0 0 0 11 12" stroke="${X.GOLD}" stroke-width="1.6" fill="none"/><circle cy="0" r="12" fill="${X.rg('glp','#8FD0FF','#2B6FD0')}" stroke="#1F4F9A" stroke-width=".8"/><path d="M-7-5Q-3-9 2-5Q0 0-5 0ZM3 3Q8 1 9 6Q5 9 2 7Z" fill="#7CCB8A"/><path d="M-12 0H12M-10-6H10M-10 6H10" stroke="#fff" stroke-width=".5" opacity=".5"/></g>`,
+  passport:X=>`<g transform="translate(21 114) rotate(-8)"><rect x="-10" y="-14" width="20" height="28" rx="2" fill="${X.lg('pas','#2F58C8','#14246A')}"/><circle cy="-3" r="5.4" fill="none" stroke="${X.GOLD}" stroke-width="1.2"/><path d="M-5.4-3H5.4M0-8.4V2.4" stroke="${X.GOLD}" stroke-width=".7"/><path d="M-6 9H6M-4 11.6H4" stroke="#F7DE8A" stroke-width="1" stroke-linecap="round"/></g>`,
+  binoculars:X=>`<g transform="translate(99 112) rotate(-14)"><path d="M-12-14V-4M12-14V-4" stroke="#2A2F4A" stroke-width="1.4"/>${[-9,9].map(x=>`<rect x="${x-6}" y="-8" width="12" height="22" rx="4" fill="${X.lg('bin','#4A5078','#14172A','h')}" stroke="#0A0C18" stroke-width=".8"/><circle cx="${x}" cy="14" r="5" fill="${X.rg('bil','#BFE6FF','#2B6FD0')}" stroke="#0A0C18" stroke-width=".8"/><rect x="${x-5}" y="-12" width="10" height="5" rx="2" fill="#2A2F4A"/>`).join('')}<rect x="-4" y="-2" width="8" height="8" fill="#2A2F4A"/></g>`,
+  mapscroll:X=>`<g transform="translate(100 112) rotate(14)"><rect x="-12" y="-14" width="24" height="26" rx="2" fill="${X.lg('mps','#FFF1C9','#E0C27A')}" stroke="#A8741A" stroke-width=".8"/><ellipse cx="0" cy="-14" rx="12" ry="2.4" fill="#E0C27A" stroke="#A8741A" stroke-width=".6"/><ellipse cx="0" cy="12" rx="12" ry="2.4" fill="#E0C27A" stroke="#A8741A" stroke-width=".6"/><path d="M-8 6Q-4-2 0 2T7-6" stroke="#C0303F" stroke-width="1.2" fill="none" stroke-dasharray="2 1.6"/><path d="M5-9L9-5M9-9L5-5" stroke="#C0303F" stroke-width="1.6" stroke-linecap="round"/><circle cx="-8" cy="6" r="1.4" fill="#2B6FD0"/></g>`,
+  camera:X=>`<g transform="translate(21 114) rotate(-8)"><rect x="-14" y="-8" width="28" height="19" rx="4" fill="${X.lg('cam','#6B73A8','#232842')}" stroke="#0A0C18" stroke-width=".9"/><rect x="-6" y="-12" width="12" height="5" rx="1.6" fill="#2A2F4A"/><circle cx="0" cy="2" r="7" fill="#14172A" stroke="#9AA3B8" stroke-width="1.2"/><circle cx="0" cy="2" r="4.4" fill="${X.rg('cml','#9FD8FF','#2B4A9A')}"/><circle cx="-1.6" cy=".4" r="1.2" fill="#fff" opacity=".8"/><circle cx="10" cy="-4" r="1.6" fill="#E5484D"/></g>`,
+  goldmedal:X=>`<path d="M44 93L60 118L76 93L71 92L60 108L49 92Z" fill="${X.lg('gmr','#E5484D','#8F1020')}"/><path d="M52 93L60 106L68 93" stroke="#fff" stroke-width="1.4" fill="none" opacity=".85"/><circle cx="60" cy="120" r="10" fill="${X.rg('gmd','#FFF1A8','#B07A1C',.35,.3)}" stroke="#8A5A0C" stroke-width="1"/><circle cx="60" cy="120" r="7" fill="none" stroke="#8A5A0C" stroke-width=".7" opacity=".7"/>${star(60,120,5.2,'#fff')}`,
+  diploma:X=>`<g transform="translate(21 112) rotate(-24)"><rect x="-4" y="-17" width="8" height="34" rx="4" fill="${X.lg('dpl','#FFFFFF','#E0D6B8','h')}" stroke="#B8A878" stroke-width=".8"/><ellipse cx="0" cy="-17" rx="4" ry="1.8" fill="#EFE4C4" stroke="#B8A878" stroke-width=".6"/><rect x="-5" y="-3" width="10" height="4" fill="#C0303F"/><path d="M-2 1L-6 7M2 1L6 7" stroke="#C0303F" stroke-width="2" stroke-linecap="round"/></g>`,
+  puppy:X=>`<g transform="translate(21 112)"><ellipse cx="0" cy="8" rx="9" ry="8" fill="${X.lg('pup','#D9A66A','#9A6A34')}"/><circle cx="0" cy="-3" r="9" fill="${X.lg('pup','#D9A66A','#9A6A34')}"/><path d="M-9-5Q-14 0-11 8Q-7 6-6-2ZM9-5Q14 0 11 8Q7 6 6-2Z" fill="#7A4A1E"/><ellipse cx="0" cy="0" rx="4.6" ry="3.4" fill="#F4E4C8"/><circle cx="-3.4" cy="-4" r="1.4" fill="#2A1630"/><circle cx="3.4" cy="-4" r="1.4" fill="#2A1630"/><ellipse cx="0" cy="-.6" rx="1.6" ry="1.1" fill="#2A1630"/><path d="M0 1V3Q-2 5-3 3.6M0 3Q2 5 3 3.6" stroke="#2A1630" stroke-width=".7" fill="none"/><ellipse cx="0" cy="6" rx="1.8" ry="2.6" fill="#FF7BAF"/></g>`,
+  starwand:X=>`<g transform="translate(24 114) rotate(-32)"><rect x="-1.6" y="-4" width="3.2" height="30" rx="1.6" fill="${X.lg('swd','#F7DE8A','#B07A1C','h')}"/>${star(0,-12,13,X.lg('sws','#FFF1A8','#E0A81A'))}<path d="M-4-14Q0-18 4-14" stroke="#fff" stroke-width="1.2" fill="none" opacity=".7"/></g>${X.sp(40,98,3,'#FFF3B0')}${X.sp(12,98,2.2,'#fff')}`,
+  penguin:X=>`<g transform="translate(100 112)"><ellipse cx="0" cy="3" rx="10" ry="13" fill="${X.lg('pgn','#3A3F5C','#14172A')}"/><ellipse cx="0" cy="6" rx="6.4" ry="9.6" fill="#fff"/><circle cx="-3.2" cy="-5" r="2" fill="#fff"/><circle cx="3.2" cy="-5" r="2" fill="#fff"/><circle cx="-3.2" cy="-5" r="1" fill="#2A1630"/><circle cx="3.2" cy="-5" r="1" fill="#2A1630"/><path d="M-2.4-2L0 1.4L2.4-2Z" fill="#FF9A3C"/><path d="M-10 2Q-15 8-11 12M10 2Q15 8 11 12" stroke="#14172A" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="-4" cy="16" rx="4" ry="1.8" fill="#FF9A3C"/><ellipse cx="4" cy="16" rx="4" ry="1.8" fill="#FF9A3C"/></g>`
+});
 function kartSvg(av){
   const skin=SKIN[av.skin]||SKIN[1],hair=HAIR[av.hair]||HAIR[1];
   const hs=houseOf(av);
@@ -912,6 +1152,8 @@ const ICON={
   whistle:'<svg viewBox="0 0 24 24"><path d="M3 10h11a6 6 0 1 1-5.2 9H8a5 5 0 0 1-5-5z" fill="currentColor"/><circle cx="14.5" cy="15.5" r="2.3" fill="#fff"/><path d="M14 10V6h6v3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
   next:'<svg class="go" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 };
+ICON.sound='<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9zM16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+ICON.es='<svg viewBox="0 0 24 24"><path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-8l-5 4v-4H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" fill="currentColor"/><text x="12" y="14" text-anchor="middle" font-size="9.5" font-weight="800" fill="#fff" font-family="-apple-system,Inter,sans-serif">Ñ</text></svg>';
 
 /* ---------- exam timer ---------- */
 const EXAM_SECS=150;
@@ -1232,7 +1474,7 @@ document.addEventListener('pointerup',huntEnd);
 document.addEventListener('pointercancel',()=>{drag=null;paintSel([])});
 
 function finishSpell(){
-  const g=sp.game,before=stats().stars;
+  const g=sp.game,before=stats().stars,snap=prizeSnap(),b0=schoolStars();
   const items=g==='hunt'?sp.hunt.words.map(x=>({w:x.w,ok:x.found,h:x.h||0,err:null,given:''}))
     :sp.items.map(it=>{
       if(g==='test'){const ok=it.val.trim().toLowerCase()===it.w;return{w:it.w,ok,h:0,err:ok?null:spErr(it.val,it.w),given:it.val.trim()}}
@@ -1240,13 +1482,10 @@ function finishSpell(){
       return{w:it.w,ok,h:it.helped?1:0,err:!ok&&(g==='cards'||g==='sent')&&it.given?spErr(it.given,it.w):null,given:it.given||''};
     });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-sp.t0)/1000)),stars:g==='test'?correct*2+5:correct+3,
+  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-sp.t0)/1000)),stars:starsFor(g==='test'?'spelltest':'spell',correct),
     items:items.map(i=>({t:'sp',g,w:i.w,ok:i.ok,h:i.h,err:i.err}))};
   saveSession(sess);
-  const now=before+sess.stars;
-  const unlocked=ITEMS.filter(it=>it.at>before&&it.at<=now).map(it=>it.name).concat(roomNew(before,now));
-  const stop=STOPS.filter(p=>p.at>0&&p.at>before&&p.at<=now).map(p=>p.n);
-  sp.result=Object.assign({},sess,{items,unlocked,stop});
+  sp.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),td:driveNote(b0,schoolStars())});
   S.view='spresults';render();
 }
 function spBadges(){
@@ -1480,23 +1719,23 @@ function fdCheck(){
   else{r.msg='retry';r.bad=[...r.sel].filter(id=>!r.ans.includes(id));r.sel=new Set(right)}
 }
 function finishNfl(game,items,missed){
-  const infoB=nflInfo(nflSess()),before=stats().stars;
+  const infoB=nflInfo(nflSess()),snap=prizeSnap();
   const aw=nflAward(items);
   const correct=items.filter(i=>i.ok).length;
   const started=game==='draft'?fd.t0:nq.t0;
   const sess={ts:Date.now(),mode:'nfl',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-started)/1000)),stars:aw.total,
     items:items.map(i=>({t:'nfl',g:game,c:i.c,k:i.k,ok:i.ok,h:i.h||0,err:null}))};
-  const hadItems=ITEMS.filter(x=>x.nfl&&nflHas(x.id,infoB)).map(x=>x.id);
+  const bs=stats().stars;
   saveSession(sess);
-  const infoA=nflInfo(nflSess()),now=stats().stars;
+  const infoA=nflInfo(nflSess());
   const fresh=(a,b)=>a.filter(x=>!b.includes(x));
   fbres={game,sess,aw,missed,
     cards:fresh(infoA.teamsM.map(t=>t.id),infoB.teamsM.map(t=>t.id)).map(id=>teamById(id).name),
     divs:fresh(infoA.divsDone,infoB.divsDone),confs:fresh(infoA.confsDone,infoB.confsDone),
     allNow:infoA.all&&!infoB.all,rulesNew:infoA.rulesM.length-infoB.rulesM.length,
     milestone:infoA.bonus-infoB.bonus,
-    items:ITEMS.filter(x=>x.nfl&&nflHas(x.id,infoA)&&!hadItems.includes(x.id)).map(x=>x.name).concat(ITEMS.filter(x=>!x.nfl&&x.at>before&&x.at<=now).map(x=>x.name),roomNew(before,now)),
-    stops:STOPS.filter(p=>p.at>0&&p.at>before&&p.at<=now).map(p=>p.n)};
+    items:prizeNew(snap),
+    stops:journeyNew(bs)};
   S.view='fbres';render();
 }
 function finishQuiz(){
@@ -1518,13 +1757,13 @@ function finishDraft(){
 
 /* ---------- views ---------- */
 const modeName=m=>({smart:'Smart Practice',guided:'Guided Practice',exam:'Practice Exam',spell:'Spelling',nfl:'American Football',soc:'Soccer',geo:'Geography'}[m]||m);
-const sessName=s=>s.mode==='spell'?'Spelling: '+((SP_GAMES[gameOf(s)]||{}).name||'practice'):s.mode==='nfl'?'Football: '+gameName(gameOf(s)):s.mode==='soc'?'Soccer: '+gameName(gameOf(s)):s.mode==='geo'?'Geography: '+gameName(gameOf(s)):modeName(s.mode);
+const sessName=s=>isEs(s)?'Español: '+((ES_GAMES[gameOf(s)]||{}).name||'practice'):s.mode==='spell'?'Spelling: '+((SP_GAMES[gameOf(s)]||{}).name||'practice'):s.mode==='nfl'?'Football: '+gameName(gameOf(s)):s.mode==='soc'?'Soccer: '+gameName(gameOf(s)):s.mode==='geo'?'Geography: '+gameName(gameOf(s)):modeName(s.mode);
 const fbOn=()=>S.settings.football!==false;
 const syncPill=()=>`<span class="pill plain"><i class="dot ${S.sync==='live'?'':'off'}"></i>${S.sync==='live'?'Synced':'This device only'}</span>`;
 function nav(title,right){return`<div class="navbar">${syncPill()}<span class="mid">${esc(title)}</span>${right||'<span></span>'}</div>`}
 function tabbar(on){
   const t=(k,l)=>`<button class="tab ${on===k?'on':''}" data-act="nav" data-v="${k}" aria-label="${l}">${ICON[k]}<span>${l}</span></button>`;
-  return`<nav class="tabbar" aria-label="Main"><div>${t('home','Home')}${t('math','Math')}${t('spell','Spelling')}${t('geo','States')}${fbOn()?t('club','Sports'):''}${t('closet','Room')}${t('parent','Parent')}</div></nav>`;
+  return`<nav class="tabbar" aria-label="Main"><div>${t('home','Home')}${t('math','Math')}${t('spell','Spelling')}${t('es','Español')}${t('geo','States')}${fbOn()?t('club','Sports'):''}${t('closet','Room')}${t('parent','Parent')}</div></nav>`;
 }
 function homePicker(){
   return`<section class="card"><h2>Where are you practicing today?</h2><p class="mute">This helps Mom and Dad see where each session happened.</p>
@@ -1544,13 +1783,17 @@ function homeView(){
   return home+`
   <section class="hero"><div class="av">${avatarSvg(av)}</div>
     <div class="who"><h2>Hi, Laila!</h2><span>${st.streak?`${st.streak}-day winning streak`:'Ready for your next lesson?'}</span></div>
-    <div class="stats"><div class="stat"><b class="num">${st.stars}</b><span>stars</span></div><div class="stat"><b class="num">${st.streak}</b><span>day streak</span></div><div class="stat"><b class="num">${st.sessions}</b><span>sessions</span></div></div>
+    <div class="stats"><div class="stat"><b class="num">${st.stars}</b><span>stars</span></div><div class="stat"><b class="num">${st.streak}</b><span>day streak</span></div><div class="stat"><b class="num">${S.sessions.length}</b><span>sessions</span></div></div>
     <div class="journey">${journeySvg(st.stars)}<p>${nextTxt}</p></div></section>
   ${halloween()?halloweenCard():''}
+  ${counterHtml()}
+  ${driveHtml()}
+  ${prizeCardHtml()}
   <div class="sect">Pick a subject</div>
   <section class="modes">
-    ${m('math','math','Math',lastMath?`Last time: ${lastMath.correct} of ${lastMath.total} right on ${fmtDate(lastMath.ts)}`:'Pick a skill or play a mix. Add, subtract and multiply.',true)}
+    ${m('math','math','Math',lastMath?`Last time: ${lastMath.correct} of ${lastMath.total} right on ${fmtDate(lastMath.ts)}`:'Pick a skill or play a mix. Add, subtract and multiply.',!THURSDAY())}
     ${m('spell','spell','Spelling',`${esc(cur.name)}: ${mastered} of ${cur.words.length} words mastered`)}
+    ${m('es','es','Español',THURSDAY()?'Thursday is Spanish day. Double stars today!':`${esMastered()} of ${ES_ALL.length} words mastered. Pays the most stars.`,THURSDAY())}
     ${m('geo','globe','Geography',`${geoInfo().st.length} of 50 state capitals mastered. Florida spotlight inside.`)}
   </section>
   ${fbOn()?`<div class="sect">Just for fun</div><section class="modes">${m('club','football','Sports Club',`Soccer rules and American football teams. Bonus prizes inside!`)}</section>`:''}
@@ -1562,6 +1805,8 @@ function homeView(){
   <div class="sect">Your spelling bracelet</div>
   <section class="card"><div class="bracelet">${spBadges().map(b=>`<div class="bead ${b.on?'':'off'}" title="${esc(b.n)}">${b.l}</div>`).join('')}</div>
     <div class="dl">${spBadges().map(b=>`<div class="${b.on?'':'off'}"><b>${b.on?'★ ':''}${esc(b.n)}</b><span>${esc(b.d)}</span></div>`).join('')}</div></section>
+  <div class="sect">Tu pulsera de español</div>
+  <section class="card">${braceletHtml(esBadges())}</section>
   ${tabbar('home')}`;
 }
 
@@ -1671,7 +1916,7 @@ function resultsView(){
   const msg=p>=90?'Amazing work! You really know this.':p>=75?'Strong work. A little more practice and it will be even better.':'Good effort. Every try builds the skill. Keep going.';
   const missed=run.qs.map((q,i)=>({q,it:s.items[i]})).filter(x=>!x.it.ok);
   const fact=FACTS[Math.floor(Math.random()*FACTS.length)];
-  const wins=[...(s.unlocked||[]).map(n=>`New for your room or closet: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`)];
+  const wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.td||[])];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Full time!</span><span style="min-width:64px"></span></div>`+`
   <section class="card"><h2>${exam?'Final whistle!':'Great session!'}</h2>
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
@@ -1799,7 +2044,7 @@ function spResultsView(){
   const s=sp.result,p=pct(s),test=sp.game==='test';
   const msg=p>=90?'Amazing spelling! You really know these words.':p>=75?'Strong work. A little more practice and every word will stick.':'Good effort. Every try builds the skill. Keep going.';
   const missed=s.items.filter(i=>!i.ok),helped=s.items.filter(i=>i.ok&&i.h).length;
-  const wins=[...(s.unlocked||[]).map(n=>`New for your room or closet: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`)];
+  const wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.td||[])];
   const fact=FACTS[Math.floor(Math.random()*FACTS.length)];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Great job!</span><span style="min-width:64px"></span></div>
   <section class="card"><h2>${test?'Test complete!':'Nice practice!'}</h2>
@@ -1887,7 +2132,7 @@ function fbResView(){
   const wins=[
     ...x.cards.map(n=>`New card: ${n}`),...x.divs.map(d=>`${d} champion! Bonus stars added.`),...x.confs.map(c=>`${c} champion! Bonus stars and a prize.`),
     ...(x.allNow?['Hall of Fame! You mastered all 32 teams.']:[]),...(x.rulesNew>0&&x.milestone>0&&!x.divs.length&&!x.confs.length?['Rules bonus earned!']:[]),
-    ...x.items.map(n=>`New for your room or closet: ${n}`),...x.stops.map(n=>`Your broom reached ${n}!`)
+    ...x.items.map(n=>`New prize: ${n}`),...x.stops.map(n=>`Your broom reached ${n}!`)
   ];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">${x.sport==='geo'?'Quiz complete!':'Final whistle!'}</span><span style="min-width:64px"></span></div>
   <section class="card"><h2>${esc(gameName(x.game))} complete!</h2>
@@ -2193,17 +2438,15 @@ function geoAward(items){
   return{parts,total:parts.reduce((n,p)=>n+p[1],0),capped:false};
 }
 function finishOther(sport,items,missed){
-  const before=stats().stars;
+  const snap=prizeSnap(),bs=stats().stars;
   const aw=sport==='soc'?sportAward(socSess(),items,'Kickoff bonus'):geoAward(items);
   const correct=items.filter(i=>i.ok).length;
   const sess={ts:Date.now(),mode:sport,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-nq.t0)/1000)),stars:aw.total,
     items:items.map(i=>({t:sport,g:nq.game,c:i.c,k:i.k,ok:i.ok,h:i.h||0,err:null}))};
-  const had=ITEMS.filter(x=>x.u&&extraHas(x.id)).map(x=>x.id);
   saveSession(sess);
-  const now=stats().stars;
   fbres={game:nq.game,sport,sess,aw,missed,cards:[],divs:[],confs:[],allNow:false,rulesNew:0,milestone:0,
-    items:ITEMS.filter(x=>x.u&&extraHas(x.id)&&!had.includes(x.id)).map(x=>x.name).concat(ITEMS.filter(x=>!x.nfl&&!x.u&&x.at>before&&x.at<=now).map(x=>x.name),roomNew(before,now)),
-    stops:STOPS.filter(p=>p.at>0&&p.at>before&&p.at<=now).map(p=>p.n)};
+    items:prizeNew(snap),
+    stops:journeyNew(bs)};
   S.view='fbres';render();
 }
 const clubNav=title=>`<div class="navbar"><button class="back" data-act="nav" data-v="club">${ICON.chev}Sports</button><span class="mid">${esc(title)}</span>${syncPill()}</div>`;
@@ -2313,6 +2556,339 @@ function geoProgress(){
   <section class="card"><h3>Clean answers by quiz</h3>${byGame.map(x=>bar(esc(GEO_GAMES[x.k].name),Math.round(100*x.c/x.n),Math.round(100*x.c/x.n)+'%',x.c/x.n<.7)).join('')}</section>`;
 }
 
+/* ===== Español: a school elective (Thursdays). It pays the most stars. ===== */
+const ES_RAW=[
+['saludos','Saludos','Greetings and manners',[['hola','hello','👋'],['adiós','goodbye','🖐️'],['buenos días','good morning','🌅'],['buenas tardes','good afternoon','☀️'],['buenas noches','good night','🌙'],['por favor','please','🙏'],['gracias','thank you','😊'],['de nada','you are welcome','🤗'],['¿cómo estás?','how are you?','🙂'],['muy bien','very well','👍'],['mucho gusto','nice to meet you','🤝'],['me llamo','my name is','🏷️']]],
+['num1','Números 1 a 10','Count in Spanish',[['uno','one','1️⃣'],['dos','two','2️⃣'],['tres','three','3️⃣'],['cuatro','four','4️⃣'],['cinco','five','5️⃣'],['seis','six','6️⃣'],['siete','seven','7️⃣'],['ocho','eight','8️⃣'],['nueve','nine','9️⃣'],['diez','ten','🔟']]],
+['num2','Números 11 a 20','Keep counting',[['once','eleven','11'],['doce','twelve','12'],['trece','thirteen','13'],['catorce','fourteen','14'],['quince','fifteen','15'],['dieciséis','sixteen','16'],['diecisiete','seventeen','17'],['dieciocho','eighteen','18'],['diecinueve','nineteen','19'],['veinte','twenty','20']]],
+['colores','Colores','Colors',[['rojo','red','🔴'],['azul','blue','🔵'],['verde','green','🟢'],['amarillo','yellow','🟡'],['naranja','orange','🟠'],['morado','purple','🟣'],['rosa','pink','🌸'],['negro','black','⚫'],['blanco','white','⚪'],['marrón','brown','🟤'],['gris','gray','🌫️']]],
+['familia','La familia','Family',[['mamá','mom','👩'],['papá','dad','👨'],['hermano','brother','👦'],['hermana','sister','👧'],['abuelo','grandfather','👴'],['abuela','grandmother','👵'],['tío','uncle','🧔'],['tía','aunt','👩‍🦰'],['primo','cousin','🧒'],['bebé','baby','👶'],['familia','family','👪'],['amigo','friend','🧑‍🤝‍🧑']]],
+['animales','Animales','Animals',[['perro','dog','🐶'],['gato','cat','🐱'],['pájaro','bird','🐦'],['pez','fish','🐟'],['caballo','horse','🐴'],['vaca','cow','🐮'],['cerdo','pig','🐷'],['conejo','rabbit','🐰'],['ratón','mouse','🐭'],['tortuga','turtle','🐢'],['mariposa','butterfly','🦋'],['oso','bear','🐻'],['león','lion','🦁'],['elefante','elephant','🐘'],['mono','monkey','🐵'],['pato','duck','🦆']]],
+['escuela','En la escuela','At school',[['libro','book','📘'],['lápiz','pencil','✏️'],['papel','paper','📄'],['mochila','backpack','🎒'],['escuela','school','🏫'],['maestra','teacher','🧑‍🏫'],['escritorio','desk','🗄️'],['silla','chair','🪑'],['puerta','door','🚪'],['ventana','window','🪟'],['cuaderno','notebook','📓'],['regla','ruler','📏'],['tijeras','scissors','✂️'],['computadora','computer','💻'],['reloj','clock','⏰']]],
+['comida','La comida','Food and drinks',[['manzana','apple','🍎'],['plátano','banana','🍌'],['uvas','grapes','🍇'],['fresa','strawberry','🍓'],['sandía','watermelon','🍉'],['leche','milk','🥛'],['agua','water','💧'],['pan','bread','🍞'],['queso','cheese','🧀'],['huevo','egg','🥚'],['pollo','chicken','🍗'],['arroz','rice','🍚'],['helado','ice cream','🍦'],['galleta','cookie','🍪'],['jugo','juice','🧃'],['sopa','soup','🍲'],['ensalada','salad','🥗']]],
+['cuerpo','El cuerpo','Body parts',[['cabeza','head','🧠'],['cara','face','🙂'],['ojo','eye','👁️'],['nariz','nose','👃'],['boca','mouth','👄'],['oreja','ear','👂'],['mano','hand','✋'],['pie','foot','🦶'],['brazo','arm','💪'],['pierna','leg','🦵'],['diente','tooth','🦷'],['corazón','heart','❤️'],['pelo','hair','💇']]],
+['dias','Los días','Days of the week',[['lunes','Monday','📅'],['martes','Tuesday','📅'],['miércoles','Wednesday','📅'],['jueves','Thursday','📅'],['viernes','Friday','📅'],['sábado','Saturday','📅'],['domingo','Sunday','📅'],['hoy','today','📍'],['mañana','tomorrow','➡️'],['ayer','yesterday','⬅️']]],
+['meses','Los meses','Months of the year',[['enero','January','❄️'],['febrero','February','💘'],['marzo','March','🌷'],['abril','April','🌧️'],['mayo','May','🌸'],['junio','June','☀️'],['julio','July','🎆'],['agosto','August','🏖️'],['septiembre','September','🍎'],['octubre','October','🎃'],['noviembre','November','🦃'],['diciembre','December','🎄']]],
+['tiempo','El tiempo','Weather and sky',[['sol','sun','☀️'],['lluvia','rain','🌧️'],['nieve','snow','❄️'],['viento','wind','💨'],['nube','cloud','☁️'],['tormenta','storm','⛈️'],['arcoíris','rainbow','🌈'],['calor','heat','🔥'],['frío','cold','🥶'],['luna','moon','🌙'],['estrella','star','⭐']]],
+['sentimientos','Sentimientos','Feelings',[['feliz','happy','😀'],['triste','sad','😢'],['enojado','angry','😠'],['cansado','tired','😴'],['asustado','scared','😨'],['sorprendido','surprised','😲'],['enfermo','sick','🤒'],['nervioso','nervous','😬'],['orgulloso','proud','😌'],['aburrido','bored','🥱']]],
+['casa','La casa','Around the house',[['casa','house','🏠'],['cocina','kitchen','🍳'],['baño','bathroom','🛁'],['cuarto','bedroom','🛏️'],['sala','living room','🛋️'],['cama','bed','🛌'],['jardín','garden','🌳'],['comedor','dining room','🍽️'],['garaje','garage','🚗'],['techo','roof','🏘️']]],
+['deportes','Los deportes','Sports',[['fútbol','soccer','⚽'],['fútbol americano','football','🏈'],['baloncesto','basketball','🏀'],['béisbol','baseball','⚾'],['natación','swimming','🏊'],['gol','goal','🥅'],['equipo','team','👥'],['jugador','player','🧑'],['campo','field','🏟️'],['pelota','ball','🏐'],['ganar','to win','🏆']]],
+['verbos','Verbos','Action words',[['comer','to eat','🍽️'],['beber','to drink','🥤'],['correr','to run','🏃'],['leer','to read','📖'],['escribir','to write','✍️'],['hablar','to speak','🗣️'],['jugar','to play','🎮'],['cantar','to sing','🎤'],['bailar','to dance','💃'],['dormir','to sleep','😴'],['caminar','to walk','🚶'],['saltar','to jump','🤸'],['dibujar','to draw','🎨'],['escuchar','to listen','👂'],['mirar','to look','👀'],['ayudar','to help','🤝']]],
+['transporte','Transporte','Ways to travel',[['carro','car','🚗'],['autobús','bus','🚌'],['bicicleta','bicycle','🚲'],['avión','airplane','✈️'],['tren','train','🚆'],['barco','boat','⛵'],['camión','truck','🚚'],['moto','motorcycle','🏍️'],['helicóptero','helicopter','🚁']]],
+['lugares','Lugares','Places',[['parque','park','🏞️'],['tienda','store','🏪'],['playa','beach','🏖️'],['biblioteca','library','📚'],['museo','museum','🏛️'],['restaurante','restaurant','🍴'],['hospital','hospital','🏥'],['ciudad','city','🏙️'],['montaña','mountain','⛰️'],['río','river','🌊'],['mar','sea','🐠'],['bosque','forest','🌲']]],
+['opuestos','Opuestos','Describing words',[['grande','big','🐘'],['pequeño','small','🐜'],['alto','tall','🦒'],['bajo','short','🐭'],['rápido','fast','⚡'],['lento','slow','🐌'],['nuevo','new','✨'],['viejo','old','📜'],['bonito','pretty','🌺'],['fácil','easy','😊'],['difícil','hard','🧗']]],
+['clase','En la clase','Classroom phrases',[['siéntate','sit down','💺'],['levántate','stand up','🧍'],['escucha','listen','🔊'],['abre el libro','open the book','📖'],['cierra el libro','close the book','📕'],['silencio','quiet','🤫'],['repite','repeat','🔁'],['levanta la mano','raise your hand','🙋'],['bien hecho','well done','🌟'],['no entiendo','I do not understand','🤔']]]
+];
+const ES_LISTS=ES_RAW.map(r=>({id:r[0],name:r[1],note:r[2],words:r[3].map(a=>({es:a[0],en:a[1],e:a[2],list:r[0]}))}));
+const ES_ALL=ES_LISTS.flatMap(l=>l.words);
+const ES_BY={};ES_ALL.forEach(w=>{ES_BY[w.es]=w});
+const ES_CHEERS=['¡Muy bien!','¡Excelente!','¡Fantástico!','¡Perfecto!','¡Genial!','¡Bravo!','¡Qué bien!'];
+const ES_GAMES={
+  quiz:{name:'Examen de español',d:'12 questions, no hints. The biggest star prize.',ic:'trophy',lead:1},
+  listen:{name:'Escucha y elige',d:'Hear a word, then pick what it means.',ic:'sound'},
+  match:{name:'Empareja',d:'Match each Spanish word to its English word.',ic:'puzzle'},
+  type:{name:'Escríbelo',d:'See the picture and type the Spanish word.',ic:'pencil'},
+  fill:{name:'Completa la palabra',d:'Tap the missing letters.',ic:'cards'},
+  scramble:{name:'Ordena las letras',d:'Put the mixed-up letters in order.',ic:'shuffle'}
+};
+const plainEs=s=>String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[¿¡?!.,]/g,'').replace(/\s+/g,' ').trim();
+const isLetterWord=w=>/^[a-zñáéíóúü]{3,12}$/i.test(w.es);
+let es=null,esVoice=null;
+function pickVoiceEs(){
+  if(esVoice)return esVoice;
+  try{const vs=speechSynthesis.getVoices().filter(v=>/^es[-_]/i.test(v.lang));
+    esVoice=vs.find(v=>/es[-_](MX|US)/i.test(v.lang)&&/paulina|monica|juan|google|premium|enhanced/i.test(v.name))||vs.find(v=>/es[-_](MX|US)/i.test(v.lang))||vs[0]||null}catch(e){}
+  return esVoice;
+}
+function sayEs(...parts){
+  if(!canSpeak())return;
+  try{
+    const ss=window.speechSynthesis;ss.cancel();
+    parts.forEach(t=>{if(!t)return;const u=new SpeechSynthesisUtterance(t);u.lang='es-MX';u.rate=.8;const v=pickVoiceEs();if(v){u.voice=v;u.lang=v.lang}ss.speak(u)});
+  }catch(e){}
+}
+function esStats(){
+  const m={};
+  esSess().slice().sort((a,b)=>b.ts-a.ts).forEach(s=>(s.items||[]).forEach(i=>{if(i.w)(m[i.w]=m[i.w]||[]).push({ok:!!i.ok,h:!!i.h})}));
+  return m;
+}
+const esMastered=()=>{const st=esStats();return ES_ALL.filter(w=>wordLevel(st[w.es])==='m').length};
+const esSel=()=>{const s=S.eslist;return s==='all'||s==='tricky'||ES_LISTS.some(l=>l.id===s)?s:'all'};
+function esWordsOf(sel){
+  if(sel==='all')return ES_ALL;
+  if(sel==='tricky'){const st=esStats();return ES_ALL.filter(w=>wordLevel(st[w.es])==='t')}
+  return(ES_LISTS.find(l=>l.id===sel)||ES_LISTS[0]).words;
+}
+function esPickWords(sel,letters){
+  let ws=esWordsOf(sel);
+  if(letters)ws=ws.filter(isLetterWord);
+  if(ws.length<4)ws=letters?ES_ALL.filter(isLetterWord):ES_ALL;
+  const st=esStats(),need=[],done=[];
+  shuffle(ws).forEach(w=>(wordLevel(st[w.es])==='m'?done:need).push(w));
+  return shuffle(need.concat(done).slice(0,12));
+}
+function esOpts(w){
+  const same=ES_LISTS.find(l=>l.id===w.list).words.filter(x=>x.es!==w.es&&x.en!==w.en);
+  const rest=ES_ALL.filter(x=>x.es!==w.es&&x.en!==w.en&&!same.includes(x));
+  const bad=shuffle(same).slice(0,3);
+  shuffle(rest).forEach(x=>{if(bad.length<3)bad.push(x)});
+  return shuffle([w,...bad]);
+}
+function esInitItem(game,w,idx){
+  const it={es:w.es,wd:w,w:w.es,tries:0,hint:false,done:false,ok:false,msg:null,given:''};
+  if(game==='listen'){it.opts=esOpts(w);it.wrong=[]}
+  if(game==='quiz'){it.kind=idx%3===2?'type':'mc';it.dir=idx%2?'en2es':'es2en';it.pick=null;it.val='';if(it.kind==='mc')it.opts=esOpts(w)}
+  if(game==='fill'){it.w=plainEs(w.es);Object.assign(it,fillInit(it.w))}
+  if(game==='scramble'){it.w=plainEs(w.es);Object.assign(it,scrInit(it.w))}
+  return it;
+}
+function esMatchRounds(words){
+  const half=words.length>=9?Math.ceil(words.length/2):words.length,parts=[words.slice(0,half)];
+  if(words.length>half)parts.push(words.slice(half));
+  return parts.map(ws=>({ws,right:shuffle(ws),sel:null,done:new Set(),msg:null}));
+}
+function startEs(game,words){
+  const letters=game==='fill'||game==='scramble';
+  words=words||esPickWords(esSel(),letters);
+  if(!words.length)return;
+  S.from='es';
+  es={game,words,i:0,t0:Date.now(),items:[]};
+  if(game==='match'){es.rounds=esMatchRounds(words);es.ri=0;es.wr={};es.items=words.map(w=>{es.wr[w.es]=0;return{es:w.es,wd:w}})}
+  else es.items=words.map((w,i)=>esInitItem(game,w,i));
+  S.view='esrun';render();esAuto();
+}
+function esAuto(){if(es&&es.game==='listen'&&es.items[es.i])sayEs(es.items[es.i].es)}
+function esTyped(it,val){
+  val=String(val).trim();if(!val)return;
+  it.tries++;it.given=val;
+  if(plainEs(val)===plainEs(it.es)){it.done=true;it.ok=true;it.helped=it.tries>1||it.hint;it.msg='right';it.cheer=pick(ES_CHEERS);sayEs(it.es)}
+  else if(it.tries>=2){it.done=true;it.ok=false;it.msg='reveal'}
+  else it.msg='retry';
+}
+function finishEs(){
+  const g=es.game,snap=prizeSnap(),bs=stats().stars,b0=schoolStars();
+  let items;
+  if(g==='match')items=es.items.map(it=>{const n=es.wr[it.es]||0;return{w:it.es,ok:n===0,h:0,given:''}});
+  else items=es.items.map(it=>{
+    if(g==='quiz'){
+      const ok=it.kind==='type'?plainEs(it.val)===plainEs(it.es):it.pick===it.es;
+      const given=it.kind==='type'?it.val.trim():String(it.pick||'');
+      return{w:it.es,ok,h:0,given:given.slice(0,40)};
+    }
+    return{w:it.es,ok:!!it.ok,h:it.helped?1:0,given:String(it.given||'').slice(0,40)};
+  });
+  const correct=items.filter(i=>i.ok).length;
+  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-es.t0)/1000)),stars:starsFor(g==='quiz'?'estest':'es',correct),
+    items:items.map(i=>({t:'es',g,w:i.w,ok:i.ok,h:i.h,err:null,given:i.given}))};
+  saveSession(sess);
+  es.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(bs),td:driveNote(b0,schoolStars()),thu:THURSDAY()});
+  S.view='esresults';render();
+}
+function esBadges(){
+  const ss=esSess(),st=esStats();
+  const days=new Set(ss.map(s=>dayKey(s.ts))).size,m=ES_ALL.filter(w=>wordLevel(st[w.es])==='m').length;
+  return[
+    {l:'H',n:'¡Hola!',d:'Finish your first Spanish activity',on:ss.length>=1},
+    {l:'J',n:'Jueves',d:'Practice Spanish on a Thursday',on:ss.some(s=>new Date(s.ts).getDay()===4)},
+    {l:'3',n:'Tres días',d:'Practice Spanish on 3 different days',on:days>=3},
+    {l:'10',n:'Diez palabras',d:'Master 10 Spanish words',on:m>=10},
+    {l:'25',n:'Veinticinco',d:'Master 25 Spanish words',on:m>=25},
+    {l:'50',n:'Cincuenta',d:'Master 50 Spanish words',on:m>=50},
+    {l:'★',n:'Examen perfecto',d:'Get every question right on an Examen de español',on:ss.some(s=>gameOf(s)==='quiz'&&s.correct===s.total)}
+  ];
+}
+
+/* ----- Spanish screens ----- */
+const esHear=label=>canSpeak()?`<button class="btn tint" data-act="eshear">${ICON.speaker}${label||'Escucha'}</button>`:'';
+const esInput=val=>`<div class="row"><input class="ans w" id="esin" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Type the Spanish word" placeholder="Escribe aquí" value="${esc(val||'')}"></div><p class="mute">Accents are optional. Type n for ñ if you need to.</p>`;
+function esTypedFb(it){
+  if(it.msg==='right')return`<div class="fb good">${esc(it.cheer||'¡Muy bien!')} ${it.helped?'Right, with a little help.':'Spelled right!'} <b>${esc(it.es)}</b></div>`;
+  if(it.msg==='retry')return`<div class="fb try">Not quite. Look at the letters, then try again.</div>${diffHtml(plainEs(it.given),plainEs(it.es))}`;
+  if(it.msg==='reveal')return`<div class="fb try">The word is <b>${esc(it.es)}</b>. Say it out loud.</div>${diffHtml(plainEs(it.given),plainEs(it.es))}`;
+  return'';
+}
+const esPrompt=w=>`<div class="esprompt"><span class="ee big">${esc(w.e)}</span><b>${esc(w.en)}</b></div>`;
+const ESB={
+  listen(it){
+    const opts=it.opts.map(o=>{let cls='choice';if(it.wrong.includes(o.es))cls+=' bad';if(it.done&&o.es===it.es)cls+=' ok';
+      return`<button class="${cls}" data-act="esopt" data-v="${esc(o.es)}" ${it.done||it.wrong.includes(o.es)?'disabled':''}><span class="ee">${esc(o.e)}</span> ${esc(o.en)}</button>`}).join('');
+    return[`<p class="mute">Listen to the word, then tap what it means.</p><div class="esword">${esc(it.es)}</div><div class="row">${esHear('Escucha')}</div>
+      <div class="choices w">${opts}</div>
+      ${it.msg==='right'?`<div class="fb good">${esc(it.cheer)} <b>${esc(it.es)}</b> means ${esc(it.wd.en)}.</div>`:''}
+      ${it.msg==='retry'?`<div class="fb try">Not that one. Listen again and try once more.</div>`:''}
+      ${it.msg==='reveal'?`<div class="fb try"><b>${esc(it.es)}</b> means ${esc(it.wd.en)}.</div>`:''}`,''];
+  },
+  type(it){
+    return[`<p class="mute">Type the Spanish word for:</p>${esPrompt(it.wd)}
+      ${it.hint&&!it.done?`<p class="mute num">Starts with <b>${esc(it.es[0])}</b>, ${plainEs(it.es).length} letters</p>`:''}
+      ${it.done?'':esInput('')}${esTypedFb(it)}`,`<button class="btn" data-act="escheck">Check</button><button class="btn quiet" data-act="eshint">Hint</button>`];
+  },
+  fill(it){
+    const ord=new Map(it.blanks.map((b,k)=>[b,k]));
+    const letters=[...it.w].map((ch,i)=>{
+      const shown=it.done?it.es[i]:ch;
+      if(!ord.has(i))return`<span class="lt">${esc(shown)}</span>`;
+      const k=ord.get(i);
+      return k<it.filled.length?`<span class="lt good">${esc(shown)}</span>`:`<span class="lt ${k===it.filled.length?'cur':'blank'}" aria-label="missing letter"></span>`;
+    }).join('');
+    const need=it.done?'':it.w[it.blanks[it.filled.length]];
+    const tiles=it.done?'':it.opts.map(c=>`<button class="tile ${it.badTiles.includes(c)?'bad':''} ${it.hint&&c===need?'hintt':''}" data-act="estile" data-v="${c}" ${it.badTiles.includes(c)?'disabled':''}>${c}</button>`).join('');
+    return[`<p class="mute">Tap the letter that belongs in the empty box.</p>${esPrompt(it.wd)}<div class="lts">${letters}</div><div class="row">${esHear('Escucha')}</div>
+      ${it.done?`<div class="fb good">${esc(it.cheer||'¡Muy bien!')} ${it.helped?'Done, with a little help.':'Spelled right!'}</div>`:`<div class="tiles">${tiles}</div>`}`,`<button class="btn quiet" data-act="eshint">Hint</button>`];
+  },
+  scramble(it){
+    const full=!it.slots.includes(null);
+    const slots=it.slots.map((id,i)=>{
+      if(id===null)return`<span class="lt blank" aria-label="empty"></span>`;
+      const ch=it.done?it.es[i]:it.w[id],good=it.done||it.locked[i]||(full&&it.w[id]===it.w[i]),bad=full&&!it.done&&it.w[id]!==it.w[i];
+      return`<button class="lt ${good?'good':bad?'bad':''}" data-act="esslot" data-v="${i}" aria-label="Letter ${i+1}: ${ch}. Tap to take out" ${it.done||it.locked[i]?'disabled':''}>${esc(ch)}</button>`;
+    }).join('');
+    const tiles=it.order.map(id=>`<button class="tile" data-act="estile" data-v="${id}" ${it.slots.includes(id)||it.done?'disabled':''}>${esc(it.w[id])}</button>`).join('');
+    return[`<p class="mute">Tap the letters in the right order to spell the word.</p>${esPrompt(it.wd)}<div class="lts">${slots}</div><div class="tiles">${tiles}</div><div class="row">${esHear('Escucha')}</div>
+      ${it.msg==='retry'?`<div class="fb try">Almost! Green letters are in the right spot. Tap a letter to take it out.</div>`:''}
+      ${it.done?`<div class="fb good">${esc(it.cheer||'¡Muy bien!')} ${it.helped?'Solved, with a little help.':'Solved!'}</div>`:''}`,`<button class="btn quiet" data-act="eshint">Hint</button>`];
+  },
+  quiz(it){
+    if(it.kind==='type')return[`<p class="mute">Type the Spanish word for:</p>${esPrompt(it.wd)}${esInput(it.val)}`,''];
+    const es2en=it.dir==='es2en';
+    const opts=it.opts.map(o=>`<button class="choice ${it.pick===o.es?'sel':''}" data-act="esopt" data-v="${esc(o.es)}">${es2en?`<span class="ee">${esc(o.e)}</span> ${esc(o.en)}`:esc(o.es)}</button>`).join('');
+    const head=es2en?`<p class="mute">What does this mean?</p><div class="esword">${esc(it.es)}</div><div class="row">${esHear('Escucha')}</div>`:`<p class="mute">How do you say this in Spanish?</p>${esPrompt(it.wd)}`;
+    return[head+`<div class="choices w">${opts}</div>`,''];
+  }
+};
+function esMatchView(){
+  const r=es.rounds[es.ri],left=r.ws.length-r.done.size,last=es.ri===es.rounds.length-1;
+  const A=r.ws.map(w=>`<button class="choice mt ${r.done.has(w.es)?'ok':''} ${r.sel===w.es?'sel':''}" data-act="esmA" data-v="${esc(w.es)}" ${r.done.has(w.es)?'disabled':''}>${esc(w.es)}</button>`).join('');
+  const B=r.right.map(w=>`<button class="choice mt ${r.done.has(w.es)?'ok':''}" data-act="esmB" data-v="${esc(w.es)}" ${r.done.has(w.es)?'disabled':''}><span class="ee">${esc(w.e)}</span> ${esc(w.en)}</button>`).join('');
+  return`<section class="card"><div class="row between"><span class="pill">Round ${es.ri+1} of ${es.rounds.length}</span><span class="score pill plain">Left <span class="num">${left}</span></span></div>
+    <p class="mute">Tap a Spanish word, then tap its English match.</p>
+    <div class="matchgrid"><div class="mcol">${A}</div><div class="mcol">${B}</div></div>
+    ${r.msg==='retry'?`<div class="fb try">Not a match. Try again.</div>`:''}${left===0?`<div class="fb good">¡Muy bien! Every pair matched.</div>`:''}
+    <div class="row">${left===0?`<button class="btn" data-act="esmnext">${last?'See my results':'Next round'}</button>`:''}</div></section>`;
+}
+function esRunView(){
+  const r=es,G=ES_GAMES[r.game];
+  const top=`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Exit</button><span class="mid">${esc(G.name)}</span><span style="min-width:64px"></span></div>`;
+  if(r.game==='match')return top+esMatchView();
+  const N=r.items.length,it=r.items[r.i],quiz=r.game==='quiz',last=r.i===N-1;
+  const okN=r.items.filter(x=>x.ok).length,f=(r.i+(it.done?1:0))/N;
+  const[body,btns]=ESB[r.game](it);
+  const next=quiz?`<button class="btn" data-act="esnext">${last?'Turn in test':'Next'}</button>`:it.done?`<button class="btn" data-act="esnext">${last?'See my results':'Next word'}</button>`:'';
+  const head=`<div class="row between"><span class="pill">Word ${r.i+1} of ${N}</span>${quiz?'':`<span class="score pill plain">Right <span class="num">${okN}</span></span>`}</div>${raceTrack(r,f)}`;
+  return top+`<section class="card">${head}${body}<div class="row between"><div class="row">${!quiz&&!it.done&&btns?btns:''}</div>${next}</div></section>`;
+}
+function esResultsView(){
+  const s=es.result,p=pct(s),quiz=es.game==='quiz';
+  const msg=p>=90?'¡Fantástico! You really know these words.':p>=75?'¡Muy bien! A little more practice and every word will stick.':'¡Buen trabajo! Every try builds the skill. Keep going.';
+  const missed=s.items.filter(i=>!i.ok),wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.td||[])];
+  return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">¡Buen trabajo!</span><span style="min-width:64px"></span></div>
+  <section class="card"><h2>${quiz?'¡Examen completo!':'¡Qué bien!'}</h2>
+  <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
+  <div><div class="bigscore"><span style="color:var(--gold)">★</span> +${s.stars}</div><span class="mute">stars = ${s.stars} yards</span></div></div>
+  ${s.thu?`<div class="fb good">¡Es jueves! Your Thursday double is already counted in these stars.</div>`:''}
+  <p>${msg}</p>${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
+  ${missed.length?`<h3>Words to look at again</h3><div class="wchips">${missed.map(i=>{const w=ES_BY[i.w]||{es:i.w,en:'',e:''};return`<button class="wchip" data-act="esay" data-v="${esc(w.es)}"><span class="ee">${esc(w.e)}</span> <b>${esc(w.es)}</b> <span class="mute">${esc(w.en)}</span></button>`}).join('')}</div>`:'<div class="fb good">Every word right. ¡Perfecto!</div>'}
+  <div class="row">${missed.length?`<button class="btn" data-act="esagain" data-v="missed">Practice my missed words</button>`:''}<button class="btn ${missed.length?'tint':''}" data-act="esagain" data-v="same">Play again</button><button class="btn tint" data-act="exit">Done</button></div></section>`;
+}
+function esListChips(){
+  const sel=esSel(),opts=[...ES_LISTS.map(l=>[l.id,l.name]),['all','All words'],['tricky','Tricky words']];
+  return`<div class="chips">${opts.map(([k,l])=>`<button class="chip ${sel===k?'on':''}" aria-pressed="${sel===k}" data-act="eslist" data-v="${esc(k)}">${esc(l)}</button>`).join('')}</div>`;
+}
+function esBanner(){
+  return THURSDAY()
+    ?`<section class="esban thu"><b>¡Hoy es jueves!</b><span>Spanish class day. Every Español star counts <b>double</b> today.</span></section>`
+    :`<section class="esban"><b>Español pays the most stars</b><span>More than math or spelling, and double on Thursdays, your Spanish class day.</span></section>`;
+}
+function esView(){
+  const st=esStats(),sel=esSel(),words=esWordsOf(sel),cur=sel==='all'?'All words':sel==='tricky'?'Tricky words':ES_LISTS.find(l=>l.id===sel).name;
+  const mastered=words.filter(w=>wordLevel(st[w.es])==='m').length,c=subjectCounts().es;
+  const note=sel==='tricky'?(words.length?'Words that need more practice.':'No tricky words yet. Every activity uses a mix from all the lists until some words need more practice.'):sel==='all'?'A mix from every list. Each activity picks 12 words.':(ES_LISTS.find(l=>l.id===sel).note);
+  const chips=words.length?words.map(w=>`<button class="wchip" data-act="esay" data-v="${esc(w.es)}" aria-label="Hear ${esc(w.es)}"><i class="${wordLevel(st[w.es])==='n'?'':wordLevel(st[w.es])}"></i><span class="ee">${esc(w.e)}</span> ${esc(w.es)} <span class="mute">${esc(w.en)}</span></button>`).join(''):'<p class="mute">No tricky words yet. Practice a list first and the words she misses will show up here.</p>';
+  const game=(k,g)=>`<button class="mode ${g.lead?'lead':''}" data-act="esstart" data-v="${k}"><span class="ic">${ICON[g.ic]}</span><span><h3>${g.name}</h3><span class="d">${g.d}</span></span>${ICON.next}</button>`;
+  return nav('Español')+`<div class="largehead"><h1>Español</h1><p class="mute">${c.n} Spanish ${c.n===1?'session':'sessions'} so far, ${c.t} today. ${esMastered()} of ${ES_ALL.length} words mastered.</p></div>
+  ${esBanner()}
+  ${esListChips()}
+  <section class="card"><div class="row between"><h3>${esc(cur)}</h3><span class="pill">${mastered} of ${words.length} mastered</span></div>
+    <p class="mute">${esc(note)} Tap a word to hear it.</p><div class="wchips">${chips}</div>
+    <div class="legend"><span><i style="background:var(--line)"></i>New</span><span><i style="background:var(--warn)"></i>Tricky</span><span><i style="background:var(--gold)"></i>Learning</span><span><i style="background:var(--good)"></i>Mastered</span></div>
+    <div class="row"><button class="btn tint" data-act="esstudy">Study with picture cards</button></div></section>
+  <div class="sect">Practice these words</div>
+  <section class="modes">${Object.entries(ES_GAMES).map(([k,g])=>game(k,g)).join('')}</section>
+  <div class="sect">Tu pulsera de español</div>
+  <section class="card">${braceletHtml(esBadges())}</section>
+  <p class="mute" style="padding-inline:6px">A word is mastered after two clean tries in a row. Hints and second tries count as learning, not mastered.</p>
+  ${tabbar('es')}`;
+}
+function esStudyView(){
+  const sel=esSel(),words=esWordsOf(sel),open=S.esOpen||(S.esOpen=new Set());
+  const cards=words.map(w=>`<button class="fcard ${open.has(w.es)?'flip':''}" data-act="esflip" data-v="${esc(w.es)}"><span class="ee big">${esc(w.e)}</span><b>${esc(open.has(w.es)?w.en:w.es)}</b><small>${open.has(w.es)?esc(w.es):'tap to see English'}</small></button>`).join('');
+  return`<div class="navbar"><button class="back" data-act="nav" data-v="es">${ICON.chev}Español</button><span class="mid">Picture cards</span><span style="min-width:64px"></span></div>
+  ${esListChips()}
+  <section class="card"><h3>${sel==='all'?'All words':sel==='tricky'?'Tricky words':esc(ES_LISTS.find(l=>l.id===sel).name)}</h3><p class="mute">Tap a card to flip it and hear the Spanish word.</p>
+  <div class="fcards">${cards||'<p class="mute">No tricky words yet.</p>'}</div></section>`;
+}
+function esProgress(){
+  const ss=esSess();
+  if(!ss.length)return`<section class="card"><h3>No Spanish sessions yet</h3><p class="mute">Español is the Thursday elective. Her word progress shows up here once she practices.</p></section>`;
+  const st=esStats(),items=ss.flatMap(s=>s.items||[]),lvl=w=>wordLevel(st[w.es]);
+  const bar=(label,p,right,low)=>`<div class="bar"><span>${label}</span><span class="track2"><span class="fill ${low?'low':''}" style="width:${p}%"></span></span><span class="num">${right}</span></div>`;
+  const byGame=Object.keys(ES_GAMES).map(k=>{const a=items.filter(i=>i.g===k);return{k,n:a.length,c:a.filter(i=>i.ok&&!i.h).length}}).filter(x=>x.n);
+  const tricky=ES_ALL.filter(w=>lvl(w)==='t');
+  return`<section class="card"><h3>Score history</h3>${chart(ss)}</section>
+  <section class="card"><h3>Words mastered</h3><p class="mute">${esMastered()} of ${ES_ALL.length} words. Mastered means right with no help two times in a row.</p>
+  ${ES_LISTS.map(l=>{const m=l.words.filter(w=>lvl(w)==='m').length;return bar(esc(l.name),Math.round(100*m/l.words.length),m+'/'+l.words.length)}).join('')}</section>
+  <section class="card"><h3>Words that need work</h3>${tricky.length?`<div class="wchips">${tricky.map(w=>`<span class="wchip"><i class="t"></i>${esc(w.es)} <span class="mute">${esc(w.en)}</span></span>`).join('')}</div>`:'<p class="mute">No tricky words right now.</p>'}</section>
+  <section class="card"><h3>Clean tries by activity</h3>${byGame.map(x=>bar(esc(ES_GAMES[x.k].name),Math.round(100*x.c/x.n),Math.round(100*x.c/x.n)+'%',x.c/x.n<.7)).join('')}</section>`;
+}
+function esAct(a,v){
+  const it=es&&es.items?es.items[es.i]:null;
+  switch(a){
+    case'eslist':S.eslist=v;store.set('lmath.eslist',v);render();return true;
+    case'esstart':startEs(v);return true;
+    case'esstudy':S.from='es';S.view='esstudy';render();return true;
+    case'esflip':{const o=S.esOpen||(S.esOpen=new Set());if(o.has(v))o.delete(v);else{o.add(v);sayEs(v)}render();return true}
+    case'esay':sayEs(v);return true;
+    case'eshear':if(it)sayEs(it.es);return true;
+    case'esopt':{
+      if(!it)return true;
+      if(es.game==='quiz'){it.pick=v;render();return true}
+      if(it.done||it.wrong.includes(v))return true;
+      it.tries++;
+      if(v===it.es){it.done=true;it.ok=true;it.helped=it.tries>1;it.msg='right';it.cheer=pick(ES_CHEERS);sayEs(it.es)}
+      else{it.wrong.push(v);if(it.tries>=2){it.done=true;it.ok=false;it.msg='reveal'}else it.msg='retry'}
+      render();return true}
+    case'escheck':{const el=document.getElementById('esin');if(it&&!it.done&&el)esTyped(it,el.value);render();return true}
+    case'eshint':{
+      if(!it||it.done)return true;
+      if(es.game==='scramble')scrHint(it);else it.hint=true;
+      if(es.game==='type')sayEs(it.es);
+      render();return true}
+    case'estile':{
+      if(!it)return true;
+      if(es.game==='fill')fillTap(it,v);else scrPlace(it,Number(v));
+      if(it.done&&it.ok)sayEs(it.es);
+      render();return true}
+    case'esslot':if(it)scrClear(it,Number(v));render();return true;
+    case'esnext':{
+      const el=document.getElementById('esin');
+      if(es.game==='quiz'&&it.kind==='type'&&el)it.val=el.value;
+      if(es.i<es.items.length-1){es.i++;render();esAuto()}else finishEs();
+      return true}
+    case'esmA':{const r=es.rounds[es.ri];if(!r.done.has(v)){r.sel=v;r.msg=null;sayEs(v)}render();return true}
+    case'esmB':{
+      const r=es.rounds[es.ri];if(!r.sel||r.done.has(v))return true;
+      if(v===r.sel){r.done.add(v);r.sel=null;r.msg=null}
+      else{es.wr[r.sel]=(es.wr[r.sel]||0)+1;r.sel=null;r.msg='retry'}
+      render();return true}
+    case'esmnext':if(es.ri<es.rounds.length-1){es.ri++;render()}else finishEs();return true;
+    case'esagain':{
+      if(v==='missed'){const w=es.result.items.filter(i=>!i.ok).map(i=>ES_BY[i.w]).filter(Boolean);startEs('type',shuffle(w))}
+      else startEs(es.game);
+      return true}
+  }
+  return false;
+}
+
 /* ===== my room: a bedroom to decorate (look editor lives in the closet) ===== */
 ICON.closet='<svg viewBox="0 0 24 24"><path d="M3 5v14M21 19v-6a3 3 0 0 0-3-3H11v5H3M3 16h18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="11.5" r="2" fill="currentColor"/></svg>';
 const spMastered=()=>{const w=wordStats();return allWords().filter(x=>wordLevel(w[x])==='m').length};
@@ -2409,7 +2985,7 @@ function bodySvg(c){
     if(u){const g=P.D.match(new RegExp('id="'+u[1]+'"[^>]*><stop offset="0" stop-color="(#[0-9a-fA-F]{6})"/><stop offset="1" stop-color="(#[0-9a-fA-F]{6})"'));if(g){ca=g[1];cb=g[2]}}
     else if(/^#[0-9a-f]{6}$/i.test(f[1])){ca=f[1];cb=darken(f[1],.25)}
   }
-  const K=(ca+cb).replace(/[^0-9a-f]/gi,''),mid=darken(ca,.06),long=['robe','gamehoodie','brickhoodie','jacket','labcoat'].includes(c.top);
+  const K=(ca+cb).replace(/[^0-9a-f]/gi,''),mid=darken(ca,.06),long=['robe','gamehoodie','brickhoodie','jacket','labcoat','poncho','astronaut','champcape'].includes(c.top);
   const T='M33 100Q36 92 50 91.5H70Q84 92 87 100L93 130H27Z';
   /* arms end at the hip, a little above the hem of the skirt */
   const arm=s=>{
@@ -2446,7 +3022,7 @@ const ROOM_G=[
   {k:'dcol',area:'dresser',label:'Dresser color',opts:DRESSERS},{k:'dtop',area:'dresser',multi:1,label:'On top of the dresser',opts:DTOP},
   {k:'laundry',area:'floor',label:'Laundry bin',opts:LAUNDRY},{k:'floorx',area:'floor',multi:1,label:'More for your room',opts:FLOORX}
 ];
-const ROOM_AREAS=[['bed','Bed'],['rug','Rug'],['desk','Desk'],['walls','Walls'],['window','Window'],['dresser','Dresser'],['floor','Floor'],['closet','Closet']];
+const ROOM_AREAS=[['bed','Bed'],['rug','Rug'],['desk','Desk'],['walls','Walls'],['window','Window'],['dresser','Dresser'],['floor','Floor'],['closet','Closet'],['prizes','Prize book']];
 const ROOM_DEF={sheets:'cloud',pillows:'none',frame:'wood',rug:'round',deskcol:'oak',dlamp:'lamp',dmid:'books',dright:'penc',wallcol:'blush',posters:['planets','mine',''],mine:{bg:'plum',icon:'star',text:'DREAM BIG'},hook:'backpack',walldeco:[],curtains:'sheer',view:'day',windec:[],dcol:'white',dtop:['mirror'],laundry:'basket',floorx:[]};
 function getRoom(av){
   const src=(av||getAv()).room||{};
@@ -2457,11 +3033,7 @@ function getRoom(av){
   if(!src.mine&&!r.posters[1])r.posters[1]='mine';
   return r;
 }
-function roomCtx(st){
-  const memo={};
-  return{stars:st.stars,has(o){if(typeof o.at!=='string')return st.stars>=o.at;if(!(o.at in memo))memo[o.at]=REQ[o.at][1]();return memo[o.at]}};
-}
-const roomNew=(before,now)=>ROOM_G.flatMap(g=>g.opts.filter(o=>typeof o.at==='number'&&o.at>0&&o.at>before&&o.at<=now).map(o=>o.name));
+function roomCtx(){const env=prizeEnv();return{stars:env.stars,env,has:o=>prizeUnlocked(o,env)}}
 function setRoom(k,v){
   const g=ROOM_G.find(x=>x.k===k);if(!g)return;
   const o=g.opts.find(x=>x.id===v);if(!o||!roomCtx(stats()).has(o))return;
@@ -2476,7 +3048,7 @@ function setRoom(k,v){
 function patFill(o,id,hs){
   const c=o.c||[hs[1],hs[2]],a=c[0],b=c[1],p=o.p;
   if(p==='solid')return{defs:'',fill:a};
-  const inner={stripes:`<rect width="7" height="14" fill="${b}"/>`,dots:`<circle cx="7" cy="7" r="2.6" fill="${b}"/>`,checks:`<rect width="7" height="7" fill="${b}"/><rect x="7" y="7" width="7" height="7" fill="${b}"/>`,stars:star(7,7,3.8,b),hearts:`<path d="M7 11C2 7.5 3 4 5.2 4C6.3 4 7 4.8 7 5.5C7 4.8 7.7 4 8.8 4C11 4 12 7.5 7 11Z" fill="${b}"/>`,cloud:`<circle cx="5" cy="8" r="3" fill="${b}"/><circle cx="9" cy="7" r="3.4" fill="${b}"/>`,scales:`<path d="M0 10Q7 2 14 10M-7 3Q0-5 7 3M7 3Q14-5 21 3" stroke="${b}" stroke-width="1.6" fill="none"/>`,studs:`<circle cx="7" cy="7" r="3.4" fill="${b}"/><circle cx="7" cy="7" r="1.5" fill="${a}" opacity=".4"/>`}[p]||'';
+  const inner={stripes:`<rect width="7" height="14" fill="${b}"/>`,dots:`<circle cx="7" cy="7" r="2.6" fill="${b}"/>`,checks:`<rect width="7" height="7" fill="${b}"/><rect x="7" y="7" width="7" height="7" fill="${b}"/>`,stars:star(7,7,3.8,b),hearts:`<path d="M7 11C2 7.5 3 4 5.2 4C6.3 4 7 4.8 7 5.5C7 4.8 7.7 4 8.8 4C11 4 12 7.5 7 11Z" fill="${b}"/>`,cloud:`<circle cx="5" cy="8" r="3" fill="${b}"/><circle cx="9" cy="7" r="3.4" fill="${b}"/>`,scales:`<path d="M0 10Q7 2 14 10M-7 3Q0-5 7 3M7 3Q14-5 21 3" stroke="${b}" stroke-width="1.6" fill="none"/>`,studs:`<circle cx="7" cy="7" r="3.4" fill="${b}"/><circle cx="7" cy="7" r="1.5" fill="${a}" opacity=".4"/>`,...PATX(b,a)}[p]||'';
   return{defs:`<pattern id="${id}" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="${a}"/>${inner}</pattern>`,fill:`url(#${id})`};
 }
 function roomSvg(R,av){
@@ -2521,6 +3093,7 @@ function roomSvg(R,av){
   if(vw==='night')view+=`<circle cx="226" cy="54" r="8" fill="#F6EEDC"/><circle cx="230" cy="51" r="7" fill="#1B2250"/>${star(184,50,3,'#fff')}${star(204,76,2.4,'#fff')}${star(190,100,2.4,'#fff')}${star(222,92,2.4,'#fff')}<rect x="${WX}" y="108" width="${WW}" height="16" fill="#12183B"/>`;
   if(vw==='snow')view+=`<rect x="${WX}" y="106" width="${WW}" height="18" fill="#fff"/>`+[[174,50],[192,66],[212,46],[230,78],[182,88],[206,92]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="2.2" fill="#fff"/>`).join('');
   if(vw==='sea')view+=`<rect x="${WX}" y="34" width="${WW}" height="90" fill="#2FA6B8"/><rect x="${WX}" y="104" width="${WW}" height="20" fill="#E8D3A0"/><path d="M172 104Q168 90 174 80M176 104Q182 92 178 84" stroke="#2E8A4F" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M200 64Q208 56 216 64Q208 72 200 64ZM216 64L222 59V69Z" fill="#FF9AC9"/><path d="M184 50Q190 44 196 50Q190 56 184 50ZM196 50L200 46V54Z" fill="#FFD24D"/><circle cx="226" cy="46" r="2.4" fill="none" stroke="#fff"/><circle cx="230" cy="56" r="1.6" fill="none" stroke="#fff"/><circle cx="214" cy="90" r="2" fill="none" stroke="#fff"/>`;
+  if(VIEWX[vw])view=VIEWX[vw];
   g+=hot('window',view+`<rect x="${WX}" y="34" width="${WW}" height="90" fill="none" stroke="#fff" stroke-width="5"/><path d="M${WM} 34V124M${WX} 79H${WX+WW}" stroke="#fff" stroke-width="3"/><rect x="152" y="124" width="100" height="6" rx="2" fill="#fff"/><rect x="152" y="129" width="100" height="3" rx="1" fill="#000" opacity=".12"/><path d="M164 34L172 124M214 34L206 124" stroke="#fff" stroke-width="5" opacity=".14"/><path d="M144 28H260" stroke="#8A6B4A" stroke-width="4" stroke-linecap="round"/><circle cx="144" cy="28" r="3.4" fill="#E3B94F"/><circle cx="260" cy="28" r="3.4" fill="#E3B94F"/><path d="M148 31H172Q168 82 172 134H148Z" fill="${cu.fill}" stroke="rgba(0,0,0,.12)"/><path d="M232 31H256V134H232Q236 82 232 31Z" fill="${cu.fill}" stroke="rgba(0,0,0,.12)"/><path d="M148 96Q160 100 172 96M232 96Q244 100 256 96" stroke="rgba(0,0,0,.14)" stroke-width="3" fill="none"/>`);
   /* posters */
   const POSPOS=[[18,24,40,56],[290,24,52,73],[378,26,40,56]];
@@ -2531,7 +3104,7 @@ function roomSvg(R,av){
   if(R.walldeco.includes('lights'))deco+=`<path d="M0 12Q60 38 120 12T240 12T360 12T480 12" stroke="#6B5A3A" stroke-width="1.2" fill="none"/>`+[30,90,150,210,270,330,390,450].map((x,i)=>`<circle cx="${x}" cy="${25+(i%2?-2:2)}" r="3.3" fill="${['#FFD24D','#FF7BAF','#8FA6F0','#7CCB8A'][i%4]}"/>`).join('');
   if(R.walldeco.includes('clock'))deco+=`<circle cx="80" cy="100" r="11" fill="#fff" stroke="#8A6B4A" stroke-width="3"/><path d="M80 100V92M80 100L85 102" stroke="#2A1630" stroke-width="2" stroke-linecap="round"/>`;
   if(R.walldeco.includes('pennants'))deco+=`<path d="M336 100Q406 118 478 100" stroke="#6B5A3A" fill="none"/>`+[344,366,388,410,432,454].map((x,i)=>`<path d="M${x} ${106+Math.sin(i)*3}l9 0l-4.5 14Z" fill="${['#B8283A','#E3B94F','#2B4590','#2E8A4F','#B8283A','#E3B94F'][i]}"/>`).join('');
-  deco+=decoExtra(R);
+  deco+=decoExtra(R)+decoExtra2(R);
   g+=hot('walls',deco);
   const hk=R.hook,oc=OUTFIT[av.outfit]||OUTFIT[0];
   let hang='';
@@ -2540,6 +3113,7 @@ function roomSvg(R,av){
   if(hk==='robe')hang=`<path d="M118 70L110 74L106 124L146 124L142 74L134 70Z" fill="#241A2E"/><path d="M126 72L120 124M126 72L132 124" stroke="${hs[2]}" stroke-width="2.4" fill="none"/>`;
   if(hk==='jersey')hang=`<path d="M112 72L120 70Q126 78 132 70L140 72L146 84L138 88L138 112L114 112L114 88L106 84Z" fill="#14284B"/><path d="M122 74V112M130 74V112" stroke="#fff" stroke-width="2.2" opacity=".8"/><text x="126" y="102" text-anchor="middle" font-size="12" font-weight="800" fill="#fff" style="font-family:Inter,system-ui,sans-serif">42</text>`;
   if(hk==='flagbelt')hang=`<path d="M112 68Q126 80 140 68V74Q126 86 112 74Z" fill="#2A2F4A"/><rect x="123" y="75" width="7" height="5" rx="1" fill="#E3B94F"/><path d="M114 76L112 94H119L119 80Z" fill="#E5484D"/><path d="M121 80L121 98H128L128 82Z" fill="#FFD24D"/><path d="M130 82L132 96H139L137 78Z" fill="#4C9BD6"/>`;
+  if(HANGX[hk])hang=HANGX[hk]();
   g+=hot('walls',`<rect x="104" y="62" width="44" height="7" rx="3" fill="#8A6B4A"/><circle cx="112" cy="65.5" r="2.4" fill="#E3B94F"/><circle cx="140" cy="65.5" r="2.4" fill="#E3B94F"/>${hang}`);
   /* rug (drawn in a squashed circle so it looks flat on the floor) */
   const rc=by(RUGS,R.rug).sw;
@@ -2561,14 +3135,14 @@ function roomSvg(R,av){
   if(R.dtop.includes('music'))dtop+=`<rect x="60" y="128" width="16" height="12" rx="2" fill="#8E5CFF"/><circle cx="68" cy="128" r="4" fill="#FFD24D"/><rect x="58" y="140" width="20" height="12" rx="2" fill="#6B4FB5"/>`;
   if(R.dtop.includes('plantd'))dtop+=`<rect x="80" y="140" width="12" height="12" rx="2" fill="#C8643A"/><path d="M86 140Q80 128 76 130M86 140Q86 124 86 122M86 140Q92 128 96 130" stroke="#2E8A4F" stroke-width="3" fill="none" stroke-linecap="round"/>`;
   if(R.dtop.includes('cup'))dtop+=`<g transform="translate(46 152)"><path d="M-8-22H8V-14Q8-8 0-6Q-8-8-8-14Z" fill="#E3B94F" stroke="#A8741A"/><path d="M-8-19H-12Q-12-12-7-12M8-19H12Q12-12 7-12" fill="none" stroke="#A8741A" stroke-width="1.6"/><rect x="-2" y="-6" width="4" height="4" fill="#C8955E"/><rect x="-7" y="-2" width="14" height="2" fill="#6B3E1E"/></g>`;
-  dtop+=dtopExtra(R.dtop);
+  dtop+=dtopExtra(R.dtop)+dtopExtra2(R.dtop);
   g+=`<ellipse cx="56" cy="222" rx="60" ry="6" fill="#000" opacity=".17"/>`;
   g+=hot('dresser',`<rect x="12" y="214" width="6" height="10" fill="#6B3E1E"/><rect x="94" y="214" width="6" height="10" fill="#6B3E1E"/><rect x="8" y="152" width="96" height="64" rx="5" fill="url(#drg)" stroke="rgba(0,0,0,.14)"/><rect x="8" y="152" width="96" height="6" rx="3" fill="#fff" opacity=".5"/>${[[161,16],[180,15],[198,15]].map(d=>`<rect x="13" y="${d[0]}" width="86" height="${d[1]}" rx="3" fill="rgba(255,255,255,.2)" stroke="${dark(dresC)}" stroke-width="1.2"/><rect x="48" y="${d[0]+d[1]/2-2}" width="16" height="3.8" rx="1.9" fill="url(#gld)"/>`).join('')}${dtop}`);
   /* desk */
   const dk=[285,328,370];
   const lamp={lamp:`<rect x="-9" y="-4" width="18" height="4" rx="2" fill="#555"/><path d="M0-4V-26L11-36" stroke="#555" stroke-width="2.6" fill="none"/><path d="M5-40L24-35L14-26Z" fill="#E3B94F"/>`,
     starlamp:`<rect x="-8" y="-4" width="16" height="4" rx="2" fill="#555"/><path d="M0-4V-18" stroke="#555" stroke-width="2.6"/>${star(0,-28,13,'#FFD24D')}`,
-    moonlamp:`<rect x="-8" y="-4" width="16" height="4" rx="2" fill="#555"/><circle cx="0" cy="-20" r="14" fill="#F6EEDC"/><circle cx="6" cy="-24" r="11" fill="${wall}"/>`}[R.dlamp];
+    moonlamp:`<rect x="-8" y="-4" width="16" height="4" rx="2" fill="#555"/><circle cx="0" cy="-20" r="14" fill="#F6EEDC"/><circle cx="6" cy="-24" r="11" fill="${wall}"/>`}[R.dlamp]||lampX(R.dlamp);
   const mid={books:`<rect x="-15" y="-9" width="30" height="9" fill="#B8283A"/><rect x="-13" y="-17" width="27" height="8" fill="#2B4590"/><rect x="-14" y="-24" width="25" height="7" fill="#2E8A4F"/>`,
     art:`<ellipse cx="0" cy="-5" rx="14" ry="5" fill="#E8D5B0"/><circle cx="-7" cy="-6" r="2" fill="#E5484D"/><circle cx="-1" cy="-7" r="2" fill="#4C9BD6"/><circle cx="5" cy="-6" r="2" fill="#FFD24D"/><path d="M8-6L14-24M12-6L18-20" stroke="#E5484D" stroke-width="2"/>`,
     laptop:`<rect x="-17" y="-4" width="34" height="4" rx="1.5" fill="#B9B4C4"/><rect x="-13" y="-26" width="26" height="22" rx="2" fill="#3A3F5C"/><rect x="-11" y="-24" width="22" height="18" fill="#8FA6F0"/>${star(0,-15,5,'#fff')}`,
@@ -2583,12 +3157,13 @@ function roomSvg(R,av){
   g+=hot('desk',`<g transform="translate(80 0)">${[266,380].map(x=>`<rect x="${x}" y="160" width="9" height="54" rx="1.5" fill="${darken(deskC,.22)}"/><rect x="${x}" y="160" width="3" height="54" fill="#fff" opacity=".22"/><rect x="${x+6.4}" y="160" width="2.6" height="54" fill="#000" opacity=".16"/><rect x="${x-1.5}" y="210" width="12" height="4.5" rx="1.5" fill="${darken(deskC,.4)}"/>`).join('')}<rect x="274" y="196" width="106" height="4" fill="${darken(deskC,.3)}"/><rect x="332" y="161" width="46" height="40" rx="3" fill="${darken(deskC,.16)}" stroke="${darken(deskC,.36)}" stroke-width="1"/>${[[165,16],[183,15]].map(d=>`<rect x="335" y="${d[0]}" width="40" height="${d[1]}" rx="2" fill="${deskC}" stroke="${darken(deskC,.34)}" stroke-width="1"/><rect x="337" y="${d[0]+2}" width="36" height="${d[1]-4}" rx="1.4" fill="none" stroke="#fff" stroke-width=".8" opacity=".3"/><rect x="346" y="${d[0]+d[1]/2-1.6}" width="18" height="3.2" rx="1.6" fill="url(#gld)"/>`).join('')}<rect x="258" y="150" width="138" height="11" rx="3" fill="url(#dkg)"/><rect x="258" y="150" width="138" height="3" rx="1.5" fill="#fff" opacity=".4"/><rect x="258" y="159" width="138" height="2" rx="1" fill="#000" opacity=".18"/><rect x="262" y="161" width="130" height="5" fill="#000" opacity=".14"/><g transform="translate(${dk[0]} 150)">${lamp}</g><g transform="translate(${dk[1]} 150)">${mid}</g><g transform="translate(${dk[2]} 150)">${right}</g></g>`);
   /* telescope */
   if(R.windec.includes('scope'))g+=hot('window',`<g transform="translate(10 0)"><path d="M196 168L176 214M196 168L198 216M196 168L220 214" stroke="#6B3E1E" stroke-width="3" stroke-linecap="round"/><g transform="translate(196 168) rotate(32)"><rect x="-6" y="-48" width="12" height="54" rx="4" fill="#2B4590"/><rect x="-7" y="-30" width="14" height="5" fill="#E3B94F"/><rect x="-4" y="-56" width="8" height="10" rx="2" fill="#555"/></g></g>`);
+  g+=windExtra(R);
   /* globe and other floor things */
   if(R.floorx.includes('globe'))g+=hot('floor',`<g transform="translate(82 0)"><path d="M240 214V196" stroke="#6B3E1E" stroke-width="3"/><ellipse cx="240" cy="214" rx="11" ry="3.5" fill="#6B3E1E"/><circle cx="240" cy="182" r="16" fill="#4C9BD6"/><path d="M230 176Q236 170 242 176Q240 184 234 184ZM244 188Q250 186 252 192Q248 196 244 194Z" fill="#7CCB8A"/><path d="M226 182Q240 196 254 182" stroke="#fff" stroke-width=".8" fill="none" opacity=".6"/></g>`);
   if(R.floorx.includes('bigplant'))g+=hot('floor',`<g transform="translate(-70 0)"><rect x="94" y="230" width="22" height="22" rx="3" fill="#C8643A"/><path d="M105 230Q90 212 88 196M105 230Q104 208 104 190M105 230Q120 212 124 198M105 230Q96 220 80 218M105 230Q116 218 130 214" stroke="#2E8A4F" stroke-width="5" fill="none" stroke-linecap="round"/></g>`);
   if(R.floorx.includes('ball'))g+=hot('floor',`<g transform="translate(132 288)"><circle r="9" fill="#fff" stroke="#222" stroke-width="1.4"/><polygon points="0,-3.6 3.4,-1.1 2.1,2.9 -2.1,2.9 -3.4,-1.1" fill="#222"/></g>`);
   if(R.floorx.includes('beanbag'))g+=hot('floor',`<g transform="translate(60 0)"><path d="M340 286Q336 252 366 244Q396 252 398 286Z" fill="${accent}"/><path d="M356 250Q366 258 376 250" stroke="rgba(0,0,0,.2)" stroke-width="2" fill="none"/></g>`);
-  g+=hot('floor',floorExtra(R));
+  g+=hot('floor',floorExtra(R)+floorExtra2(R));
   let lb='';
   if(R.laundry==='basket')lb=`<path d="M310 244H346L342 284H314Z" fill="#C8955E"/><path d="M312 256H344M313 268H343" stroke="#A8763F" stroke-width="2"/><path d="M314 244Q324 232 332 244Q340 234 346 244Z" fill="${accent}"/>`;
   if(R.laundry==='hamperp')lb=`<rect x="312" y="244" width="32" height="40" rx="6" fill="#F29BBB"/><rect x="309" y="238" width="38" height="9" rx="4" fill="#EE86AA"/><path d="M318 256V280M328 256V280M338 256V280" stroke="#fff" stroke-width="1.4" opacity=".5"/>`;
@@ -2616,17 +3191,6 @@ function roomSvg(R,av){
   g+=`<rect width="480" height="300" fill="url(#vig)" pointer-events="none"/>`;
   return`<svg class="roomsvg" viewBox="0 0 480 300" role="img" aria-label="Laila's bedroom">${g}</svg>`;
 }
-function closetPanel(){
-  const st=stats(),av=getAv(),inf=nflInfo(nflSess());
-  const sw=(k,arr,label)=>`<div class="sect" style="padding-inline:0">${label}</div><div class="swatches">${arr.map((c,i)=>`<button class="swatch ${av[k]===i?'on':''}" style="background:${c}" data-act="av" data-k="${k}" data-v="${i}" aria-label="${label} ${i+1}"></button>`).join('')}</div>`;
-  const it=x=>{const un=x.nfl?nflHas(x.id,inf):x.u?extraHas(x.id):x.r?REQ[x.r][1]():st.stars>=x.at,on=x.slot==='extra'?av.extra.includes(x.id):av[x.slot]===x.id;
-    return`<button class="item ${on?'on':''} ${un?'':'lock'}" ${un?'':'disabled'} data-act="av" data-k="item" data-v="${x.id}"><b>${x.name}</b><small>${un?(on?'Wearing it':'Tap to wear'):x.nfl?`Football Club prize: ${x.nfl}`:x.u?`Prize: ${x.u}`:x.r?REQ[x.r][0]:`Unlocks at ${x.at} stars`}</small></button>`};
-  return`<section class="card"><h3>Your closet</h3><p class="mute">Change how Laila looks. Tap Laila in the room, or Closet, any time.</p>${sw('skin',SKIN,'Skin')}${sw('hair',HAIR,'Hair color')}
-    <div class="sect" style="padding-inline:0">Hair style</div><div class="seg wrap">${[['curly','Curly'],['puffs','Puffs'],['braids','Braids'],['long','Straight'],['pony','Ponytail'],['buns','Buns']].map(([k,l])=>`<button class="${av.style===k?'on':''}" data-act="av" data-k="style" data-v="${k}">${l}</button>`).join('')}</div>
-    ${sw('outfit',OUTFIT,'Outfit color')}
-    <div class="sect" style="padding-inline:0">Hogwarts house</div><div class="seg wrap">${Object.entries(HOUSES).map(([k,h])=>`<button class="${houseOf(av)===h?'on':''}" data-act="av" data-k="house" data-v="${k}">${h[0]}</button>`).join('')}</div></section>
-  <div class="sect">Shirts, hats and extras</div><section class="items">${ITEMS.filter(x=>!x.season||halloween()||[av.top,av.head,...av.extra].includes(x.id)).map(it).join('')}</section>`;
-}
 function roomPanel(area,R,ctx){
   const out=ROOM_G.filter(g=>g.area===area).map(g=>{
     let cur,head='';
@@ -2635,18 +3199,18 @@ function roomPanel(area,R,ctx){
       head=`<div class="seg">${[0,1,2].map(n=>`<button class="${i===n?'on':''}" data-act="posslot" data-v="${n}">Poster ${n+1}</button>`).join('')}</div><p class="mute">Choose a spot, then choose a poster. Tap it again to take it down.</p>`+(R.posters[i]==='mine'?mineEditor(R):'');
     }else cur=g.multi?R[g.k]:[R[g.k]];
     const btn=o=>{const un=ctx.has(o),on=cur.includes(o.id);
-      const why=un?(on?(g.multi||g.k==='poster'?'In your room. Tap to remove.':'In your room'):'Tap to use'):typeof o.at==='string'?REQ[o.at][0]:`Unlocks at ${o.at} stars`;
+      const why=un?(on?(g.multi||g.k==='poster'?'In your room. Tap to remove.':'In your room'):'Tap to use'):lockText(o,ctx.env);
       return`<button class="item ${on?'on':''} ${un?'':'lock'}" ${un?'':'disabled'} data-act="room" data-k="${g.k}" data-v="${o.id}"><b>${o.sw?`<span class="sw" style="background:${o.sw}"></span>`:''}${esc(o.name)}</b><small>${esc(why)}</small></button>`};
     return`<div class="sect">${g.label}</div>${head}<section class="items">${g.opts.map(btn).join('')}</section>`;
   }).join('');
   return out;
 }
 function closetView(){
-  const st=stats(),av=getAv(),R=getRoom(av),ctx=roomCtx(st),area=S.roomArea||'bed';
+  const st=stats(),av=getAv(),R=getRoom(av),ctx=roomCtx(),area=S.roomArea||'bed';
   const tabs=`<div class="seg wrap">${ROOM_AREAS.map(([k,l])=>`<button class="${area===k?'on':''}" data-act="roomarea" data-v="${k}">${l}</button>`).join('')}</div>`;
   return nav('My Room')+`<div class="largehead"><h1>My Room</h1><p class="mute">You have <b class="num">${st.stars}</b> stars. Tap something in your room to decorate it. New things unlock as you practice.</p></div>
   <div class="roombox">${roomSvg(R,av)}</div>${tabs}
-  ${area==='closet'?closetPanel():roomPanel(area,R,ctx)}
+  ${area==='closet'?closetPanel():area==='prizes'?prizeBook():roomPanel(area,R,ctx)}
   <p class="mute" style="padding-inline:6px">Your room and your look sync between homes.</p>`+tabbar('closet');
 }
 
@@ -2768,6 +3332,7 @@ function decoExtra(R){
   return s;
 }
 function pillowExtra(pr,ac){
+  if(PILLX[pr])return PILLX[pr](ac);
   if(pr==='shell')return`<path d="M-16 10Q-20-8 0-14Q20-8 16 10Z" fill="#FFE3F0" stroke="#C86AA6" stroke-width="1.2"/><path d="M0 10V-12M-8 10L-11-8M8 10L11-8" stroke="#C86AA6" stroke-width="1"/>`;
   if(pr==='cat')return`<path d="M-13-6L-11-17L-3-11ZM13-6L11-17L3-11Z" fill="#9AA0B4"/><circle r="14" fill="#C9CFDC"/><circle cx="-5" cy="-2" r="2" fill="#2A1630"/><circle cx="5" cy="-2" r="2" fill="#2A1630"/><path d="M-2 3L0 5L2 3Z" fill="#FF7BAF"/>`;
   if(pr==='brick')return`<rect x="-16" y="-10" width="32" height="20" rx="3" fill="#E5484D"/>${[-8,8].map(x=>`<circle cx="${x}" cy="-3" r="4" fill="#F26A6E"/>`).join('')}`;
@@ -2785,14 +3350,241 @@ function floorExtra(R){
   if(F.includes('dollhouse'))s+=`<g transform="translate(432 240)"><path d="M-24 14V-8L0-26L24-8V14Z" fill="#FFE3F0" stroke="#C86AA6" stroke-width="1.2"/><path d="M-28-6L0-30L28-6Z" fill="#F29BD0" stroke="#C86AA6" stroke-width="1.2"/><rect x="-16" y="-6" width="10" height="10" fill="#BEE6FF" stroke="#C86AA6"/><rect x="6" y="-6" width="10" height="10" fill="#BEE6FF" stroke="#C86AA6"/><rect x="-5" y="3" width="10" height="11" rx="1" fill="#C8955E"/></g>`;
   return s;
 }
+/* ===== room art for the new prizes ===== */
+const TX='font-family:Inter,system-ui,sans-serif';
+/* patterns for sheets and curtains (b = the second color, a = the first) */
+const PATX=(b,a)=>({
+  zigzag:`<path d="M0 10L3.5 4L7 10L10.5 4L14 10" stroke="${b}" stroke-width="2" fill="none"/>`,
+  waves:`<path d="M0 8Q3.5 2 7 8T14 8" stroke="${b}" stroke-width="2" fill="none"/>`,
+  diamonds:`<path d="M7 1L13 7L7 13L1 7Z" fill="${b}"/>`,
+  plaid:`<rect x="3" width="3" height="14" fill="${b}" opacity=".55"/><rect y="3" width="14" height="3" fill="${b}" opacity=".55"/><rect x="10" width="1.4" height="14" fill="#fff" opacity=".4"/><rect y="10" width="14" height="1.4" fill="#fff" opacity=".4"/>`,
+  confetti:`<rect x="2" y="2" width="5" height="2" fill="${b}" transform="rotate(30 4 3)"/><circle cx="10" cy="4" r="1.5" fill="#FFD24D"/><rect x="8" y="10" width="4" height="2" fill="#FF7BAF" transform="rotate(-40 10 11)"/><circle cx="3" cy="11" r="1.5" fill="#58D68D"/>`,
+  nums:`<text x="7" y="10.6" text-anchor="middle" font-size="9" font-weight="800" fill="${b}" style="${TX}">7</text>`,
+  grid:`<path d="M0 0H14M0 0V14" stroke="${b}" stroke-width="1" opacity=".8"/><path d="M7 0V14M0 7H14" stroke="${b}" stroke-width=".4" opacity=".5"/>`,
+  abc:`<text x="7" y="10.6" text-anchor="middle" font-size="8.6" font-weight="800" fill="${b}" style="${TX}">Ab</text>`,
+  tiles:`<circle cx="7" cy="7" r="5" fill="none" stroke="${b}" stroke-width="1.3"/><path d="M7 2V12M2 7H12" stroke="${b}" stroke-width="1.1"/><circle cx="7" cy="7" r="1.6" fill="${b}"/>`
+});
+/* pillows */
+const PILLX={
+  pi:ac=>`<circle r="15" fill="${ac}"/><circle r="15" fill="none" stroke="#fff" stroke-width="1.4" opacity=".5"/><text y="6.4" text-anchor="middle" font-size="18" font-weight="800" fill="#fff" style="${TX}">π</text>`,
+  abc:ac=>`<rect x="-15" y="-13" width="30" height="26" rx="6" fill="#FFF8E6" stroke="${ac}" stroke-width="1.6"/><text x="-8" y="4.4" text-anchor="middle" font-size="10" font-weight="800" fill="#E5484D" style="${TX}">A</text><text x="0" y="4.4" text-anchor="middle" font-size="10" font-weight="800" fill="#3AA0F0" style="${TX}">B</text><text x="8" y="4.4" text-anchor="middle" font-size="10" font-weight="800" fill="#2E8A4F" style="${TX}">C</text>`,
+  sol:ac=>`<circle r="10" fill="#FF9A3C" stroke="#C8521A" stroke-width="1"/>${Array.from({length:10},(_,i)=>{const a=i*Math.PI/5;return`<path d="M${(11.5*Math.cos(a)).toFixed(1)} ${(11.5*Math.sin(a)).toFixed(1)}L${(16*Math.cos(a)).toFixed(1)} ${(16*Math.sin(a)).toFixed(1)}" stroke="#FFB400" stroke-width="2.4" stroke-linecap="round"/>`}).join('')}<circle cx="-3.4" cy="-1" r="1.2" fill="#2A1630"/><circle cx="3.4" cy="-1" r="1.2" fill="#2A1630"/><path d="M-3 3Q0 6 3 3" stroke="#2A1630" stroke-width="1.2" fill="none"/>`,
+  globep:ac=>`<circle r="15" fill="#3A8FE0" stroke="#1F4F9A" stroke-width="1"/><path d="M-10-4Q-5-11 2-5Q0 1-6 1ZM3 4Q10 1 12 8Q6 13 2 10Z" fill="#7CCB8A"/><path d="M-15 0H15M-12-8H12M-12 8H12" stroke="#fff" stroke-width=".7" opacity=".5"/>`
+};
+/* rugs (drawn flat, then squashed onto the floor) */
+Object.assign(RUGX,{
+  target:`<ellipse rx="116" ry="80" fill="#E5484D"/><ellipse rx="94" ry="64" fill="#fff"/><ellipse rx="72" ry="48" fill="#E5484D"/><ellipse rx="50" ry="32" fill="#fff"/><ellipse rx="28" ry="16" fill="#E5484D"/>`,
+  abc:`<rect x="-118" y="-80" width="236" height="160" rx="16" fill="#FFE9A8"/>${['A','B','C','D','E','F'].map((l,i)=>`<rect x="${-100+(i%3)*68}" y="${-62+Math.floor(i/3)*68}" width="60" height="60" rx="10" fill="${['#FF7BAF','#3AA0F0','#58D68D','#FFB400','#8E5CFF','#E5484D'][i]}"/><text x="${-70+(i%3)*68}" y="${-18+Math.floor(i/3)*68}" text-anchor="middle" font-size="44" font-weight="800" fill="#fff" style="${TX}">${l}</text>`).join('')}`,
+  tile:`<rect x="-118" y="-80" width="236" height="160" rx="12" fill="#FFF8E6"/>${[0,1,2,3].flatMap(i=>[0,1].map(j=>`<g transform="translate(${-90+i*60} ${-40+j*80})"><rect x="-26" y="-34" width="52" height="68" rx="6" fill="${(i+j)%2?'#2B6FD0':'#F2B81A'}" stroke="#fff" stroke-width="3"/><circle r="14" fill="none" stroke="#fff" stroke-width="3"/><path d="M0-22V22M-22 0H22" stroke="#fff" stroke-width="3"/><circle r="5" fill="#fff"/></g>`)).join('')}`,
+  map:`<rect x="-118" y="-80" width="236" height="160" rx="16" fill="#3AA0F0"/><path d="M-96-34Q-76-66-40-50Q-26-30-52-6Q-70 16-88-6Q-104-18-96-34Z" fill="#7CCB8A"/><path d="M-12-52Q16-72 50-50Q64-30 40-18Q22-26 6-12Q-14-26-12-52Z" fill="#7CCB8A"/><path d="M-4 8Q18 0 34 24Q30 54 10 64Q-12 46-4 8Z" fill="#7CCB8A"/><path d="M58 10Q86 0 100 28Q86 50 62 40Z" fill="#7CCB8A"/><path d="M-84 56L-60 44M60 60L90 54" stroke="#fff" stroke-width="3" opacity=".5"/>`,
+  crest:`<ellipse rx="116" ry="80" fill="#4A2A8A"/><ellipse rx="100" ry="68" fill="none" stroke="#E3B94F" stroke-width="6"/><ellipse rx="84" ry="56" fill="none" stroke="#E3B94F" stroke-width="2" stroke-dasharray="8 6"/><g transform="scale(1.1)">${star(0,0,56,'#E3B94F')}</g>`
+});
+/* desk lamps */
+function lampX(id){
+  const base=`<rect x="-8" y="-4" width="16" height="4" rx="2" fill="#555"/>`;
+  return{
+    la_bulb:`${base}<path d="M0-4V-12" stroke="#555" stroke-width="2.6"/><path d="M-4-12V-15H4V-12Q11-18 11-25A11 11 0 0 0-11-25Q-11-18-4-12Z" fill="#FFF3B0" stroke="#C8921A"/><path d="M-3-22L0-16L3-22" stroke="#C8921A" stroke-width="1" fill="none"/><circle cx="0" cy="-25" r="16" fill="#FFF3B0" opacity=".25"/>`,
+    la_read:`${base}<path d="M0-4V-24" stroke="#B07A1C" stroke-width="2.6"/><path d="M-13-24Q0-40 13-24Z" fill="#1F8A4C" stroke="#14502A"/><path d="M-9-27Q0-35 9-27" stroke="#fff" stroke-width="1" fill="none" opacity=".4"/><rect x="-1.4" y="-24" width="2.8" height="3" fill="#B07A1C"/>`,
+    la_farol:`<rect x="-9" y="-4" width="18" height="4" rx="2" fill="#6A0F1E"/><path d="M-8-6L-10-30H10L8-6Z" fill="#D12A2A" stroke="#7A0E24"/><path d="M-6-9L-7.4-27H7.4L6-9Z" fill="#FFE08A"/><path d="M0-27V-9M-6.8-18H6.8" stroke="#7A0E24" stroke-width="1.4"/><path d="M-11-30H11L8-34H-8Z" fill="${'#E3B94F'}"/><path d="M-3-34Q0-40 3-34" stroke="#E3B94F" stroke-width="1.6" fill="none"/>`,
+    la_globe:`${base}<path d="M0-4V-10" stroke="#555" stroke-width="2.6"/><circle cy="-22" r="12" fill="#3A8FE0" stroke="#1F4F9A"/><path d="M-8-26Q-3-31 2-26Q0-21-5-21ZM3-17Q8-19 9-14Q5-10 2-12Z" fill="#7CCB8A"/><circle cy="-22" r="16" fill="#9FD8FF" opacity=".2"/>`
+  }[id]||'';
+}
+/* desk middle */
+Object.assign(DMIDX,{
+  dm_abacus:`<rect x="-16" y="-24" width="32" height="24" rx="2.4" fill="none" stroke="#8A5A34" stroke-width="3.4"/>${[-18,-12,-6].map((y,i)=>`<path d="M-14 ${y}H14" stroke="#6B4220" stroke-width=".9"/>${[0,1,2,3,4].map(k=>`<circle cx="${-10+k*4.8+(i%2?5:0)}" cy="${y}" r="2.2" fill="${['#E5484D','#FFD24D','#58D68D'][i]}" stroke="#2A1630" stroke-width=".5"/>`).join('')}`).join('')}<rect x="-16" y="-3" width="32" height="3" rx="1" fill="#6B4220"/>`,
+  dm_dict:`<path d="M-16-3L0-8L16-3V-1L0-6L-16-1Z" fill="#E7E1EE"/><path d="M-16-3L0 0L0-6L-16-9Z" fill="#fff" stroke="#B9B4C4" stroke-width=".7"/><path d="M16-3L0 0L0-6L16-9Z" fill="#F4F1FA" stroke="#B9B4C4" stroke-width=".7"/><path d="M-12-6L-4-4M-12-4L-4-2M4-4L12-6M4-2L12-4" stroke="#8D96AC" stroke-width=".7"/><path d="M4-16Q10-26 14-30L10-18Z" fill="#FFF" stroke="#5A7AB0" stroke-width=".7"/><path d="M5-14L3-8" stroke="#2A2F4A" stroke-width="1"/>`,
+  dm_chess:`<path d="M-17-1L0-7L17-1L0 5Z" fill="#6B4220"/>${Array.from({length:8},(_,i)=>`<rect x="${-10+(i%4)*5.2+Math.floor(i/4)*2.6}" y="${-4.6+Math.floor(i/4)*2.4}" width="2.6" height="1.6" fill="${(i+Math.floor(i/4))%2?'#F6EEDC':'#2A1630'}" opacity=".9"/>`).join('')}<path d="M-6-4L-6-11Q-6-14-3-14Q0-14 0-11L0-4Z" fill="#fff" stroke="#2A1630" stroke-width=".7"/><path d="M0-3Q6-3 6-9L4-14L2-9L2-3Z" fill="#2A1630"/><circle cx="-3" cy="-16" r="1.8" fill="#fff" stroke="#2A1630" stroke-width=".6"/>`,
+  dm_map:`<path d="M-17-2L-6-9L6-4L17-10V-2L6 4L-6-1L-17 5Z" fill="#FFF1C9" stroke="#A8741A" stroke-width=".8"/><path d="M-6-9V-1M6-4V4" stroke="#A8741A" stroke-width=".6"/><path d="M-13 0L-8-4L-2-2L3 0L9-4" stroke="#C0303F" stroke-width=".9" fill="none" stroke-dasharray="1.6 1.2"/><circle cx="10" cy="-12" r="5.6" fill="#F7DE8A" stroke="#7A520E" stroke-width=".7"/><path d="M10-12L12-16" stroke="#C0303F" stroke-width="1.2"/>`
+});
+/* desk right side */
+Object.assign(DRIGHTX,{
+  dr_cubes:`${[[-6,-6,'#E5484D'],[6,-6,'#3AA0F0'],[0,-18,'#FFD24D']].map(c=>`<rect x="${c[0]-6}" y="${c[1]-6}" width="12" height="12" rx="1.6" fill="${c[2]}" stroke="#fff" stroke-width=".8"/>`).join('')}<text x="-6" y="-2" text-anchor="middle" font-size="8" font-weight="800" fill="#fff" style="${TX}">2</text><text x="6" y="-2" text-anchor="middle" font-size="8" font-weight="800" fill="#fff" style="${TX}">+</text><text x="0" y="-14" text-anchor="middle" font-size="8" font-weight="800" fill="#7A520E" style="${TX}">4</text>`,
+  dr_bee:`<rect x="-8" y="-4" width="16" height="4" rx="1.6" fill="#8A5A34"/><ellipse cx="0" cy="-12" rx="8" ry="6" fill="#FFB400" stroke="#2A1630" stroke-width="1"/><path d="M-2-17V-7M2.6-17V-7" stroke="#2A1630" stroke-width="1.8"/><ellipse cx="-3" cy="-19" rx="4.6" ry="3" fill="#fff" stroke="#2A1630" stroke-width=".6" transform="rotate(-20 -3 -19)"/><ellipse cx="3" cy="-19" rx="4.6" ry="3" fill="#fff" stroke="#2A1630" stroke-width=".6" transform="rotate(20 3 -19)"/><circle cx="-6.4" cy="-13" r="1" fill="#2A1630"/>`,
+  dr_maracas:`${[[-10,'#E5484D','#FFD24D'],[10,'#3AA0F0','#FF9A3C']].map(m=>`<g transform="rotate(${m[0]*.8} 0 0)"><rect x="-1.4" y="-10" width="2.8" height="10" rx="1.4" fill="#8A5A34"/><ellipse cx="0" cy="-17" rx="6" ry="8" fill="${m[1]}" stroke="#2A1630" stroke-width=".8"/><circle cx="-2" cy="-19" r="1.2" fill="${m[2]}"/><circle cx="2" cy="-15" r="1.2" fill="${m[2]}"/></g>`).join('')}`,
+  dr_cactus:`<path d="M-7-10H7L5 0H-5Z" fill="#C8643A"/><path d="M-4-10V-20Q-4-26 0-26T4-20V-10Z" fill="#58D68D" stroke="#1F6B3A" stroke-width=".8"/><path d="M-4-16Q-9-16-9-21M4-14Q9-14 9-19" stroke="#2E8A4F" stroke-width="2.6" fill="none" stroke-linecap="round"/><circle cx="0" cy="-27" r="2.2" fill="#FF7BAF"/>`,
+  dr_hourglass:`<rect x="-8" y="-4" width="16" height="3" rx="1.2" fill="#8A5A34"/><rect x="-8" y="-27" width="16" height="3" rx="1.2" fill="#8A5A34"/><path d="M-6-24Q-6-16 0-14Q6-16 6-24ZM-6-4Q-6-10 0-14Q6-10 6-4Z" fill="rgba(190,230,255,.5)" stroke="#8A5A34" stroke-width=".8"/><path d="M-4-6Q0-9 4-6Z" fill="#E8C46A"/><path d="M-3-22Q0-18 3-22Z" fill="#E8C46A"/><path d="M0-14V-8" stroke="#E8C46A" stroke-width=".8"/>`
+});
+/* wall hangers */
+const HANGX={
+  hk_bookbag:()=>`<path d="M118 70C118 56 134 56 134 70" stroke="#6B3E1E" stroke-width="2.6" fill="none" stroke-linecap="round"/><rect x="110" y="66" width="32" height="42" rx="10" fill="#2F58C8" stroke="#14246A" stroke-width=".8"/><rect x="114" y="86" width="24" height="16" rx="4" fill="#4A78E0" stroke="#14246A" stroke-width=".8"/><path d="M114 76H138" stroke="#fff" stroke-width="2" opacity=".6"/><circle cx="126" cy="94" r="2" fill="#E3B94F"/><path d="M118 70L116 90M134 70L136 90" stroke="#14246A" stroke-width="2" opacity=".6"/>`,
+  hk_sombrero:()=>`<ellipse cx="126" cy="86" rx="30" ry="9" fill="#F2D58A" stroke="#7A520E"/><path d="M110 84Q110 60 126 58Q142 60 142 84Z" fill="#F6E3A8" stroke="#7A520E"/><path d="M110 80Q126 86 142 80V75Q126 81 110 75Z" fill="#C0303F"/><path d="M98 90Q126 100 154 90" stroke="#C0303F" stroke-width="2" fill="none"/>`,
+  hk_cap:()=>`<path d="M96 84L126 74L156 84L126 94Z" fill="#14172A" stroke="#0A0C18"/><path d="M110 88V98Q126 106 142 98V88Q126 96 110 88Z" fill="#2A2F4A"/><circle cx="126" cy="84" r="2.4" fill="#E3B94F"/><path d="M126 84L152 88V104" stroke="#E3B94F" stroke-width="1.6" fill="none"/><path d="M149 104L152 102L155 104L154 112L150 112Z" fill="#E3B94F"/>`
+};
+/* window views */
+const VIEWX={
+  vw_desert:`<rect x="160" y="34" width="84" height="90" fill="#FF9A5A"/><rect x="160" y="34" width="84" height="40" fill="#FFC27A" opacity=".6"/><circle cx="200" cy="88" r="16" fill="#FFE08A"/><path d="M160 112L176 92L190 106L206 84L222 104L244 94V124H160Z" fill="#B8522A"/><rect x="160" y="108" width="84" height="16" fill="#E0B070"/><path d="M178 116V98M178 106H172V100M178 104H184V98" stroke="#2E8A4F" stroke-width="3.4" fill="none" stroke-linecap="round"/>`,
+  vw_space:`<rect x="160" y="34" width="84" height="90" fill="#0B0D2A"/>${[[172,46],[196,62],[228,48],[184,92],[216,100],[236,76],[204,40]].map(p=>star(p[0],p[1],2.4,'#fff')).join('')}<circle cx="214" cy="78" r="11" fill="#E8832A"/><ellipse cx="214" cy="78" rx="19" ry="4.6" transform="rotate(-18 214 78)" fill="none" stroke="#FFE9C8" stroke-width="2"/><circle cx="178" cy="106" r="5" fill="#C9CFDC"/><rect x="160" y="116" width="84" height="8" fill="#1A1F4A"/>`
+};
+function windExtra(R){
+  let s='';
+  if(R.windec.includes('wn_nook'))s+=`<g transform="translate(168 124)"><rect x="0" y="-8" width="26" height="8" rx="1.4" fill="#E5484D"/><rect x="2" y="-15" width="22" height="7" rx="1.4" fill="#3AA0F0"/><rect x="-2" y="-21" width="22" height="6" rx="1.4" fill="#FFD24D"/><path d="M2-4H24M4-12H22" stroke="#fff" stroke-width=".8" opacity=".6"/></g><g transform="translate(206 124)"><path d="M0-9H10L9 0H1Z" fill="#fff" stroke="#C9CFDC"/><path d="M10-7Q14-6 10-3" stroke="#C9CFDC" fill="none"/><path d="M3-12Q5-14 3-16M7-12Q9-14 7-16" stroke="#C9CFDC" stroke-width=".8" fill="none"/></g>`;
+  if(R.windec.includes('wn_cactus'))s+=`<g transform="translate(228 124)"><path d="M-7-9H7L5 0H-5Z" fill="#C8643A"/><path d="M-3.4-9V-18Q-3.4-23 0-23T3.4-18V-9Z" fill="#58D68D" stroke="#1F6B3A" stroke-width=".7"/><path d="M-3.4-14Q-8-14-8-18M3.4-12Q8-12 8-16" stroke="#2E8A4F" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="0" cy="-24" r="2" fill="#FF7BAF"/></g>`;
+  return hot_('window',s);
+}
+const hot_=(a,s)=>s?`<g class="hot" data-act="roomarea" data-v="${a}">${s}</g>`:'';
+function dtopExtra2(dt){
+  let s='';
+  if(dt.includes('dt_bee'))s+=`<g transform="translate(96 152)"><rect x="-8" y="-3" width="16" height="3.4" rx="1.4" fill="#8A5A34"/><ellipse cx="0" cy="-10" rx="7.4" ry="6" fill="${'#FFB400'}" stroke="#2A1630" stroke-width=".9"/><path d="M-2-15V-5M2.4-15V-5" stroke="#2A1630" stroke-width="1.6"/><ellipse cx="-2.6" cy="-17" rx="4" ry="2.6" fill="#fff" stroke="#2A1630" stroke-width=".5" transform="rotate(-20 -2.6 -17)"/><ellipse cx="2.6" cy="-17" rx="4" ry="2.6" fill="#fff" stroke="#2A1630" stroke-width=".5" transform="rotate(20 2.6 -17)"/></g>`;
+  if(dt.includes('dt_pinata'))s+=`<g transform="translate(40 152)"><path d="M0-22V-14" stroke="#8A5A34" stroke-width="1"/><g transform="translate(0 -8)">${star(0,0,10,'#FF7BAF')}<path d="M-8 0H8M-6-4H6" stroke="#FFD24D" stroke-width="1.6"/><path d="M-6 3H6" stroke="#3AA0F0" stroke-width="1.6"/></g></g>`;
+  return s;
+}
+function decoExtra2(R){
+  let s='';
+  const W=R.walldeco;
+  if(W.includes('wd_ruler'))s+=`<g transform="translate(4 30)"><rect width="12" height="160" rx="2" fill="#FFD24D" stroke="#B07A0A"/>${Array.from({length:32},(_,i)=>`<path d="M0 ${5+i*5}H${i%5===0?8:4}" stroke="#2A1630" stroke-width=".8"/>`).join('')}${[1,2,3,4,5,6].map(n=>`<text x="9.4" y="${5+n*25+2}" font-size="5" font-weight="800" fill="#2A1630" style="${TX}">${n}</text>`).join('')}</g>`;
+  if(W.includes('wd_abc'))s+=`<path d="M338 12Q407 30 478 12" stroke="#6B5A3A" fill="none"/>`+'ABCDEFG'.split('').map((l,i)=>`<g transform="translate(${346+i*19} ${17+Math.sin(i*.9+.6)*3.4+i*.4})"><path d="M-7 0H7V12L0 18L-7 12Z" fill="${['#E5484D','#FF9A3C','#FFD24D','#58D68D','#3AA0F0','#8E5CFF','#FF7BAF'][i]}"/><text y="11" text-anchor="middle" font-size="10" font-weight="800" fill="#fff" style="${TX}">${l}</text></g>`).join('');
+  if(W.includes('wd_papel'))s+=`<path d="M62 14H142" stroke="#6B5A3A"/>`+[0,1,2,3,4].map(i=>`<g transform="translate(${66+i*16} 14)"><path d="M-7 0H7V17H-7Z" fill="${['#FF7BAF','#FFD24D','#58D68D','#3AA0F0','#FF9A3C'][i]}"/><circle cx="0" cy="6" r="2.4" fill="#fff" opacity=".9"/><path d="M-5 12L-3 15L-1 12L1 15L3 12L5 15" stroke="#fff" stroke-width=".9" fill="none" opacity=".9"/><path d="M-7 0Q-3.5 4 0 0Q3.5 4 7 0" fill="#fff" opacity=".55"/></g>`).join('');
+  if(W.includes('wd_worldmap'))s+=`<g transform="translate(424 56)"><rect width="48" height="36" rx="3" fill="#3AA0F0" stroke="#fff" stroke-width="2"/><path d="M5 10Q9 4 16 8Q18 14 12 18Q6 18 5 10ZM22 6Q30 2 36 8Q34 14 28 12Q24 16 22 6ZM24 22Q32 20 36 26Q32 32 26 30Z" fill="#7CCB8A"/><circle cx="14" cy="12" r="2" fill="#E5484D"/><path d="M14 12L14 6" stroke="#E5484D" stroke-width="1"/><circle cx="32" cy="9" r="2" fill="#FFD24D"/></g>`;
+  if(W.includes('wd_honor'))s+=[[384,100,'#FFD24D','1'],[408,104,'#C9CFDC','2'],[432,100,'#C8955E','3']].map(m=>`<path d="M${m[0]-4} ${m[1]-12}L${m[0]} ${m[1]+4}L${m[0]+4} ${m[1]-12}Z" fill="${['#E5484D','#3AA0F0','#58D68D'][m[3]-1]}"/><circle cx="${m[0]}" cy="${m[1]+8}" r="7.4" fill="${m[2]}" stroke="#7A520E" stroke-width=".8"/><text x="${m[0]}" y="${m[1]+11}" text-anchor="middle" font-size="9" font-weight="800" fill="#7A520E" style="${TX}">${m[3]}</text>`).join('');
+  return s;
+}
+function floorExtra2(R){
+  let s='';
+  const F=R.floorx;
+  if(F.includes('fx_robot'))s+=`<g transform="translate(64 276)"><ellipse cx="0" cy="14" rx="14" ry="3" fill="#000" opacity=".18"/><rect x="-5" y="2" width="4" height="12" rx="1.6" fill="#8D96AC"/><rect x="1" y="2" width="4" height="12" rx="1.6" fill="#8D96AC"/><rect x="-10" y="-14" width="20" height="18" rx="4" fill="#C9CFDC" stroke="#5A6280" stroke-width="1"/><rect x="-14" y="-12" width="4" height="12" rx="2" fill="#8D96AC"/><rect x="10" y="-12" width="4" height="12" rx="2" fill="#8D96AC"/><rect x="-9" y="-30" width="18" height="15" rx="4" fill="#E7EBF5" stroke="#5A6280" stroke-width="1"/><circle cx="-3.4" cy="-23" r="2.6" fill="#14172A"/><circle cx="3.4" cy="-23" r="2.6" fill="#14172A"/><circle cx="-3.4" cy="-23" r="1.1" fill="#7FD1FF"/><circle cx="3.4" cy="-23" r="1.1" fill="#7FD1FF"/><path d="M0-30V-36" stroke="#5A6280" stroke-width="1.4"/><circle cx="0" cy="-37" r="2" fill="#E5484D"/><rect x="-5" y="-8" width="10" height="7" rx="1.4" fill="#2B6FD0"/><circle cx="-2" cy="-4.6" r="1" fill="#FFD24D"/><circle cx="2" cy="-4.6" r="1" fill="#58D68D"/></g>`;
+  if(F.includes('fx_bookpile'))s+=`<g transform="translate(30 288)"><rect x="-14" y="-5" width="28" height="6" rx="1.4" fill="#3AA0F0"/><rect x="-12" y="-11" width="26" height="6" rx="1.4" fill="#E5484D"/><rect x="-13" y="-17" width="24" height="6" rx="1.4" fill="#FFD24D"/><rect x="-11" y="-23" width="22" height="6" rx="1.4" fill="#58D68D"/><path d="M-12-2H12M-10-8H12M-11-14H10M-9-20H9" stroke="#fff" stroke-width=".9" opacity=".7"/></g>`;
+  if(F.includes('fx_guitar'))s+=`<g transform="translate(462 276)"><path d="M-12 20L0 2L12 20" stroke="#6B4220" stroke-width="2" fill="none" stroke-linecap="round"/><g transform="rotate(8)"><rect x="-1.8" y="-44" width="3.6" height="24" fill="#8A5A34"/><rect x="-3.4" y="-48" width="6.8" height="5" rx="1.4" fill="#2A1630"/><path d="M0-22C-10-22-13-14-10-9C-14-4-10 6 0 6C10 6 14-4 10-9C13-14 10-22 0-22Z" fill="${'#E5484D'}" stroke="#7A0E24" stroke-width=".9"/><circle cx="0" cy="-8" r="3.6" fill="#2A1630"/><rect x="-3.6" y="0" width="7.2" height="2.2" rx="1" fill="#2A1630"/><path d="M-5-16Q-3-19 1-19" stroke="#fff" stroke-width="1.2" fill="none" opacity=".5"/></g></g>`;
+  return s;
+}
 /* everything takes real practice: scale the star prices up so rewards last */
 const ECON=n=>n<=0?0:Math.max(45,Math.round(n*4.5/5)*5);
 ITEMS.forEach(x=>{if(typeof x.at==='number'&&x.at>0)x.at=ECON(x.at)});
 /* Prizes still to win sit on one long ladder, cheapest first: 450 stars for the first, 6000 for the last.
    The prizes Laila had already unlocked keep their old prices, so nothing she owns changes. */
 const LADDER=['shelltiara','earrings','beanie','sorting','gamehoodie','rainbow','owl','balloons','brickset','robe','flowercrown','jacket','qjersey','sketchbook','labcoat','snitch','trophy','telescope','butterfly','galaxytee','tiara','crown'];
-LADDER.forEach((id,k)=>{const x=ITEMS.find(i=>i.id===id);if(x)x.at=Math.max(450+k*60,Math.round((450+5550*Math.pow(k/(LADDER.length-1),1.3))/10)*10)});
+LADDER.forEach((id,k)=>{const x=ITEMS.find(i=>i.id===id);if(x){x.at=Math.max(450+k*60,Math.round((450+5550*Math.pow(k/(LADDER.length-1),1.3))/10)*10);x.school=true}});
 ROOM_G.forEach(g=>g.opts.forEach(o=>{if(typeof o.at==='number'&&o.at>0)o.at=ECON(o.at)}));
+/* ===== the 365-prize catalog =====
+   Every cool prize belongs to a school-subject track and opens with that subject's own stars (Scholar uses touchdowns).
+   The prizes Laila already owns are untouched. */
+const PRZ_META=[];
+const C_=(slot,id,name,track,w)=>{const x={id,slot,name,at:1,tr:track};ITEMS.push(x);PRZ_META.push({x,track,w})};
+const R_=(gk,o,track,w)=>{o.tr=track;o.at=1;ROOM_G.find(g=>g.k===gk).opts.push(o);PRZ_META.push({x:o,track,w})};
+/* closet: shirts */
+C_('top','mintdots','Mint polka tee','math',1);C_('top','zigsweater','Zigzag sweater','math',3);C_('top','mathtee','Math whiz tee','math',6);
+C_('top','candystripe','Candy stripe tee','spell',1);C_('top','heartstee','Hearts tee','spell',2);C_('top','beetee','Spelling bee tee','spell',6);
+C_('top','holatee','¡Hola! tee','es',2);C_('top','mexjersey','Mexico soccer jersey','es',5);C_('top','espjersey','España jersey','es',5);C_('top','flamenco','Flamenco ruffle top','es',7);C_('top','poncho','Serape poncho','es',8);
+C_('top','oceanwave','Ocean wave tee','geo',2);C_('top','explorervest','Explorer vest','geo',4);C_('top','globetee','Globe tee','geo',6);
+C_('top','sunsetombre','Sunset ombré tee','sch',1);C_('top','plaidshirt','Lime plaid shirt','sch',2);C_('top','starnavy','Navy star tee','sch',3);C_('top','colorblock','Color-block tee','sch',3);C_('top','tiedye','Tie-dye tee','sch',4);C_('top','varsity','Varsity jacket','sch',6);C_('top','astronaut','Astronaut suit','sch',9);C_('top','champcape','Champion cape','sch',10);
+/* closet: hats */
+C_('head','suncap','Sunny cap','math',2);C_('head','partyhat','Party hat','math',3);C_('head','alienant','Space antennae','math',5);C_('head','tophat','Magic top hat','math',7);
+C_('head','rainbowband','Rainbow headband','spell',2);C_('head','bunnyears','Bunny ears','spell',3);C_('head','beeband','Bee headband','spell',4);C_('head','unicornband','Unicorn horn band','spell',6);
+C_('head','chefhat','Chef hat','es',2);C_('head','beret','Beret','es',3);C_('head','flamrose','Flamenco rose','es',4);C_('head','bearhat','Bear ear hat','es',5);C_('head','sombrero','Sombrero','es',8);
+C_('head','safarihat','Safari hat','geo',3);C_('head','cowgirlhat','Cowgirl hat','geo',4);C_('head','pirateband','Pirate bandana','geo',5);C_('head','vikinghelm','Viking helmet','geo',7);
+C_('head','pilot','Pilot cap and goggles','sch',5);C_('head','gradcap','Graduation cap','sch',6);C_('head','halo','Star halo','sch',7);C_('head','laurel','Laurel wreath','sch',8);C_('head','goldtiara','Golden tiara','sch',10);
+/* closet: extras */
+C_('extra','dice','Number cubes','math',1);C_('extra','calc','Calculator','math',2);C_('extra','abacus','Abacus','math',4);C_('extra','protractor','Protractor set','math',5);C_('extra','bulb','Big idea light bulb','math',6);C_('extra','rockettoy','Rocket toy','math',8);
+C_('extra','letter','Letter from a friend','spell',2);C_('extra','blocks','Letter blocks','spell',3);C_('extra','dictionary','Big dictionary','spell',4);C_('extra','lens','Magnifying glass','spell',5);C_('extra','quill','Quill and ink','spell',6);
+C_('extra','espflag','Spain flag','es',1);C_('extra','mexflag','Mexico flag','es',2);C_('extra','argflag','Argentina flag','es',2);C_('extra','taco','Taco','es',2);C_('extra','castanets','Castanets','es',3);C_('extra','cactuspet','Little cactus','es',3);C_('extra','maracas','Maracas','es',4);C_('extra','abanico','Painted fan','es',5);C_('extra','pinata','Piñata','es',7);
+C_('extra','passport','Passport','geo',2);C_('extra','globepal','Pocket globe','geo',3);C_('extra','mapscroll','Treasure map','geo',3);C_('extra','binoculars','Binoculars','geo',4);C_('extra','camera','Camera','geo',5);
+C_('extra','penguin','Penguin buddy','sch',4);C_('extra','diploma','Diploma','sch',5);C_('extra','puppy','Puppy buddy','sch',6);C_('extra','goldmedal','Gold medal','sch',7);C_('extra','starwand','Star wand','sch',8);
+/* room */
+R_('sheets',O('sh_grid','Graph paper sheets',0,{c:['#F8F5E8','#6FA8E0'],p:'grid'}),'math',1);
+R_('sheets',O('sh_nums','Number sheets',0,{c:['#DCEBFF','#3A7BFF'],p:'nums'}),'math',4);
+R_('sheets',O('sh_abc','ABC sheets',0,{c:['#FFF1C9','#E5409B'],p:'abc'}),'spell',3);
+R_('sheets',O('sh_zig','Papel picado sheets',0,{c:['#FFB3D4','#FF9A3C'],p:'zigzag'}),'es',2);
+R_('sheets',O('sh_tiles','Talavera tile sheets',0,{c:['#F4F1FA','#2B6FD0'],p:'tiles'}),'es',4);
+R_('sheets',O('sh_compass','Explorer diamond sheets',0,{c:['#F6EEDC','#C8621A'],p:'diamonds'}),'geo',3);
+R_('sheets',O('sh_plaid','Cozy plaid sheets',0,{c:['#E5484D','#7A0E24'],p:'plaid'}),'sch',2);
+R_('sheets',O('sh_confetti','Party confetti sheets',0,{c:['#F4F1FA','#8E5CFF'],p:'confetti'}),'sch',5);
+R_('curtains',O('cu_blue','Blueprint curtains',0,{c:['#CFE3F7','#3A7BFF'],p:'grid'}),'math',2);
+R_('curtains',O('cu_waves','Ocean wave curtains',0,{c:['#CFE8F7','#3AA0F0'],p:'waves'}),'spell',3);
+R_('curtains',O('cu_tiles','Tile curtains',0,{c:['#FFF1C9','#2B6FD0'],p:'tiles'}),'es',3);
+R_('curtains',O('cu_confetti','Confetti curtains',0,{c:['#F4F1FA','#FF7BAF'],p:'confetti'}),'sch',4);
+R_('pillows',O('pi','Pi pillow',0),'math',3);R_('pillows',O('abc','ABC pillow',0),'spell',2);R_('pillows',O('sol','Sol pillow',0),'es',3);R_('pillows',O('globep','Globe pillow',0),'geo',4);
+R_('frame',O('fr_black','Midnight frame',0,{sw:'#2A2F4A'}),'math',2);R_('frame',O('fr_purple','Purple frame',0,{sw:'#8E5CFF'}),'spell',1);R_('frame',O('fr_teal','Teal frame',0,{sw:'#2BB8B0'}),'spell',2);R_('frame',O('fr_red','Rojo frame',0,{sw:'#D12A2A'}),'es',1);R_('frame',O('fr_gold','Gold frame',0,{sw:'#E3B94F'}),'sch',5);
+R_('rug',O('target','Bullseye rug',0,{sw:'#E5484D'}),'math',3);R_('rug',O('abc','ABC rug',0,{sw:'#FFE9A8'}),'spell',4);R_('rug',O('tile','Tile rug',0,{sw:'#2B6FD0'}),'es',4);R_('rug',O('map','World map rug',0,{sw:'#3AA0F0'}),'geo',6);R_('rug',O('crest','Crest rug',0,{sw:'#4A2A8A'}),'sch',7);
+R_('deskcol',O('dk_blue','Cobalt desk',0,{sw:'#2F58C8'}),'math',1);R_('deskcol',O('dk_teal','Teal desk',0,{sw:'#2BB8B0'}),'math',2);R_('deskcol',O('dk_green','Chalkboard desk',0,{sw:'#2E6B4A'}),'spell',2);R_('deskcol',O('dk_red','Rojo desk',0,{sw:'#D12A2A'}),'es',2);R_('deskcol',O('dk_gold','Gold desk',0,{sw:'#E0B24A'}),'sch',4);
+R_('dlamp',O('la_bulb','Light bulb lamp',0),'math',4);R_('dlamp',O('la_read','Reading lamp',0),'spell',3);R_('dlamp',O('la_farol','Farol lantern',0),'es',4);R_('dlamp',O('la_globe','Globe lamp',0),'geo',4);
+R_('dmid',O('dm_abacus','Abacus',0),'math',3);R_('dmid',O('dm_dict','Open dictionary',0),'spell',3);R_('dmid',O('dm_map','Map and compass',0),'geo',3);R_('dmid',O('dm_chess','Chess board',0),'sch',4);
+R_('dright',O('dr_cubes','Math cubes',0),'math',2);R_('dright',O('dr_bee','Spelling bee figure',0),'spell',3);R_('dright',O('dr_cactus','Little cactus',0),'es',1);R_('dright',O('dr_maracas','Maracas',0),'es',2);R_('dright',O('dr_hourglass','Sand timer',0),'sch',3);
+R_('wallcol',O('wl_blue','Blueprint blue',0,{sw:'#CFE3F7'}),'math',1);R_('wallcol',O('wl_orchid','Orchid',0,{sw:'#E8D4F5'}),'spell',1);R_('wallcol',O('wl_orange','Naranja',0,{sw:'#FFD9B0'}),'es',1);R_('wallcol',O('wl_coral','Coral',0,{sw:'#FFC9C0'}),'es',2);R_('wallcol',O('wl_sand','Desert sand',0,{sw:'#F1DDB5'}),'geo',2);R_('wallcol',O('wl_chalk','Chalkboard green',0,{sw:'#3F6B55'}),'sch',3);
+const POSTER_NEW=[
+  ['p_pi','Pi day','math',4,'#14246A',`<text x="20" y="34" text-anchor="middle" font-size="30" font-weight="800" fill="#fff" style="${TX}">π</text><text x="20" y="46" text-anchor="middle" font-size="5" font-weight="700" fill="#9FC0FF" style="${TX}">3.14159</text>${star(8,10,2,'#FFD24D')}${star(33,12,2,'#FFD24D')}`],
+  ['p_shapes','Shapes','math',3,'#FFF1C9',`<path d="M8 22L16 8L24 22Z" fill="#E5484D"/><rect x="22" y="12" width="12" height="12" rx="1.4" fill="#3AA0F0"/><circle cx="14" cy="38" r="7" fill="#58D68D"/><path d="M26 32H36L34 44H28Z" fill="#8E5CFF"/><path d="M20 50H34" stroke="#FFB400" stroke-width="3" stroke-linecap="round"/>`],
+  ['p_clock','Telling time','math',2,'#E5F7EA',`<circle cx="20" cy="26" r="15" fill="#fff" stroke="#2E8A4F" stroke-width="2.4"/><path d="M20 26V15M20 26L28 30" stroke="#2A1630" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="26" r="1.8" fill="#E5484D"/>${[[20,13,'12'],[33,28,'3'],[20,42,'6'],[7,28,'9']].map(n=>`<text x="${n[0]}" y="${n[1]}" text-anchor="middle" font-size="5" font-weight="800" fill="#2E8A4F" style="${TX}">${n[2]}</text>`).join('')}`],
+  ['p_abc','ABC chart','spell',2,'#FFD6EC',`${['A','B','C'].map((l,i)=>`<rect x="${5+i*11}" y="${10+i*9}" width="10" height="10" rx="2" fill="${['#E5484D','#3AA0F0','#2E8A4F'][i]}"/><text x="${10+i*11}" y="${18+i*9}" text-anchor="middle" font-size="8" font-weight="800" fill="#fff" style="${TX}">${l}</text>`).join('')}<path d="M8 46H34" stroke="#C21E7A" stroke-width="2" stroke-linecap="round"/>`],
+  ['p_dict','Word wizard','spell',5,'#2A1450',`<path d="M5 34L20 30L35 34V46L20 42L5 46Z" fill="#fff"/><path d="M20 30V42" stroke="#B9B4C4"/><path d="M9 36L17 34M9 39L17 37M23 34L31 36M23 37L31 39" stroke="#8D96AC" stroke-width=".8"/>${star(20,14,6,'#FFD24D')}${star(9,20,2.4,'#fff')}${star(32,22,2.4,'#fff')}<text x="20" y="53" text-anchor="middle" font-size="5" font-weight="800" fill="#E8D4FF" style="${TX}">WORDS</text>`],
+  ['p_hola','¡Hola!','es',2,'#FF9A3C',`<path d="M6 12H34Q37 12 37 15V32Q37 35 34 35H22L14 44V35H6Q3 35 3 32V15Q3 12 6 12Z" fill="#fff"/><text x="20" y="28" text-anchor="middle" font-size="9.4" font-weight="800" fill="#E5409B" style="${TX}">¡HOLA!</text>${star(33,8,2.6,'#fff')}<path d="M8 50H32" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".7"/>`],
+  ['p_mex','México','es',4,'#E7E1EE',`<rect x="4" y="12" width="10.6" height="32" fill="#1F8A4C"/><rect x="14.6" y="12" width="10.8" height="32" fill="#fff"/><rect x="25.4" y="12" width="10.6" height="32" fill="#D12A2A"/><circle cx="20" cy="28" r="4" fill="#8A5A34"/><path d="M17 28Q20 24 23 28Q20 32 17 28Z" fill="#58D68D"/><path d="M4 12H36V44H4Z" fill="none" stroke="#7A8299" stroke-width=".8"/>`],
+  ['p_esp','España','es',4,'#E7E1EE',`<rect x="4" y="12" width="32" height="32" fill="#D12A2A"/><rect x="4" y="21" width="32" height="14" fill="#FFD24D"/><path d="M12 30V26H14L16 28L18 26H20V30Z" fill="#C0303F"/><circle cx="16" cy="31.6" r="1.4" fill="#6A8FD0"/>`],
+  ['p_numeros','Uno, dos, tres','es',3,'#FFE9A8',`${['1','2','3'].map((n,i)=>`<circle cx="${10+i*10}" cy="${16+i*3}" r="6" fill="${['#E5484D','#3AA0F0','#2E8A4F'][i]}"/><text x="${10+i*10}" y="${19+i*3}" text-anchor="middle" font-size="8" font-weight="800" fill="#fff" style="${TX}">${n}</text>`).join('')}<text x="20" y="40" text-anchor="middle" font-size="5.6" font-weight="800" fill="#7A520E" style="${TX}">uno dos</text><text x="20" y="47" text-anchor="middle" font-size="5.6" font-weight="800" fill="#7A520E" style="${TX}">tres</text>`],
+  ['p_world','Our world','geo',3,'#14246A',`<circle cx="20" cy="26" r="15" fill="#3A8FE0" stroke="#fff" stroke-width="1.4"/><path d="M10 22Q14 14 22 18Q22 24 14 26ZM22 30Q30 28 31 36Q25 41 21 37Z" fill="#7CCB8A"/><path d="M5 26H35M8 16H32M8 36H32" stroke="#fff" stroke-width=".5" opacity=".5"/>${star(7,8,2,'#fff')}${star(34,48,2,'#fff')}`],
+  ['p_compass','Compass rose','geo',5,'#F6EEDC',`<circle cx="20" cy="28" r="15" fill="#fff" stroke="#C8621A" stroke-width="2"/><path d="M20 14L23 28L20 42L17 28Z" fill="#C21E3A"/><path d="M6 28L20 25L34 28L20 31Z" fill="#35456A"/><text x="20" y="11" text-anchor="middle" font-size="6" font-weight="800" fill="#7A520E" style="${TX}">N</text><circle cx="20" cy="28" r="2" fill="#E3B94F"/>`],
+  ['p_scholar','Honor roll','sch',4,'#2A2F4A',`${star(20,24,11,'#FFD24D')}<path d="M7 38Q4 24 12 14M33 38Q36 24 28 14" stroke="#58D68D" stroke-width="2.4" fill="none" stroke-linecap="round"/><text x="20" y="48" text-anchor="middle" font-size="5.4" font-weight="800" fill="#FFE680" style="${TX}">HONOR ROLL</text>`],
+  ['p_td','Touchdown!','sch',6,'#1F6B3A',`<path d="M10 8V30M30 8V30M10 20H30M20 20V44" stroke="#FFD24D" stroke-width="2.4" stroke-linecap="round" fill="none"/><ellipse cx="20" cy="14" rx="6" ry="3.6" transform="rotate(-25 20 14)" fill="#9A5B33" stroke="#2A1630" stroke-width=".8"/><text x="20" y="53" text-anchor="middle" font-size="5.4" font-weight="800" fill="#fff" style="${TX}">TOUCHDOWN</text>`]
+];
+POSTER_NEW.forEach(p=>R_('poster',O(p[0],p[1],0,{bg:p[4],art:p[5]}),p[2],p[3]));
+R_('hook',O('hk_bookbag','Book bag',0),'spell',3);R_('hook',O('hk_sombrero','Sombrero',0),'es',5);R_('hook',O('hk_cap','Graduation cap',0),'sch',5);
+R_('walldeco',O('wd_ruler','Giant ruler',0),'math',3);R_('walldeco',O('wd_abc','Alphabet banner',0),'spell',3);R_('walldeco',O('wd_papel','Papel picado banner',0),'es',3);R_('walldeco',O('wd_worldmap','Pushpin world map',0),'geo',5);R_('walldeco',O('wd_honor','Honor roll ribbons',0),'sch',6);
+R_('view',O('vw_desert','Desert sunset',0),'es',5);R_('view',O('vw_space','Outer space',0),'sch',5);
+R_('windec',O('wn_nook','Reading nook',0),'spell',3);R_('windec',O('wn_cactus','Cactus on the sill',0),'es',2);
+R_('dcol',O('ds_blue','Sky dresser',0,{sw:'#9AD3F5'}),'math',1);R_('dcol',O('ds_teal','Teal dresser',0,{sw:'#2BB8B0'}),'spell',1);R_('dcol',O('ds_red','Rojo dresser',0,{sw:'#E5484D'}),'es',1);R_('dcol',O('ds_gold','Gold dresser',0,{sw:'#E0B24A'}),'sch',4);
+R_('dtop',O('dt_bee','Spelling bee statue',0),'spell',4);R_('dtop',O('dt_pinata','Mini piñata',0),'es',3);
+R_('floorx',O('fx_robot','Helper robot',0),'math',6);R_('floorx',O('fx_bookpile','Giant book pile',0),'spell',4);R_('floorx',O('fx_guitar','Guitarra',0),'es',5);
+/* prizes that used to sit on the star ladder now belong to Scholar (touchdowns), so they come from school work too */
+LADDER.forEach((id,k)=>{const x=ITEMS.find(i=>i.id===id);if(x){x.tr='sch';delete x.school;PRZ_META.push({x,track:'sch',w:1+k*.4})}});
+/* each track is spaced out by its coolness score, from a quick first prize to a marathon finish */
+const TR_RANGE={math:[100,24000],spell:[100,24000],es:[120,36000],geo:[100,10000],sch:[5,365]};
+function trThr(tk,k,n){
+  const f=TR_RANGE[tk][0],l=TR_RANGE[tk][1],v=f+(l-f)*(n>1?Math.pow(k/(n-1),1.7):0);
+  if(tk==='sch')return Math.max(1,Math.round(v));
+  const s=v>5000?500:v>2000?100:10;
+  return Math.max(10,Math.round(v/s)*s);
+}
+TRACKS.forEach(T=>{
+  const L=PRZ_META.filter(m=>m.track===T.k).map((m,i)=>({m,i})).sort((a,b)=>a.m.w-b.m.w||a.i-b.i);
+  L.forEach((e,k)=>{e.m.x.at=trThr(T.k,k,L.length)});
+});
+const PRIZE_TOTAL=365;
+const TRC=Object.fromEntries(TRACKS.map(t=>[t.k,t.c]));
+/* a little picture of each closet prize: Laila wearing only that thing, cropped to where it sits */
+const thumbCache={};
+function itemThumb(x){
+  const av=getAv(),k=[x.id,av.skin,av.hair,av.style,av.outfit,av.house].join('|');
+  if(thumbCache[k])return thumbCache[k];
+  const c=Object.assign({},av,{head:'',top:'tee',extra:[]});
+  if(x.slot==='head')c.head=x.id;else if(x.slot==='top')c.top=x.id;else c.extra=[x.id];
+  const vb=x.slot==='head'?'8 0 104 74':x.slot==='top'?'4 84 112 50':'0 16 120 114';
+  let s=avatarSvg(c).replace('viewBox="0 0 120 130"',`viewBox="${vb}"`).replace('role="img" aria-label="Laila\'s avatar"','aria-hidden="true"');
+  return thumbCache[k]=s;
+}
+function closetPanel(){
+  const av=getAv(),env=prizeEnv(),tab=S.closetTab||'top';
+  const sw=(k,arr,label)=>`<div class="sect" style="padding-inline:0">${label}</div><div class="swatches">${arr.map((c,i)=>`<button class="swatch ${av[k]===i?'on':''}" style="background:${c}" data-act="av" data-k="${k}" data-v="${i}" aria-label="${label} ${i+1}"></button>`).join('')}</div>`;
+  const it=x=>{const un=prizeUnlocked(x,env),on=x.slot==='extra'?av.extra.includes(x.id):av[x.slot]===x.id;
+    return`<button class="item ${on?'on':''} ${un?'':'lock'}" ${un?'':'disabled'} data-act="av" data-k="item" data-v="${x.id}"><span class="th">${itemThumb(x)}</span><span class="tx"><b>${x.tr?`<i class="td" style="background:${TRC[x.tr]}"></i>`:''}${esc(x.name)}</b><small>${un?(on?'Wearing it':'Tap to wear'):esc(lockText(x,env))}</small></span></button>`};
+  const slots=[['top','Shirts'],['head','Hats'],['extra','Extras']];
+  const vis=x=>!x.season||halloween()||[av.top,av.head,...av.extra].includes(x.id);
+  const list=ITEMS.filter(x=>x.slot===tab&&vis(x)),sorted=[...list.filter(x=>prizeUnlocked(x,env)),...list.filter(x=>!prizeUnlocked(x,env))];
+  const count=k=>{const l=ITEMS.filter(x=>x.slot===k&&vis(x));return l.filter(x=>prizeUnlocked(x,env)).length+'/'+l.length};
+  return`<section class="card"><h3>Your closet</h3><p class="mute">Change how Laila looks. Tap Laila in the room, or Closet, any time.</p>${sw('skin',SKIN,'Skin')}${sw('hair',HAIR,'Hair color')}
+    <div class="sect" style="padding-inline:0">Hair style</div><div class="seg wrap">${[['curly','Curly'],['puffs','Puffs'],['braids','Braids'],['long','Straight'],['pony','Ponytail'],['buns','Buns']].map(([k,l])=>`<button class="${av.style===k?'on':''}" data-act="av" data-k="style" data-v="${k}">${l}</button>`).join('')}</div>
+    ${sw('outfit',OUTFIT,'Outfit color')}
+    <div class="sect" style="padding-inline:0">Hogwarts house</div><div class="seg wrap">${Object.entries(HOUSES).map(([k,h])=>`<button class="${houseOf(av)===h?'on':''}" data-act="av" data-k="house" data-v="${k}">${h[0]}</button>`).join('')}</div></section>
+  <div class="seg">${slots.map(([k,l])=>`<button class="${tab===k?'on':''}" data-act="closettab" data-v="${k}">${l} <span class="num">${count(k)}</span></button>`).join('')}</div>
+  <section class="items">${sorted.map(it).join('')}</section>
+  <p class="mute" style="padding-inline:6px">The colored dot shows which subject a prize comes from: <span class="td" style="background:${TRC.math}"></span> Math, <span class="td" style="background:${TRC.spell}"></span> Spelling, <span class="td" style="background:${TRC.es}"></span> Español, <span class="td" style="background:${TRC.geo}"></span> Geography, <span class="td" style="background:${TRC.sch}"></span> Scholar.</p>`;
+}
+function prizeBook(){
+  const env=prizeEnv(),list=prizeList(),won=list.filter(p=>prizeUnlocked(p.x,env)).length;
+  const rows=TRACKS.map(T=>{
+    const mine=list.filter(p=>p.x.tr===T.k).sort((a,b)=>a.x.at-b.x.at),w=mine.filter(p=>prizeUnlocked(p.x,env)).length,next=mine.find(p=>!prizeUnlocked(p.x,env));
+    return`<section class="card trk" style="--c:${T.c}"><div class="row between"><h3>${T.n} prizes</h3><span class="pill">${w} of ${mine.length}</span></div>
+    <div class="pbar"><i style="width:${Math.round(100*w/mine.length)}%"></i></div>
+    ${next?`<p class="mute">You have <b class="num">${env.tv[T.k]}</b> ${T.unit}. Next prize: <b>${esc(next.name)}</b> at <b class="num">${next.x.at}</b>.</p>`:'<p class="mute">Every prize in this track is yours!</p>'}</section>`;
+  }).join('');
+  const rest=list.filter(p=>!p.x.tr),rw=rest.filter(p=>prizeUnlocked(p.x,env)).length;
+  return`<section class="card"><div class="row between"><h3>Prize book</h3><span class="pill">${won} of ${list.length}</span></div>
+  <div class="pbar big"><i style="width:${Math.round(100*won/list.length)}%"></i></div>
+  <p class="mute">The cool prizes come from school work. Every subject has its own track, and its stars only count for that track. Scholar prizes count touchdowns, and every 100 school stars is a touchdown.</p></section>
+  ${rows}
+  <section class="card"><div class="row between"><h3>Starter, achievement and sports prizes</h3><span class="pill">${rw} of ${rest.length}</span></div><p class="mute">These open with total stars, a streak, or a Sports Club goal.</p></section>`;
+}
+function prizeCardHtml(){
+  const env=prizeEnv(),list=prizeList(),won=list.filter(p=>prizeUnlocked(p.x,env)).length;
+  return`<button class="card prizecard" data-act="prizebook"><span><h3>Prize book</h3><span class="mute">${won} of ${list.length} prizes won. Tap to see what is next.</span></span><b class="num">${won}</b></button>`;
+}
 
 /* ===== Halloween (October 1 to November 2): free decorations and costume pieces, nothing to earn ===== */
 const halloween=()=>{const d=new Date(),m=d.getMonth();return m===9||(m===10&&d.getDate()<=2)};
@@ -2825,8 +3617,8 @@ function parentView(){
     ${S.pinErr?'<div class="fb try">That PIN is not right. Try again.</div>':'<p class="mute">The starting PIN is 1234. Change it under Settings.</p>'}</section>`+tabbar('parent');
   }
   const seg=`<div class="seg">${[['progress','Progress'],['log','Practice log'],['settings','Settings']].map(([k,l])=>`<button class="${S.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</div>`;
-  const sub=S.tab==='progress'?`<div class="seg">${[['math','Math'],['spell','Spelling'],['geo','Geography'],['fb','Sports']].map(([k,l])=>`<button class="${S.psub===k?'on':''}" data-act="psub" data-v="${k}">${l}</button>`).join('')}</div>`:'';
-  return head+seg+sub+(S.tab==='progress'?(S.psub==='spell'?spellProgress():S.psub==='geo'?geoProgress():S.psub==='fb'?sportsProgress():progressTab()):S.tab==='log'?logTab():settingsTab())+tabbar('parent');
+  const sub=S.tab==='progress'?`<div class="seg">${[['math','Math'],['spell','Spelling'],['es','Español'],['geo','Geography'],['fb','Sports']].map(([k,l])=>`<button class="${S.psub===k?'on':''}" data-act="psub" data-v="${k}">${l}</button>`).join('')}</div>`:'';
+  return head+seg+sub+(S.tab==='progress'?(S.psub==='spell'?spellProgress():S.psub==='es'?esProgress():S.psub==='geo'?geoProgress():S.psub==='fb'?sportsProgress():progressTab()):S.tab==='log'?logTab():settingsTab())+tabbar('parent');
 }
 function spellProgress(){
   const ss=spellSess();
@@ -2918,6 +3710,10 @@ function buildView(){
     case'results':h=resultsView();break;
     case'math':h=mathView();break;
     case'spell':h=spellView();break;
+    case'es':h=esView();break;
+    case'esstudy':h=esStudyView();break;
+    case'esrun':h=esRunView();break;
+    case'esresults':h=esResultsView();break;
     case'club':h=clubView();break;
     case'soc':h=socView();break;
     case'socstudy':h=socStudyView();break;
@@ -2946,12 +3742,12 @@ function render(){
   }
   $app.innerHTML=h;
   if(lastView!==S.view){window.scrollTo(0,0);lastView=S.view}
-  const a=document.getElementById('ans')||document.getElementById('spin');
+  const a=document.getElementById('ans')||document.getElementById('spin')||document.getElementById('esin');
   if(a&&!a.disabled)a.focus({preventScroll:true});
   const p=document.getElementById('pin');if(p)p.focus({preventScroll:true});
 }
 function finish(){
-  const exam=run.mode==='exam',before=stats().stars;
+  const exam=run.mode==='exam',before=stats().stars,snap=prizeSnap(),b0=schoolStars();
   const items=run.qs.map((q,i)=>{
     const st=run.st[i];
     if(exam){
@@ -2961,12 +3757,9 @@ function finish(){
     return{t:q.type,k:q.kind,ok:st.ok,h:st.helped?1:0,err:st.err||null,given:st.given};
   });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-run.t0)/1000)),stars:exam?correct*2+5:correct+3,items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,h:i.h||0,to:i.to||0,err:i.err}))};
+  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-run.t0)/1000)),stars:starsFor(exam?'exam':'math',correct),items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,h:i.h||0,to:i.to||0,err:i.err}))};
   saveSession(sess);
-  const now=before+sess.stars;
-  const unlocked=ITEMS.filter(it=>it.at>before&&it.at<=now).map(it=>it.name).concat(roomNew(before,now));
-  const stop=STOPS.filter(p=>p.at>0&&p.at>before&&p.at<=now).map(p=>p.n);
-  run.result=Object.assign({},sess,{items,unlocked,stop});S.view='results';render();
+  run.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),td:driveNote(b0,schoolStars())});S.view='results';render();
 }
 function guidedSubmit(val){
   const q=run.qs[run.i],st=run.st[run.i];
@@ -3007,6 +3800,7 @@ document.addEventListener('keydown',e=>{
   }
   if(e.key!=='Enter')return;
   if(e.target.id==='spin'&&sp){e.preventDefault();act(sp.game==='test'?'spnext':'spcheck');return}
+  if(e.target.id==='esin'&&es){e.preventDefault();act(es.game==='quiz'?'esnext':'escheck');return}
   if(e.target.id==='ans'&&run){e.preventDefault();if(run.mode==='exam')act('next');else guidedSubmit(e.target.value)}
   if(e.target.id==='pin')act('unlock');
 });
@@ -3016,6 +3810,7 @@ document.addEventListener('click',e=>{
 });
 function act(a,v,d){
   const r=run;
+  if(a.slice(0,2)==='es'&&esAct(a,v))return;
   switch(a){
     case'sethome':S.home=v;store.set('lmath.home',v);S.view='home';render();break;
     case'rehome':S.view='pickhome';render();break;
@@ -3025,8 +3820,8 @@ function act(a,v,d){
       const on=S.topics.includes(v)?S.topics.filter(x=>x!==v):[...S.topics,v];
       if(on.length){S.topics=on;store.set('lmath.topics',on);touchProfile()}
       render();break}
-    case'home':S.view='home';S.unlocked=false;run=null;sp=null;render();break;
-    case'exit':S.view=S.from||'home';S.unlocked=false;run=null;sp=null;render();break;
+    case'home':S.view='home';S.unlocked=false;run=null;sp=null;es=null;render();break;
+    case'exit':S.view=S.from||'home';S.unlocked=false;run=null;sp=null;es=null;render();break;
     case'psub':S.psub=v;render();break;
     case'fbstart':if(v==='draft')startDraft();else startQuiz(v);break;
     case'socstudy':S.from='soc';S.view='socstudy';render();break;
@@ -3098,6 +3893,8 @@ function act(a,v,d){
     case'av':setAv(d.k,v);break;
     case'room':setRoom(d.k,v);break;
     case'roomarea':S.roomArea=v;render();break;
+    case'closettab':S.closetTab=v;render();break;
+    case'prizebook':S.roomArea='prizes';S.view='closet';render();break;
     case'posslot':S.posSlot=Number(v);render();break;
     case'mine':setMine(d.k,v);break;
     case'savepost':{const el=document.getElementById('posText');if(el)setMine('text',el.value);break}
