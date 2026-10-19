@@ -343,6 +343,17 @@ textarea.txt{font:inherit;padding:12px 14px;border:0;border-radius:14px;backgrou
 .bigword{background:linear-gradient(135deg,var(--accent-soft),var(--card2));border:2px solid var(--line)}
 .tile{box-shadow:inset 0 -4px 0 var(--accent),inset 0 0 0 2px var(--line)}
 .card:has(.dots){border-top:5px solid var(--accent)}
+.bdaycard{text-align:center;align-items:center;background:linear-gradient(140deg,#E5409B,#8E5CFF 60%,#3AA0F0);color:#fff;border:0;box-shadow:0 0 0 3px #FFD24D,var(--shadow)}
+.bdaycard h2{color:#fff;font-size:1.7rem}
+.bdaycard .bdbig{font-size:3.4rem;line-height:1}
+.bdaycard .fb{color:#fff;background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.6)}
+.giftbtn{background:#FFD24D!important;color:#4A2A00!important;font-size:1.15rem}
+.bdcount{box-shadow:inset 0 0 0 2px #E5409B,var(--shadow)}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:4;overflow:hidden}
+.confetti i{position:absolute;top:-16px;left:var(--x);width:var(--w);height:calc(var(--w)*1.6);background:var(--c);border-radius:2px;opacity:.9}
+@media (prefers-reduced-motion:no-preference){.confetti i{animation:cfall var(--t) linear var(--d) infinite}
+@keyframes cfall{from{transform:translateY(-20px) rotate(0)}to{transform:translateY(105vh) rotate(540deg)}}}
+@media (prefers-reduced-motion:reduce){.confetti{display:none}}
 :root.hw{--spark:rgba(255,140,40,.65);--hero1:#7A2A00;--hero2:#2A0F4A}
 :root.hw .hero{box-shadow:inset 0 0 0 2px rgba(255,140,40,.7),var(--shadow)}
 </style>
@@ -707,6 +718,44 @@ function badges(st){
     {l:'X',n:'Times Titan',d:'Get 20 multiplication problems right',on:mulOk>=20}
   ];
 }
+/* ---------- birthday ---------- */
+const bdayDate=()=>{const b=String((store.get('lmath.avatar',{})||{}).bday||'');return/^\d{4}$/.test(b)?{m:+b.slice(0,2)-1,d:+b.slice(2)}:null};
+function bdayLeft(){
+  const b=bdayDate();if(!b)return null;
+  const n=new Date(),today=new Date(n.getFullYear(),n.getMonth(),n.getDate());
+  let x=new Date(n.getFullYear(),b.m,b.d);if(x<today)x=new Date(n.getFullYear()+1,b.m,b.d);
+  return Math.round((x-today)/86400000);
+}
+const isBirthday=()=>bdayLeft()===0;
+/* on her birthday every star counts double (one session is still capped at 100 by the database rules) */
+const bdayX=n=>Math.min(100,isBirthday()?n*2:n);
+const BD_NOTE='Birthday bonus: all your stars counted double today!';
+const giftYear=()=>'bday'+new Date().getFullYear();
+const giftHas=()=>(getAv().gifts||[]).some(g=>/^bday/.test(g));
+const giftOpened=()=>(getAv().gifts||[]).includes(giftYear());
+const CONF_COL=['#FFD24D','#FF7BAF','#58D68D','#3AA0F0','#8E5CFF','#FF9A3C'];
+const confettiHtml=()=>'<div class="confetti" aria-hidden="true">'+Array.from({length:40},(_,i)=>`<i style="--x:${(i*37+11)%100}%;--d:${(i%10)*.45}s;--t:${3.4+(i%5)*.6}s;--c:${CONF_COL[i%6]};--w:${6+(i%4)*3}px"></i>`).join('')+'</div>';
+function bdayHome(){
+  if(!isBirthday())return'';
+  const opened=giftOpened();
+  return`${confettiHtml()}<section class="card bdaycard"><b class="bdbig" aria-hidden="true">🎂</b><h2>Happy Birthday, Laila!</h2>
+  <p>Today is your day! <b>Every star you earn today counts double.</b> Your party hat is on, and your room is decorated.</p>
+  ${opened?`<div class="fb good">Your gift is open! The Birthday crown and the Birthday sash are in your closet.</div><div class="row"><button class="btn" data-act="wearbday">Wear them now</button></div>`
+  :`<button class="btn giftbtn" data-act="opengift"><span aria-hidden="true">🎁</span> Open your gift</button>`}</section>`;
+}
+function bdayCountdown(){
+  const l=bdayLeft();if(l===null||l<1||l>30)return'';
+  return`<section class="card bdcount"><div class="hwtop"><b class="hwnum num">${l}</b><div><h3>${l===1?'day':'days'} until your birthday!</h3><span class="mute">On your birthday there is a surprise, a gift, and all your stars count double.</span></div></div><div class="pbar"><i style="width:${Math.round(100*(30-l)/30)}%"></i></div></section>`;
+}
+function bdayRoom(){
+  if(!isBirthday())return'';
+  const L='HAPPYBIRTHDAY'.split(''),cols=['#E5484D','#FF9A3C','#FFD24D','#58D68D','#3AA0F0','#8E5CFF','#FF7BAF'];
+  let s='<path d="M0 8Q120 44 240 16T480 8" stroke="#6B5A3A" stroke-width="1.4" fill="none"/>';
+  L.forEach((ch,i)=>{const x=22+i*34,y=14+Math.sin(i*.52)*12+(i>=5?4:0);s+=`<g transform="translate(${x} ${y.toFixed(1)}) rotate(${(Math.cos(i*.52)*6).toFixed(1)})"><path d="M-12 0H12V20L0 30L-12 20Z" fill="${cols[i%7]}" stroke="#fff" stroke-width="1.2"/><text y="18" text-anchor="middle" font-size="16" font-weight="800" fill="#fff" style="font-family:Inter,system-ui,sans-serif">${ch}</text></g>`});
+  const bal=(x,y,c)=>`<path d="M${x} ${y+14}Q${x+6} ${y+50} ${x-2} ${y+84}" stroke="#E7E1EE" stroke-width="1" fill="none"/><ellipse cx="${x}" cy="${y}" rx="11" ry="14" fill="${c}"/><ellipse cx="${x-4}" cy="${y-5}" rx="2.6" ry="4" fill="#fff" opacity=".55"/><path d="M${x-2} ${y+14}L${x} ${y+18}L${x+2} ${y+14}Z" fill="${c}"/>`;
+  [[24,196,'#FF7BAF'],[48,180,'#FFD24D'],[72,200,'#3AA0F0'],[100,186,'#58D68D'],[452,176,'#8E5CFF'],[432,192,'#E5484D'],[466,202,'#FF9A3C']].forEach(b=>{s+=bal(b[0],b[1],b[2])});
+  return s;
+}
 /* ---------- Today's Playbook: math + spelling + (Español or geography) in one day = +25 stars ---------- */
 const PB_BONUS=25;
 const pbCat=s=>s.mode==='geo'?'geo':isEs(s)?'es':s.mode==='spell'?'spell':['smart','guided','exam'].includes(s.mode)?'math':null;
@@ -790,6 +839,7 @@ const trackVals=()=>({math:sumStars(mathSess()),spell:sumStars(spellSess()),es:s
 function prizeEnv(){return{stars:stats().stars,school:schoolStars(),tv:trackVals(),inf:nflInfo(nflSess()),memo:{}}}
 const reqKey=x=>typeof x.r==='string'?x.r:typeof x.at==='string'?x.at:null;
 function prizeUnlocked(x,env){
+  if(x.gift)return giftHas();
   if(x.tr)return env.tv[x.tr]>=x.at;
   if(x.nfl)return nflHas(x.id,env.inf);
   if(x.u)return extraHas(x.id);
@@ -807,7 +857,7 @@ function lockText(x,env){
 }
 /* every prize she can win: closet things and room things (not seasonal costumes, the empty choices, or the make-your-own poster) */
 function prizeList(){
-  const out=ITEMS.filter(x=>!x.season).map(x=>({key:'c:'+x.id,x,name:x.name,kind:'closet'}));
+  const out=ITEMS.filter(x=>!x.season&&!x.gift).map(x=>({key:'c:'+x.id,x,name:x.name,kind:'closet'}));
   ROOM_G.forEach(g=>g.opts.forEach(o=>{if(o.id==='none'||o.id==='mine')return;out.push({key:'r:'+g.k+':'+o.id,x:o,name:o.name+' ('+g.label.toLowerCase()+')',kind:'room',g})}));
   return out;
 }
@@ -908,6 +958,7 @@ function getAv(){
 function mixHex(a,b,k){const p=x=>[1,3,5].map(i=>parseInt(x.slice(i,i+2),16)),A=p(a),B=p(b);return'#'+A.map((v,i)=>Math.round(v+(B[i]-v)*k).toString(16).padStart(2,'0')).join('')}
 const lighten=(h,k)=>mixHex(h,'#FFFFFF',k),darken=(h,k)=>mixHex(h,'#000000',k);
 function avatarSvg(c){
+  if(isBirthday()&&!c._nobday)c=Object.assign({},c,{head:'bdayhat'});
   const skin=SKIN[c.skin]||SKIN[1],hair=HAIR[c.hair]||HAIR[1],out=OUTFIT[c.outfit]||OUTFIT[0];
   let back='';
   if(c.style==='curly')back=cloud(60,50,30,12,13,hair);
@@ -1127,6 +1178,8 @@ Object.assign(PRZ.top,{
   champcape:X=>({top:`<path d="M12 130C14 98 36 90 60 90C84 90 108 98 108 130Z" fill="${X.lg('chc','#E5484D','#7A0E24')}"/><path d="M30 130C32 112 38 100 46 95M90 130C88 112 82 100 74 95M44 130L48 108M76 130L72 108" stroke="#000" stroke-width="1.6" fill="none" opacity=".3"/><path d="M12 124H108" stroke="#FFD24D" stroke-width="3"/><path d="M12 128H108" stroke="#FFD24D" stroke-width="1" opacity=".7"/>`,topD:`<path d="M40 93Q46 100 52 94Q56 101 60 95Q64 101 68 94Q74 100 80 93L76 90Q60 99 44 90Z" fill="#fff"/>${[48,58,66,76].map((x,i)=>`<circle cx="${x}" cy="${95+(i%2)}" r="1.1" fill="#2A1630"/>`).join('')}<circle cx="60" cy="103" r="4" fill="${X.GOLD}" stroke="#8A5A0C" stroke-width=".8"/>${X.sp(60,103,2.6,'#fff')}`})
 });
 Object.assign(PRZ.head,{
+  bdayhat:X=>`<g transform="rotate(-10 60 44)"><path d="M38 46L60 2L82 46Z" fill="${X.lg('bdh','#FF7BAF','#C21E7A')}"/><path d="M44 38L74 32M41 45L79 39M50 26L70 22" stroke="#FFD24D" stroke-width="3"/>${[[54,31],[66,38],[60,16],[48,42]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="1.7" fill="#fff"/>`).join('')}<path d="M36 46Q60 54 84 46Q60 42 36 46Z" fill="#FFD24D"/>${cloud(60,3,3.8,8,2.4,'#7FF0E4')}</g>${X.sp(28,16,3.2,'#FFE680')}${X.sp(94,20,2.6,'#fff')}${star(100,40,3,'#FF7BAF')}`,
+  bdaycrown:X=>`<path d="M34 46L36 28L48 36L60 22L72 36L84 28L86 46Q60 52 34 46Z" fill="${X.GOLDH}" stroke="#8A5A0C" stroke-width=".8"/>${[[44,26],[60,12],[76,26]].map(p=>`<rect x="${p[0]-2.4}" y="${p[1]}" width="4.8" height="12" rx="1.4" fill="#FF7BAF" stroke="#fff" stroke-width=".6"/><path d="M${p[0]} ${p[1]-1}Q${p[0]-3.2} ${p[1]-6} ${p[0]} ${p[1]-9}Q${p[0]+3.2} ${p[1]-6} ${p[0]} ${p[1]-1}Z" fill="#FFB400"/>`).join('')}<circle cx="48" cy="42" r="2" fill="#fff"/><circle cx="60" cy="43.4" r="2.2" fill="#6FB6FF"/><circle cx="72" cy="42" r="2" fill="#fff"/>`,
   suncap:X=>`<path d="M30 49Q29 19 60 17Q91 19 90 49Z" fill="${X.lg('scp','#FFE066','#E8A81A')}"/><path d="M60 17V49M44 21Q42 36 42 49M76 21Q78 36 78 49" stroke="#B07A0A" stroke-width=".9" fill="none" opacity=".5"/><circle cx="60" cy="16.6" r="2.4" fill="#B07A0A"/><path d="M24 50Q60 66 96 50Q60 44 24 50Z" fill="${X.lg('scb','#FFF3B0','#E0A81A')}"/><path d="M28 51Q60 62 92 51" stroke="#B07A0A" stroke-width=".8" fill="none" opacity=".55"/>${star(60,34,6,'#fff')}`,
   partyhat:X=>`<g transform="rotate(12 60 44)"><path d="M38 46L60 4L82 46Z" fill="${X.lg('pty','#FF7BAF','#C21E7A')}"/><path d="M45 36L74 30M41 44L79 38M52 24L69 21" stroke="#FFD24D" stroke-width="3" opacity=".9"/>${[[54,32],[66,40],[60,18],[48,42]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="1.6" fill="#fff"/>`).join('')}<path d="M36 46Q60 54 84 46Q60 42 36 46Z" fill="#FFD24D"/>${cloud(60,3,3.6,8,2.2,'#7FF0E4')}</g>`,
   tophat:X=>`<rect x="40" y="6" width="40" height="38" rx="3" fill="${X.lg('tph','#3A3F5C','#0E1020','h')}"/><path d="M42 33H78V40H42Z" fill="#C0303F"/><ellipse cx="60" cy="43" rx="40" ry="8" fill="${X.lg('tpb','#2A2F4A','#0A0C18')}"/><ellipse cx="60" cy="6" rx="20" ry="4" fill="#4A5078"/><path d="M46 14V30" stroke="#fff" stroke-width="1.6" opacity=".25" stroke-linecap="round"/>${X.sp(70,22,3.2,'#FFE680')}${X.sp(54,26,2,'#fff')}`,
@@ -1155,6 +1208,7 @@ Object.assign(PRZ.head,{
 });
 const FLAGPOLE=(x,y)=>`<path d="M${x} ${y}V${y+34}" stroke="#8A5A34" stroke-width="2" stroke-linecap="round"/><circle cx="${x}" cy="${y}" r="1.8" fill="#E3B94F"/>`;
 Object.assign(PRZ.extra,{
+  bdaysash:X=>`<path d="M30 98L42 93L92 128L80 133Z" fill="${X.lg('bds','#FF7BAF','#C21E7A')}" stroke="#fff" stroke-width=".8"/><text transform="translate(61 113) rotate(37)" text-anchor="middle" style="fill:#fff;font:800 7px Inter,system-ui,sans-serif">BIRTHDAY</text>${X.sp(36,100,2.4,'#FFE680')}`,
   calc:X=>`<g transform="translate(99 112) rotate(8)"><rect x="-12" y="-16" width="24" height="32" rx="4" fill="${X.lg('cal','#6B73A8','#232842')}" stroke="#0E1020" stroke-width=".8"/><rect x="-9" y="-13" width="18" height="8" rx="1.6" fill="#C8F5D0"/><text x="8" y="-6.6" text-anchor="end" style="fill:#14502A;font:800 6px Inter,system-ui,sans-serif">42</text>${[-6,0,6].flatMap(x=>[-1,5,11].map(y=>`<circle cx="${x}" cy="${y}" r="2.2" fill="${x===6&&y===11?'#FF9A3C':'#E7E9F0'}"/>`)).join('')}</g>`,
   abacus:X=>`<g transform="translate(99 110) rotate(6)"><rect x="-15" y="-13" width="30" height="26" rx="2.4" fill="none" stroke="${X.lg('abf','#B07A4A','#6B4220')}" stroke-width="3.4"/>${[-7,-2,3,8].map((y,i)=>`<path d="M-13 ${y}H13" stroke="#6B4220" stroke-width=".9"/>${[0,1,2,3].map(k=>`<circle cx="${-9+k*4.6+(i%2?6:0)}" cy="${y}" r="2.2" fill="${['#E5484D','#FFD24D','#58D68D','#3AA0F0'][i]}" stroke="#2A1630" stroke-width=".5"/>`).join('')}`).join('')}</g>`,
   protractor:X=>`<g transform="translate(100 112) rotate(-12)"><path d="M-15 8A15 15 0 0 1 15 8Z" fill="rgba(120,190,255,.5)" stroke="#2B6FD0" stroke-width="1"/>${Array.from({length:7},(_,i)=>{const a=Math.PI*(i/6);return`<path d="M${(-13.4*Math.cos(a)).toFixed(1)} ${(8-13.4*Math.sin(a)).toFixed(1)}L${(-15*Math.cos(a)).toFixed(1)} ${(8-15*Math.sin(a)).toFixed(1)}" stroke="#2B6FD0" stroke-width=".8"/>`}).join('')}<path d="M-15 8H15" stroke="#2B6FD0" stroke-width="1"/><path d="M-4 8L-13 8L-4 -2Z" fill="rgba(255,210,77,.7)" stroke="#B07A0A" stroke-width=".8" transform="translate(6 12)"/></g>`,
@@ -1557,7 +1611,7 @@ function finishSpell(){
       return{w:it.w,ok,h:it.helped?1:0,err:!ok&&(g==='cards'||g==='sent')&&it.given?spErr(it.given,it.w):null,given:it.given||''};
     });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-sp.t0)/1000)),stars:Math.min(100,starsFor(g==='test'?'spelltest':'spell',correct)+pbB),
+  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-sp.t0)/1000)),stars:bdayX(starsFor(g==='test'?'spelltest':'spell',correct)+pbB),
     items:items.map(i=>({t:'sp',g,w:i.w,ok:i.ok,h:i.h,err:i.err}))};
   saveSession(sess);
   sp.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),pb:pbB});
@@ -1798,7 +1852,7 @@ function finishNfl(game,items,missed){
   const aw=nflAward(items);
   const correct=items.filter(i=>i.ok).length;
   const started=game==='draft'?fd.t0:nq.t0;
-  const sess={ts:Date.now(),mode:'nfl',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-started)/1000)),stars:aw.total,
+  const sess={ts:Date.now(),mode:'nfl',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-started)/1000)),stars:bdayX(aw.total),
     items:items.map(i=>({t:'nfl',g:game,c:i.c,k:i.k,ok:i.ok,h:i.h||0,err:null}))};
   const bs=stats().stars;
   saveSession(sess);
@@ -1866,10 +1920,12 @@ function homeView(){
   const mastered=cur.words.filter(w=>wordLevel(wst[w.toLowerCase()])==='m').length;
   const lastMath=mathSess()[0];
   return home+`
+  ${bdayHome()}
   <section class="hero"><div class="av">${avatarSvg(av)}</div>
     <div class="who"><h2>Hi, Laila!</h2><span>${st.streak?`${st.streak}-day winning streak`:'Ready for your next lesson?'}</span></div>
     <div class="stats"><div class="stat"><b class="num">${st.stars}</b><span>stars</span></div><div class="stat"><b class="num">${st.streak}</b><span>day streak</span></div><div class="stat"><b class="num">${S.sessions.length}</b><span>sessions</span></div></div>
     <div class="journey">${journeySvg(st.stars)}<p>${nextTxt}</p></div></section>
+  ${bdayCountdown()}
   ${halloween()?halloweenCard():''}
   ${playbookHtml()}
   ${counterHtml()}
@@ -2000,7 +2056,7 @@ function resultsView(){
   const msg=p>=90?'Amazing work! You really know this.':p>=75?'Strong work. A little more practice and it will be even better.':'Good effort. Every try builds the skill. Keep going.';
   const missed=run.qs.map((q,i)=>({q,it:s.items[i]})).filter(x=>!x.it.ok);
   const fact=FACTS[Math.floor(Math.random()*FACTS.length)];
-  const wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.pb?[PB_NOTE]:[])];
+  const wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.pb?[PB_NOTE]:[]),...(isBirthday()?[BD_NOTE]:[])];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Full time!</span><span style="min-width:64px"></span></div>`+`
   <section class="card"><h2>${exam?'Final whistle!':'Great session!'}</h2>
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
@@ -2128,7 +2184,7 @@ function spResultsView(){
   const s=sp.result,p=pct(s),test=sp.game==='test';
   const msg=p>=90?'Amazing spelling! You really know these words.':p>=75?'Strong work. A little more practice and every word will stick.':'Good effort. Every try builds the skill. Keep going.';
   const missed=s.items.filter(i=>!i.ok),helped=s.items.filter(i=>i.ok&&i.h).length;
-  const wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.pb?[PB_NOTE]:[])];
+  const wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.pb?[PB_NOTE]:[]),...(isBirthday()?[BD_NOTE]:[])];
   const fact=FACTS[Math.floor(Math.random()*FACTS.length)];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Great job!</span><span style="min-width:64px"></span></div>
   <section class="card"><h2>${test?'Test complete!':'Nice practice!'}</h2>
@@ -2216,7 +2272,7 @@ function fbResView(){
   const wins=[
     ...x.cards.map(n=>`New card: ${n}`),...x.divs.map(d=>`${d} champion! Bonus stars added.`),...x.confs.map(c=>`${c} champion! Bonus stars and a prize.`),
     ...(x.allNow?['Hall of Fame! You mastered all 32 teams.']:[]),...(x.rulesNew>0&&x.milestone>0&&!x.divs.length&&!x.confs.length?['Rules bonus earned!']:[]),
-    ...x.items.map(n=>`New prize: ${n}`),...x.stops.map(n=>`Your broom reached ${n}!`),...(x.playbook?[PB_NOTE]:[])
+    ...x.items.map(n=>`New prize: ${n}`),...x.stops.map(n=>`Your broom reached ${n}!`),...(x.playbook?[PB_NOTE]:[]),...(isBirthday()?[BD_NOTE]:[])
   ];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">${x.sport==='geo'?'Quiz complete!':'Final whistle!'}</span><span style="min-width:64px"></span></div>
   <section class="card"><h2>${esc(gameName(x.game))} complete!</h2>
@@ -2525,7 +2581,7 @@ function finishOther(sport,items,missed){
   const snap=prizeSnap(),bs=stats().stars,pbB=sport==='geo'?playbookBonus('geo'):0;
   const aw=sport==='soc'?sportAward(socSess(),items,'Kickoff bonus'):geoAward(items);
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:sport,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-nq.t0)/1000)),stars:Math.min(100,aw.total+pbB),
+  const sess={ts:Date.now(),mode:sport,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-nq.t0)/1000)),stars:bdayX(aw.total+pbB),
     items:items.map(i=>({t:sport,g:nq.game,c:i.c,k:i.k,ok:i.ok,h:i.h||0,err:null}))};
   saveSession(sess);
   fbres={game:nq.game,sport,sess,aw,missed,playbook:pbB,cards:[],divs:[],confs:[],allNow:false,rulesNew:0,milestone:0,
@@ -2762,7 +2818,7 @@ function finishEs(){
     return{w:it.es,ok:!!it.ok,h:it.helped?1:0,given:String(it.given||'').slice(0,40)};
   });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-es.t0)/1000)),stars:Math.min(100,starsFor(g==='quiz'?'estest':'es',correct)+pbB),
+  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-es.t0)/1000)),stars:bdayX(starsFor(g==='quiz'?'estest':'es',correct)+pbB),
     items:items.map(i=>({t:'es',g,w:i.w,ok:i.ok,h:i.h,err:null,given:i.given}))};
   saveSession(sess);
   es.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(bs),pb:pbB});
@@ -2863,7 +2919,7 @@ function esRunView(){
 function esResultsView(){
   const s=es.result,p=pct(s),quiz=es.game==='quiz';
   const msg=p>=90?'¡Fantástico! You really know these words.':p>=75?'¡Muy bien! A little more practice and every word will stick.':'¡Buen trabajo! Every try builds the skill. Keep going.';
-  const missed=s.items.filter(i=>!i.ok),wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.pb?[PB_NOTE]:[])];
+  const missed=s.items.filter(i=>!i.ok),wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.pb?[PB_NOTE]:[]),...(isBirthday()?[BD_NOTE]:[])];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">¡Buen trabajo!</span><span style="min-width:64px"></span></div>
   <section class="card"><h2>${quiz?'¡Examen completo!':'¡Qué bien!'}</h2>
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
@@ -3268,6 +3324,7 @@ function roomSvg(R,av){
   if(pr==='owl')dec=`<rect x="-14" y="-14" width="28" height="28" rx="10" fill="#B9A38A"/><circle cx="-6" cy="-3" r="5" fill="#fff"/><circle cx="6" cy="-3" r="5" fill="#fff"/><circle cx="-6" cy="-3" r="2" fill="#2A1630"/><circle cx="6" cy="-3" r="2" fill="#2A1630"/><path d="M-2 4L0 8L2 4Z" fill="#E8832A"/>`;
   if(!dec)dec=pillowExtra(pr,ac);
   g+=hot('bed',`<rect x="118" y="176" width="188" height="70" rx="14" fill="${sh.fill}" stroke="rgba(0,0,0,.12)"/><rect x="118" y="176" width="188" height="70" rx="14" fill="url(#qlt)"/><rect x="118" y="176" width="188" height="15" rx="7" fill="#fff" opacity=".92"/><path d="M126 192Q212 200 298 192" stroke="rgba(0,0,0,.12)" stroke-width="2" fill="none"/><path d="M150 201Q154 222 148 240M212 203V243M274 201Q270 222 276 240" stroke="rgba(0,0,0,.08)" stroke-width="2" fill="none"/><rect x="116" y="240" width="192" height="14" rx="4" fill="url(#frg)"/><rect x="116" y="240" width="192" height="3" rx="1.5" fill="#fff" opacity=".35"/><rect x="122" y="252" width="8" height="8" fill="${dark(frame)}"/><rect x="294" y="252" width="8" height="8" fill="${dark(frame)}"/>${dec?`<g transform="translate(262 206)">${dec}</g>`:''}`);
+  g+=bdayRoom();
   g+=`<rect width="480" height="300" fill="url(#vig)" pointer-events="none"/>`;
   return`<svg class="roomsvg" viewBox="0 0 480 300" role="img" aria-label="Laila's bedroom">${g}</svg>`;
 }
@@ -3616,13 +3673,15 @@ TRACKS.forEach(T=>{
   L.forEach((e,k)=>{e.m.x.at=trThr(T.k,k,L.length)});
 });
 const PRIZE_TOTAL=365;
+/* birthday gift: not part of the 365, it is a present */
+ITEMS.push({id:'bdaycrown',slot:'head',name:'Birthday crown',at:0,gift:'bday'},{id:'bdaysash',slot:'extra',name:'Birthday sash',at:0,gift:'bday'});
 const TRC=Object.fromEntries(TRACKS.map(t=>[t.k,t.c]));
 /* a little picture of each closet prize: Laila wearing only that thing, cropped to where it sits */
 const thumbCache={};
 function itemThumb(x){
   const av=getAv(),k=[x.id,av.skin,av.hair,av.style,av.outfit,av.house].join('|');
   if(thumbCache[k])return thumbCache[k];
-  const c=Object.assign({},av,{head:'',top:'tee',extra:[]});
+  const c=Object.assign({},av,{head:'',top:'tee',extra:[],_nobday:1});
   if(x.slot==='head')c.head=x.id;else if(x.slot==='top')c.top=x.id;else c.extra=[x.id];
   const vb=x.slot==='head'?'8 0 104 74':x.slot==='top'?'4 84 112 50':'0 16 120 114';
   let s=avatarSvg(c).replace('viewBox="0 0 120 130"',`viewBox="${vb}"`).replace('role="img" aria-label="Laila\'s avatar"','aria-hidden="true"');
@@ -3634,7 +3693,7 @@ function closetPanel(){
   const it=x=>{const un=prizeUnlocked(x,env),on=x.slot==='extra'?av.extra.includes(x.id):av[x.slot]===x.id;
     return`<button class="item ${on?'on':''} ${un?'':'lock'}" ${un?'':'disabled'} data-act="av" data-k="item" data-v="${x.id}"><span class="th">${itemThumb(x)}</span><span class="tx"><b>${x.tr?`<i class="td" style="background:${TRC[x.tr]}"></i>`:''}${esc(x.name)}</b><small>${un?(on?'Wearing it':'Tap to wear'):esc(lockText(x,env))}</small></span></button>`};
   const slots=[['top','Shirts'],['head','Hats'],['extra','Extras']];
-  const vis=x=>!x.season||halloween()||[av.top,av.head,...av.extra].includes(x.id);
+  const vis=x=>{const worn=[av.top,av.head,...av.extra].includes(x.id);return(!x.season||halloween()||worn)&&(!x.gift||giftHas()||worn)};
   const list=ITEMS.filter(x=>x.slot===tab&&vis(x)),sorted=[...list.filter(x=>prizeUnlocked(x,env)),...list.filter(x=>!prizeUnlocked(x,env))];
   const count=k=>{const l=ITEMS.filter(x=>x.slot===k&&vis(x));return l.filter(x=>prizeUnlocked(x,env)).length+'/'+l.length};
   return`<section class="card"><h3>Your closet</h3><p class="mute">Change how Laila looks. Tap Laila in the room, or Closet, any time.</p>${sw('skin',SKIN,'Skin')}${sw('hair',HAIR,'Hair color')}
@@ -3791,9 +3850,10 @@ function settingsTab(){
   <label class="row">Exam length <select id="examLen">${[10,11,12,13,14,15].map(n=>`<option ${Number(S.settings.examLen)===n?'selected':''}>${n}</option>`).join('')}</select> questions</label>
   <label class="row">Exam timer <select id="examTimer"><option value="on" ${timerOn()?'selected':''}>${fmtT(EXAM_SECS)} per question</option><option value="off" ${timerOn()?'':'selected'}>Off</option></select></label>
   <label class="row">Sports Club <select id="fbOn"><option value="on" ${fbOn()?'selected':''}>Show (extra, just for fun)</option><option value="off" ${fbOn()?'':'selected'}>Hide</option></select></label>
+  <label class="row">Birthday <select id="bdM">${['','January','February','March','April','May','June','July','August','September','October','November','December'].map((m,i)=>`<option value="${i?String(i).padStart(2,'0'):''}" ${(bdayDate()&&bdayDate().m+1===i)?'selected':''}>${m||'Not set'}</option>`).join('')}</select> <select id="bdD">${Array.from({length:32},(_,i)=>`<option value="${i?String(i).padStart(2,'0'):''}" ${(bdayDate()&&bdayDate().d===i)?'selected':''}>${i||'Day'}</option>`).join('')}</select></label>
   <label class="row">New parent PIN <input class="txt" id="newPin" type="password" inputmode="numeric" maxlength="8" placeholder="leave blank to keep" style="width:200px"></label>
   <div class="row"><button class="btn" data-act="saveSettings">Save settings</button><span id="saved" class="mute"></span></div>
-  <p class="mute">The PIN, exam length, timer and Sports Club switch are saved on this device only (the PIN is never uploaded). Set them the same on each computer. Progress, her avatar and closet, her word lists and math topics sync between homes.</p></section>
+  <p class="mute">The birthday syncs between homes with her look. The PIN, exam length, timer and Sports Club switch are saved on this device only (the PIN is never uploaded). Set them the same on each computer. Progress, her avatar and closet, her word lists and math topics sync between homes.</p></section>
   <section class="card"><h3>My spelling lists</h3>
   <p class="mute">Unit 3 is built in. Add a list here for another unit or extra words. Custom lists sync to both homes.</p>
   ${customLists().length?customLists().map(l=>`<div class="row between"><span><b>${esc(l.name)}</b> <span class="mute">${l.words.length} words</span></span><button class="btn quiet" data-act="dellist" data-v="${esc(l.id)}">Remove</button></div>`).join(''):''}
@@ -3865,7 +3925,7 @@ function finish(){
     return{t:q.type,k:q.kind,ok:st.ok,h:st.helped?1:0,err:st.err||null,given:st.given};
   });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-run.t0)/1000)),stars:Math.min(100,starsFor(exam?'exam':'math',correct)+pbB),items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,h:i.h||0,to:i.to||0,err:i.err}))};
+  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-run.t0)/1000)),stars:bdayX(starsFor(exam?'exam':'math',correct)+pbB),items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,h:i.h||0,to:i.to||0,err:i.err}))};
   saveSession(sess);
   run.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),pb:pbB});S.view='results';render();
 }
@@ -4002,6 +4062,8 @@ function act(a,v,d){
     case'room':setRoom(d.k,v);break;
     case'roomarea':S.roomArea=v;render();break;
     case'closettab':S.closetTab=v;render();break;
+    case'opengift':{const a=getAv();if(isBirthday()&&!giftOpened()){a.gifts=[...(a.gifts||[]),giftYear()].slice(-6);store.set('lmath.avatar',a);touchProfile()}render();break}
+    case'wearbday':{const a=getAv();if(giftHas()){a.head='bdaycrown';if(!a.extra.includes('bdaysash'))a.extra=[...a.extra,'bdaysash'];store.set('lmath.avatar',a);touchProfile()}render();break}
     case'prizebook':S.roomArea='prizes';S.view='closet';render();break;
     case'posslot':S.posSlot=Number(v);render();break;
     case'mine':setMine(d.k,v);break;
@@ -4011,6 +4073,7 @@ function act(a,v,d){
     case'saveSettings':{
       const n=Number(document.getElementById('examLen').value),np=document.getElementById('newPin').value.trim();
       S.settings.examLen=n;S.settings.examTimer=document.getElementById('examTimer').value!=='off';S.settings.football=document.getElementById('fbOn').value!=='off';if(/^\d{4,8}$/.test(np))S.settings.pin=np;
+      {const bm=document.getElementById('bdM'),bd=document.getElementById('bdD');if(bm&&bd){const a=getAv();if(bm.value&&bd.value)a.bday=bm.value+bd.value;else delete a.bday;store.set('lmath.avatar',a);touchProfile()}}
       store.set('lmath.settings',S.settings);
       render();const s=document.getElementById('saved');if(s)s.textContent=np&&!/^\d{4,8}$/.test(np)?'Saved. PIN must be 4 to 8 digits, so it was not changed.':'Saved.';break}
     case'pick':
