@@ -1,5 +1,5 @@
 // Laila's Lab weekly report. Usage: node weekly.js csv YYYY-MM   |   node weekly.js report [YYYY-MM-DD as "today"]
-// Reads her practice history from the public database, in Eastern time. Needs Node 18+.
+// Reads her practice history from the public database, in Eastern time. Needs Node 16+ and curl.
 const PROJECT='lailas-math-lab',ET='America/New_York';
 const dayKey=ts=>new Intl.DateTimeFormat('en-CA',{timeZone:ET,year:'numeric',month:'2-digit',day:'2-digit'}).format(ts);
 const timeOf=ts=>new Intl.DateTimeFormat('en-US',{timeZone:ET,hour:'numeric',minute:'2-digit'}).format(ts);
@@ -13,9 +13,9 @@ async function fetchAll(){
   for(;;){
     const q={from:[{collectionId:'sessions'}],orderBy:[{field:{fieldPath:'ts'},direction:'DESCENDING'}],limit:500};
     if(before!=null)q.where={fieldFilter:{field:{fieldPath:'ts'},op:'LESS_THAN',value:{doubleValue:before}}};
-    const r=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({structuredQuery:q})});
-    if(!r.ok)throw new Error('database '+r.status);
-    const rows=(await r.json()).filter(x=>x.document);
+    /* curl is used instead of fetch because it follows the proxy settings of sandboxes and servers */
+    const raw=require('child_process').execFileSync('curl',['-sS','--fail','-X','POST','-H','content-type: application/json','-d',JSON.stringify({structuredQuery:q}),url],{maxBuffer:100*1024*1024}).toString();
+    const rows=JSON.parse(raw).filter(x=>x.document);
     rows.forEach(x=>{const o={id:x.document.name.split('/').pop()};for(const k in x.document.fields)o[k]=dec(x.document.fields[k]);out.push(o)});
     if(rows.length<500)break;before=out[out.length-1].ts;
   }
