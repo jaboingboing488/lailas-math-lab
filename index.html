@@ -142,6 +142,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .choice.bad{background:var(--warn-bg);box-shadow:inset 0 0 0 3px var(--warn);opacity:.7}
 .choice.ok{background:var(--good-bg);box-shadow:inset 0 0 0 3px var(--good)}
 input.ans{font-family:var(--f-num);font-weight:700;font-size:2rem;width:100%;max-width:280px;padding:10px 16px;border:0;border-radius:18px;background:var(--card2);box-shadow:inset 0 0 0 2px var(--line);color:var(--ink)}
+.learn ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.learn li{display:flex;gap:10px;align-items:flex-start}
+.learn li i{font-style:normal;flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:#fff;font-size:.85rem;font-weight:800}
+.revcard{box-shadow:inset 0 0 0 2px var(--gold)}
 .dn{display:block;color:var(--good);font-weight:700;font-size:.78rem;margin-top:2px}
 .fb{border-radius:18px;padding:12px 16px;font-weight:800}
 .fb.good{background:var(--good-bg);color:var(--good)}
@@ -434,34 +438,36 @@ const ADDW=[
 const smallerBigger=q=>{const x=dg(q.a),y=dg(q.b);return[0,1,2].reduce((s,i)=>s+Math.abs(x[i]-y[i])*10**i,0)};
 const forgotReduce=q=>{const x=dg(q.a),y=dg(q.b);return[0,1,2].reduce((s,i)=>s+(x[i]+(x[i]<y[i]?10:0)-y[i])*10**i,0)};
 const noCarry=q=>{const x=dg(q.a),y=dg(q.b);return[0,1,2].reduce((s,i)=>s+((x[i]+y[i])%10)*10**i,0)};
-function makeMul(type,fmt){
-  const n=pick(NAMES);
+function makeMul(type,fmt,lv){
+  lv=lv==null?1:lv;
+  const n=pick(NAMES),ra=lv===0?[2,5]:lv===2?[6,9]:[2,9],rb=lv===0?[2,6]:lv===2?[6,10]:[2,10];
   let a,b,ans,text,form=null,prod=0;
-  if(type==='mulmiss'){a=ri(2,9);b=ri(2,10);prod=a*b;ans=b;form='mf';text=pick([`${a} × ? = ${prod}`,`? × ${a} = ${prod}`])}
-  else if(type==='mulword'){a=ri(2,9);b=ri(2,10);ans=a*b;text=pick(MULW)(a,b,n)}
-  else{[a,b]=TYPES[type].gen();ans=a*b;text=`${a} × ${b} = ?`}
-  const q={type,kind:type,op:'×',a,b,ans,text,fmt,form,prod};
+  if(type==='mulmiss'){a=ri(ra[0],ra[1]);b=ri(rb[0],rb[1]);prod=a*b;ans=b;form='mf';text=pick([`${a} × ? = ${prod}`,`? × ${a} = ${prod}`])}
+  else if(type==='mulword'){a=ri(ra[0],ra[1]);b=ri(rb[0],rb[1]);ans=a*b;text=pick(MULW)(a,b,n)}
+  else{[a,b]=genAt(type,lv);ans=a*b;text=`${a} × ${b} = ?`}
+  const q={type,kind:type,op:'×',a,b,ans,text,fmt,form,prod,lv};
   const pool=type==='mulmiss'?[prod-a,ans+1,ans-1,ans+2,ans-2,prod+a,a]
     :[...(type==='mul10'?[ans/10]:[]),a+b,ans+a,ans-a,ans+b,ans-b,ans+10,ans-10,ans+1,ans-1,ans+2,ans+3].filter(v=>v!==undefined);
   const ds=[...new Set(pool.filter(v=>v>=0&&v<=1000&&v!==ans))].slice(0,3);
   q.choices=shuffle([ans,...ds]);
   return q;
 }
-function makeQ(type,fmt){
-  if(type==='mulmiss'||type==='mulword'||TYPES[type].op==='×')return makeMul(type,fmt);
+function makeQ(type,fmt,lv){
+  lv=lv==null?1:lv;
+  if(type==='mulmiss'||type==='mulword'||TYPES[type].op==='×')return makeMul(type,fmt,lv);
   const SUBK=['sub2','sub3o','sub3t','sub3b','subz','sub32'];
   let t=type,form=null,a,b;
   if(type==='word')t=pick([...SUBK,'add3','add3']);
   if(type==='miss'){form=pick(['addend','minuend','start']);t=form==='start'?'add3':pick(SUBK)}
   const op=TYPES[t].op;
-  [a,b]=TYPES[t].gen();
+  [a,b]=genAt(t,lv);
   const ans=op==='-'?a-b:a+b;
   const n=pick(NAMES);
   let text;
   if(type==='word')text=(op==='-'?pick(SUBW):pick(ADDW))(a,b,n);
   else if(type==='miss')text=form==='addend'?`${b} + ? = ${a}`:form==='minuend'?`${a} − ? = ${b}`:`? − ${b} = ${a}`;
   else text=`${a} ${op==='-'?'−':'+'} ${b} = ?`;
-  const q={type,kind:type==='word'?t:type,op,a,b,ans,text,fmt,form};
+  const q={type,kind:type==='word'?t:type,op,a,b,ans,text,fmt,form,lv};
   const err=(op==='-'?[smallerBigger(q),forgotReduce(q)]:[noCarry(q)]);
   const pool=[...err,ans+10,ans-10,ans+1,ans-1,ans+100,ans-100].filter(v=>v>=0&&v<=1000&&v!==ans);
   const ds=[...new Set(pool)].slice(0,3);
@@ -626,6 +632,7 @@ function cleanSession(id,d){
     ['t','g','c','k','w','given','a'].forEach(f=>{if(typeof i[f]==='string')o[f]=cleanTxt(i[f],60)});
     o.err=typeof i.err==='string'?cleanTxt(i.err,40):null;
     if(typeof i.to==='number')o.to=cleanNum(i.to);
+    if(typeof i.lv==='number')o.lv=cleanNum(i.lv);
     return o;
   });
   return{id:String(id),ts:cleanNum(d.ts),mode:d.mode,home:cleanTxt(d.home,20),correct:cleanNum(d.correct),total:cleanNum(d.total),secs:cleanNum(d.secs),stars:cleanNum(d.stars),items};
@@ -997,13 +1004,14 @@ function planTypes(mode,n){
   while(out.length<n)out=out.concat(shuffle(base));
   return out.slice(0,n);
 }
-function start(mode,skill){
+function start(mode,skill,opts){
+  const rv=opts&&opts.types&&opts.types.length?shuffle(opts.types):null;
   const n=skill?10:mode==='exam'?Number(S.settings.examLen)||12:10;
-  const types=skill?Array(n).fill(skill):planTypes(mode,n);
-  const fmts=shuffle(types.map((_,i)=>i%2?'mc':'type'));
-  const qs=types.map((t,i)=>makeQ(t,fmts[i]));
+  const types=skill?Array(n).fill(skill):rv?Array.from({length:n},(_,i)=>rv[i%rv.length]):planTypes(mode,n);
+  const fmts=shuffle(types.map((_,i)=>i%2?'mc':'type')),lvs=mathLevels();
+  const qs=types.map((t,i)=>makeQ(t,fmts[i],mode==='exam'?1:(lvs[t]==null?1:lvs[t])));
   S.from='math';
-  run={mode,skill:skill||null,qs,i:0,t0:Date.now(),answers:qs.map(()=>''),review:false,used:qs.map(()=>0),tickAt:Date.now(),started:mode!=='exam'||!timerOn(),
+  run={mode,skill:skill||null,rev:!!rv,qs,i:0,t0:Date.now(),answers:qs.map(()=>''),review:false,used:qs.map(()=>0),tickAt:Date.now(),started:mode!=='exam'||!timerOn(),
     st:qs.map(()=>({tries:0,hint:false,done:false,ok:false,wrong:[],err:null,msg:null,given:''}))};
   S.view='run';render();
 }
@@ -1748,7 +1756,7 @@ document.addEventListener('pointerup',huntEnd);
 document.addEventListener('pointercancel',()=>{drag=null;paintSel([])});
 
 function finishSpell(){
-  const g=sp.game,key=sp.review?'rev:sp':'sp:'+g,rep=actDone(key),before=stats().stars,snap=prizeSnap(),pbB=rep?0:playbookBonus('spell');
+  const g=sp.game,key=sp.review?'rev:sp':'sp:'+g,rep=actDone(key),before=stats().stars,snap=prizeSnap(),ls=learnSnap('sp'),pbB=rep?0:playbookBonus('spell');
   const items=g==='hunt'?sp.hunt.words.map(x=>({w:x.w,ok:x.found,h:x.h||0,err:null,given:''}))
     :sp.items.map(it=>{
       if(g==='test'){const ok=it.val.trim().toLowerCase()===it.w;return{w:it.w,ok,h:0,err:ok?null:spErr(it.val,it.w),given:it.val.trim()}}
@@ -1759,7 +1767,7 @@ function finishSpell(){
   const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-sp.t0)/1000)),stars:rep?0:bdayX(starsFor(g==='test'?'spelltest':'spell',credit(items))+pbB),
     items:items.map(i=>({t:'sp',g,w:i.w,ok:i.ok,h:i.h,err:i.err,a:key}))};
   saveSession(sess);
-  sp.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),pb:pbB,rep});
+  sp.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),pb:pbB,rep,learn:learned('sp',ls,sess.items)});
   S.view='spresults';render();
 }
 function spBadges(){
@@ -1941,22 +1949,24 @@ function weightedPick(items,wf,n){
 const LV_W={n:3,t:3.5,l:2,m:.6};
 function pickTeamQs(n){
   const inf=nflInfo(nflSess());
-  const ts=weightedPick(TEAMS,t=>LV_W[inf.level[t.id]||'n'],n);
+  const ts=weightedPick(TEAMS,t=>rw(t.id,LV_W[inf.level[t.id]||'n']),n);
   const kinds=['conf','div','div','div','loc','loc','loc','who','mates','mates'];
   return ts.map(t=>teamQ(t,pick(kinds)));
 }
 function pickRules(n){
   const inf=nflInfo(nflSess());
-  return weightedPick(RULES,r=>LV_W[inf.level['r:'+r.id]||'n'],n).map(r=>({k:'r:'+r.id,c:'rules',prompt:r.q,opts:r.opts.length===4?shuffle(r.opts):r.opts,ans:r.a,why:r.why}));
+  return weightedPick(RULES,r=>rw('r:'+r.id,LV_W[inf.level['r:'+r.id]||'n']),n).map(r=>({k:'r:'+r.id,c:'rules',prompt:r.q,opts:r.opts.length===4?shuffle(r.opts):r.opts,ans:r.a,why:r.why}));
 }
 let nq=null,fd=null,fbres=null;
-function startQuiz(game){
+function startQuiz(game,reviewKeys){
   let qs,sport='nfl';
+  REVSET=reviewKeys?new Set(reviewKeys):null;
   if(SOC_GAMES[game]){qs=pickSoc(game,10);sport='soc'}
   else if(GEO_GAMES[game]){qs=pickGeo(game);sport='geo'}
   else qs=game==='rules'?pickRules(8):pickTeamQs(10);
+  REVSET=null;
   S.from=sport==='nfl'?'fb':sport;
-  nq={game,sport,qs,i:0,t0:Date.now(),st:qs.map(()=>({tries:0,wrong:[],done:false,ok:false,h:false,cheer:''}))};
+  nq={game,sport,qs,review:!!reviewKeys,i:0,t0:Date.now(),st:qs.map(()=>({tries:0,wrong:[],done:false,ok:false,h:false,cheer:''}))};
   S.view='nqrun';render();
 }
 function nqPick(idx){
@@ -1993,7 +2003,7 @@ function fdCheck(){
   else{r.msg='retry';r.bad=[...r.sel].filter(id=>!r.ans.includes(id));r.sel=new Set(right)}
 }
 function finishNfl(game,items,missed){
-  const infoB=nflInfo(nflSess()),snap=prizeSnap();
+  const infoB=nflInfo(nflSess()),snap=prizeSnap(),ls=learnSnap('nfl');
   const key=game!=='draft'&&nq&&nq.review?'rev:nfl':'nfl:'+game,rep=actDone(key);
   let aw=nflAward(items);if(rep)aw=Object.assign({},aw,{parts:[],total:0,rep:true});
   const correct=items.filter(i=>i.ok).length;
@@ -2010,7 +2020,7 @@ function finishNfl(game,items,missed){
     allNow:infoA.all&&!infoB.all,rulesNew:infoA.rulesM.length-infoB.rulesM.length,
     milestone:infoA.bonus-infoB.bonus,
     items:prizeNew(snap),
-    stops:journeyNew(bs)};
+    stops:journeyNew(bs),learn:learned('nfl',ls,sess.items)};
   S.view='fbres';render();
 }
 function finishQuiz(){
@@ -2028,6 +2038,188 @@ function finishDraft(){
     });
   });
   finishNfl('draft',items,missed);
+}
+
+/* ---------- math levels: each skill moves up or down from her last answers (level 1, 2 or 3) ---------- */
+const LVFIT={
+  sub2:(a,b,L)=>L===0?a<=55:a>=80,
+  sub3o:(a,b,L)=>L===0?a<=450:a>=700,
+  sub3t:(a,b,L)=>L===0?a<=450:a>=700,
+  sub3b:(a,b,L)=>L===0?a<=450:a>=700,
+  subz:(a,b,L)=>L===0?a<=500:a>=700,
+  sub32:(a,b,L)=>L===0?a<=300:a>=700,
+  add3:(a,b,L)=>L===0?a+b<=450:a+b>=850,
+  mulA:(a,b,L)=>L===0?a*b<=20:a*b>=40,
+  mulB:(a,b,L)=>L===0?a*b<=16:a*b>=28,
+  mulC:(a,b,L)=>L===0?a*b<=36:a*b>=63,
+  mulD:(a,b,L)=>L===0?a*b<=24:a*b>=48,
+  mul10:(a,b,L)=>L===0?(a<=5&&b<=30&&a*b<=150):(Math.min(a,b)>=6&&Math.max(a,b)>=60)
+};
+function genAt(t,lv){
+  const f=LVFIT[t];
+  if(!f||lv==null||lv===1)return TYPES[t].gen();
+  for(let i=0;i<120;i++){const ab=TYPES[t].gen();if(f(ab[0],ab[1],lv))return ab}
+  return TYPES[t].gen();
+}
+/* A skill moves up after 6 or more clean answers (85% or better) at its level, and back down below 50%. Exams never change it. */
+function mathLevels(){
+  const seen={},out={};
+  S.sessions.forEach(s=>{
+    if(!['smart','guided'].includes(s.mode))return;
+    (s.items||[]).slice().reverse().forEach(i=>{
+      if(!i.t)return;
+      (seen[i.t]||(seen[i.t]=[])).push({lv:typeof i.lv==='number'?i.lv:1,c:i.ok&&!i.h?1:0});
+    });
+  });
+  Object.keys(seen).forEach(t=>{
+    const a=seen[t],L=a[0].lv,same=a.filter(x=>x.lv===L).slice(0,8);
+    let v=L;
+    if(same.length>=6){const c=same.reduce((n,x)=>n+x.c,0)/same.length;if(c>=.85)v=Math.min(2,L+1);else if(c<.5)v=Math.max(0,L-1)}
+    out[t]=v;
+  });
+  return out;
+}
+
+/* ---------- spaced review: something she missed comes back after 1 day, then 3 days, then 7 days ---------- */
+const REV_GAP=[1,3,7];
+function revRun(events){
+  let st=null;
+  events.forEach(e=>{
+    if(!e.clean){st={stage:0,due:keyAdd(e.day,REV_GAP[0])};return}
+    if(!st||st.stage>=3)return;
+    if(e.day>=st.due){st.stage++;st.due=st.stage<3?keyAdd(e.day,REV_GAP[st.stage]):null}
+  });
+  return st;
+}
+/* what counts as one try, for each section: a word, a question, or (in math) a whole skill within one session */
+function sessKeys(dom,items){
+  const clean=new Set(),dirty=new Set();
+  if(dom==='math'){
+    const g={};
+    items.forEach(i=>{if(i.t){const a=g[i.t]||(g[i.t]={n:0,c:0});a.n++;if(i.ok&&!i.h)a.c++}});
+    Object.entries(g).forEach(([k,a])=>{if(a.n<2)return;const f=a.c/a.n;if(f>=.8)clean.add(k);else if(f<.6)dirty.add(k)});
+  }else items.forEach(i=>{
+    const k=dom==='sp'||dom==='es'?i.w:i.k;if(!k)return;
+    if(i.ok&&!i.h){if(!dirty.has(k))clean.add(k)}else{dirty.add(k);clean.delete(k)}
+  });
+  return{clean,dirty};
+}
+let revMemo={sig:'',v:null};
+function revAll(){
+  const today=dayKey(Date.now()),sig=S.sessions.length+':'+(S.sessions[0]&&S.sessions[0].id)+':'+today+':'+allWords().length;
+  if(revMemo.sig===sig)return revMemo.v;
+  const words=new Set(allWords()),out={};
+  const build=(dom,list,ok)=>{
+    const ev=new Map();
+    list.slice().sort((a,b)=>a.ts-b.ts).forEach(s=>{
+      const day=dayKey(s.ts),sk=sessKeys(dom,s.items||[]);
+      sk.dirty.forEach(k=>{if(ok(k))(ev.get(k)||ev.set(k,[]).get(k)).push({day,clean:false})});
+      sk.clean.forEach(k=>{if(ok(k))(ev.get(k)||ev.set(k,[]).get(k)).push({day,clean:true})});
+    });
+    const due=[],all=new Map();
+    ev.forEach((es,k)=>{const st=revRun(es);if(st){all.set(k,st.stage);if(st.stage<3&&st.due<=today)due.push({k,due:st.due})}});
+    due.sort((a,b)=>a.due<b.due?-1:a.due>b.due?1:0);
+    out[dom]={due,all};
+  };
+  build('math',mathSess(),k=>!!TYPES[k]);
+  build('sp',spellSess(),k=>words.has(k));
+  build('es',esSess(),k=>!!ES_BY[k]);
+  build('geo',geoSess(),()=>true);
+  build('soc',socSess(),()=>true);
+  build('nfl',nflSess(),()=>true);
+  out.lv=mathLevels();
+  revMemo={sig,v:out};
+  return out;
+}
+const REV_NAMES={math:'Math',sp:'Spelling',es:'Español',geo:'States',soc:'Soccer',nfl:'Football'};
+function revLabel(dom,k){
+  try{
+    if(dom==='sp')return k;
+    if(dom==='es'){const w=ES_BY[k];return w?w.es+' ('+w.en+')':k}
+    if(dom==='math')return TYPES[k].label;
+    if(dom==='geo'){
+      const id=k.slice(2);
+      if(k[0]==='f'){const q=FLQ.find(x=>x.id===id);return q?'Florida: '+q.q.slice(0,34):k}
+      const s=STATES.find(x=>x.ab===id);return s?(k[0]==='a'?s.name+' code':s.name):k;
+    }
+    if(dom==='soc'){const q=SOCQ.find(x=>'s:'+x.id===k);return q?q.q.slice(0,40):k}
+    if(dom==='nfl'){
+      if(k.startsWith('r:')){const r=RULES.find(x=>'r:'+x.id===k);return r?r.q.slice(0,40):k}
+      const tm=teamById(k);return tm?tm.nick:k;
+    }
+  }catch(e){}
+  return k;
+}
+function reviewCard(dom){
+  const d=revAll()[dom];if(!d||!d.due.length)return'';
+  const n=d.due.length,names=d.due.slice(0,6).map(x=>revLabel(dom,x.k));
+  return`<section class="card revcard"><div class="row between"><h3>Review time</h3><span class="pill">${n} to review</span></div>
+  <p class="mute">These were tricky before. A quick review today helps them stick: ${esc(names.join(', '))}${n>6?' and more':''}.</p>
+  <div class="row"><button class="btn" data-act="revstart" data-v="${dom}">Start review</button></div>${starTag('rev:'+dom)}</section>`;
+}
+function homeReview(){
+  const r=revAll(),L=Object.keys(REV_NAMES).filter(k=>r[k]&&r[k].due.length&&((k!=='soc'&&k!=='nfl')||fbOn()));
+  if(!L.length)return'';
+  return`<section class="card revcard"><div class="row between"><h3>Review time</h3><span class="pill">${L.reduce((n,k)=>n+r[k].due.length,0)} to review</span></div>
+  <p class="mute">Tricky things come back after 1 day, 3 days and 7 days so they stick. Pick one to review.</p>
+  <div class="row">${L.map(k=>`<button class="btn tint" data-act="revstart" data-v="${k}">${REV_NAMES[k]} (${r[k].due.length})</button>`).join('')}</div></section>`;
+}
+let REVSET=null;
+const rw=(key,base)=>REVSET?(REVSET.has(key)?40:.05):base;
+function startReview(dom){
+  const d=revAll()[dom];if(!d||!d.due.length)return;
+  const keys=d.due.map(x=>x.k);
+  if(dom==='sp'){startSpell('cards',shuffle(keys).slice(0,12));if(sp)sp.review=true}
+  else if(dom==='es'){startEs('type',shuffle(keys).slice(0,12).map(k=>ES_BY[k]).filter(Boolean));if(es)es.review=true}
+  else if(dom==='math')start('guided',null,{types:keys});
+  else{
+    const cnt=p=>keys.filter(k=>k[0]===p).length;
+    const game=dom==='geo'?(cnt('f')>=cnt('g')&&cnt('f')>=cnt('a')?'gfl':cnt('a')>cnt('g')?'gab':'gcap'):dom==='soc'?'sall':(cnt('r')>keys.length/2?'rules':'quiz');
+    startQuiz(game,keys);
+  }
+}
+/* ---------- what you learned today ---------- */
+function learnSnap(dom){
+  const r=revAll(),d=r[dom]||{due:[],all:new Map()};
+  let mast=new Set();
+  if(dom==='sp'){const st=wordStats();allWords().forEach(w=>{if(wordLevel(st[w])==='m')mast.add(w)})}
+  else if(dom==='es'){const st=esStats();ES_ALL.forEach(w=>{if(wordLevel(st[w.es])==='m')mast.add(w.es)})}
+  else if(dom==='geo')mast=new Set(nflInfo(geoSess()).mastered);
+  else if(dom==='soc')mast=new Set(nflInfo(socSess()).mastered);
+  else if(dom==='nfl')mast=new Set(nflInfo(nflSess()).mastered);
+  return{all:new Map(d.all),mast,lv:dom==='math'?Object.assign({},r.lv):null};
+}
+function learned(dom,snap,items){
+  const after=learnSnap(dom),sk=sessKeys(dom,items),lab=k=>revLabel(dom,k);
+  const mastered=[...after.mast].filter(k=>!snap.mast.has(k)).map(lab);
+  const fixed=[...sk.clean].filter(k=>snap.all.has(k)&&snap.all.get(k)<3).map(lab);
+  const done=[...after.all].filter(([k,s])=>s===3&&snap.all.has(k)&&snap.all.get(k)<3).map(([k])=>lab(k));
+  const tricky=[...sk.dirty].map(lab),levels=[];
+  if(dom==='math'&&snap.lv&&after.lv)Object.keys(after.lv).forEach(k=>{const a=snap.lv[k]==null?1:snap.lv[k],b=after.lv[k];if(b!==a)levels.push(TYPES[k].label+': '+(b>a?'moved up to':'back to')+' level '+(b+1))});
+  return{mastered,fixed,done,tricky,levels,total:items.length,first:items.filter(i=>i.ok&&!i.h).length};
+}
+function learnHtml(l){
+  if(!l)return'';
+  const list=a=>esc(a.slice(0,8).join(', '))+(a.length>8?' and '+(a.length-8)+' more':'');
+  const row=(ic,head,a)=>a.length?`<li><i>${ic}</i><span><b>${head}</b> ${list(a)}</span></li>`:'';
+  const rows=row('★','Newly mastered:',l.mastered)+row('✓','Review finished:',l.done)+row('+','Fixed after a tricky try:',l.fixed)+row('↑','Level up:',l.levels)+row('?','Still tricky, so they will come back tomorrow:',l.tricky);
+  return`<section class="card learn"><h3>What you learned today</h3><p class="mute">${l.first} of ${l.total} right on the first try.</p><ul>${rows||'<li><i>★</i><span>Everything went smoothly. Come back tomorrow to keep it sharp.</span></li>'}</ul></section>`;
+}
+/* ---------- read aloud for every question ---------- */
+function mathSpeech(q){
+  let s=q.text;
+  if(!wordish(q))s=s.replace(/[−×+=?]/g,c=>({'−':' minus ','×':' times ','+':' plus ','=':' equals ','?':' what number '})[c]);
+  if(q.fmt==='mc')s+='. The choices are '+q.choices.join(', ')+'.';
+  return s.replace(/\s+/g,' ').trim();
+}
+const nqSpeech=q=>q.prompt+' The choices are '+q.opts.join(', ')+'.';
+let spokeKey='';
+function autoRead(){
+  if(!S.settings.autoRead)return;
+  let key='',txt='';
+  if(S.view==='run'&&run&&run.qs&&!run.review&&!(run.mode==='exam'&&!run.started)){key='m'+run.t0+':'+run.i;txt=mathSpeech(run.qs[run.i])}
+  else if(S.view==='nqrun'&&nq){key='n'+nq.t0+':'+nq.i;txt=nqSpeech(nq.qs[nq.i])}
+  if(key&&key!==spokeKey){spokeKey=key;say(txt)}
 }
 
 /* a colorful header for each subject, with the live session counter */
@@ -2074,6 +2266,7 @@ function homeView(){
   ${bdayCountdown()}
   ${halloween()?halloweenCard():''}
   ${playbookHtml()}
+  ${homeReview()}
   ${counterHtml()}
   ${prizeCardHtml()}
   <div class="sect">Pick a subject</div>
@@ -2091,12 +2284,13 @@ function homeView(){
 }
 
 function mathView(){
-  const st=stats(),acc=typeAcc(st.items,20);
+  const st=stats(),acc=typeAcc(st.items,20),lvs=mathLevels();
   const m=(k,ic,t,d,lead)=>`<button class="mode ${lead?'lead':''}" data-act="start" data-v="${k}"><span class="ic">${ICON[ic]}</span><span><h3>${t}</h3><span class="d">${d}</span>${starTag(k)}</span>${ICON.next}</button>`;
   const chips=GROUPS.map(g=>`<button class="chip ${S.topics.includes(g.k)?'on':''}" aria-pressed="${S.topics.includes(g.k)}" data-act="topic" data-v="${g.k}">${g.label}</button>`).join('');
   const skill=k=>{const a=acc[k],p=a.n?Math.round(100*a.c/a.n):null;
-    return`<button class="skill" data-act="skill" data-v="${k}"><b>${esc(TYPES[k].label)}</b><span class="track2"><span class="fill ${p!==null&&p<70?'low':''}" style="width:${p||0}%"></span></span><small>${p===null?'Not tried yet':p+'% right'}</small>${starTag('sk:'+k)}</button>`};
+    return`<button class="skill" data-act="skill" data-v="${k}"><b>${esc(TYPES[k].label)}</b><span class="track2"><span class="fill ${p!==null&&p<70?'low':''}" style="width:${p||0}%"></span></span><small>${p===null?'Not tried yet':p+'% right'} · Level ${(lvs[k]==null?1:lvs[k])+1}</small>${starTag('sk:'+k)}</button>`};
   return nav('Math')+`${subjBanner('math','Math','Pick one skill to practice, or play a mix.')}
+  ${reviewCard('math')}
   <div class="sect">Practice one skill</div>
   ${SKILL_SECTIONS.map(([t,ks])=>`<div class="sect" style="padding-top:0;color:var(--accent)">${t}</div><section class="skills">${ks.map(skill).join('')}</section>`).join('')}
   <div class="sect">Mixed practice</div>
@@ -2123,6 +2317,7 @@ function spellView(){
   const chips=words.length?words.map(w=>`<button class="wchip" data-act="sayword" data-v="${esc(w)}" aria-label="Hear ${esc(w)}"><i class="${wordLevel(st[w])==='n'?'':wordLevel(st[w])}"></i>${esc(w)}</button>`).join(''):'<p class="mute">No tricky words yet. Practice a list first and the words she misses will show up here.</p>';
   const game=(k,g)=>`<button class="mode ${g.lead?'lead':''}" ${words.length||sel==='tricky'||sel==='review'?'':'disabled'} data-act="spstart" data-v="${k}"><span class="ic">${ICON[g.ic]}</span><span><h3>${g.name}</h3><span class="d">${g.d}</span>${starTag('sp:'+k)}</span>${ICON.next}</button>`;
   return nav('Spelling')+`${subjBanner('spell','Spelling','Choose a word list, then choose how to practice.')}
+  ${reviewCard('sp')}
   <div class="seg wrap">${opts.map(([k,l])=>`<button class="${sel===k?'on':''}" data-act="splist" data-v="${esc(k)}">${esc(l)}</button>`).join('')}</div>
   <section class="card"><div class="row between"><h3>${sel==='tricky'?'Tricky words':sel==='all'?'All words':esc(cur.name)}</h3><span class="pill">${mastered} of ${words.length} mastered</span></div>
     <p class="mute">${esc(note)} Tap a word to hear it.</p>
@@ -2176,7 +2371,8 @@ function runView(){
   ${raceTrack(r,f)}
   ${exam&&timerOn()?timerBar(r):''}
   <div class="paper">Paper first: write your work on your paper. Then ${q.fmt==='mc'?'tap':'type'} your answer.</div>
-  ${qHtml(q,exam)}`;
+  ${qHtml(q,exam)}
+  <div class="row">${hearBtn('Read it to me','qhear')}</div>`;
   body+=answerArea(q,st,exam,val,isLocked(r));
   if(!exam){
     if(st.msg==='right')body+=`<div class="fb good">${BURST}${esc(st.cheer||'Goal!')} ${st.helped?'Correct, and you learned something on the way.':'Correct!'}</div>`;
@@ -2214,6 +2410,7 @@ function resultsView(){
   <p>${msg}</p>
   ${s.rep?`<div class="fb try">${REP_NOTE}</div>`:''}
   ${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
+  ${learnHtml(s.learn)}
   <section class="spark"><b>Professor's fact of the day</b><p>${esc(fact)}</p></section>
   ${missed.length?`<h3>Let's look at ${missed.length===1?'this one':'these'}</h3>${missed.map(({q,it})=>`<details><summary>${esc(qLabel(q))}${it.given!==''&&it.given!==undefined?` <span class="mute">(you wrote ${esc(it.given)})</span>`:''}</summary><ol class="steps" style="margin-top:10px">${steps(q).map(x=>`<li>${esc(x)}</li>`).join('')}</ol></details>`).join('')}`:'<div class="fb good">No misses. Perfect!</div>'}
   <div class="row"><button class="btn" data-act="${run.skill?'skill':'start'}" data-v="${run.skill||(exam?'smart':s.mode)}">${exam?'Practice what I missed':'Play again'}</button><button class="btn tint" data-act="exit">Done</button></div></section>`;
@@ -2341,6 +2538,7 @@ function spResultsView(){
   <div><div class="bigscore"><span style="color:var(--gold)">★</span> +${s.stars}</div><span class="mute">stars earned</span></div></div>
   ${helped?`<p class="mute">${helped} of your right words used a hint or a second try, so they earned half a star-point each. Spell on the first try, no hint, for the full amount.</p>`:''}
   <p>${msg}</p>${s.rep?`<div class="fb try">${REP_NOTE}</div>`:''}${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
+  ${learnHtml(s.learn)}
   <section class="spark"><b>Professor's fact of the day</b><p>${esc(fact)}</p></section>
   ${missed.length?`<h3>Words to look at again</h3>${missed.map(i=>`<div class="card" style="box-shadow:inset 0 0 0 1px var(--line);padding:14px">${i.given?diffHtml(i.given,i.w):`<div class="diff"><div><small>Word</small><br>${esc(i.w)}</div></div>`}${i.err?`<p class="mute">${esc(SP_ERR[i.err]||'')}</p>`:''}</div>`).join('')}`:'<div class="fb good">Every word right. Perfect!</div>'}
   <div class="row">${missed.length?`<button class="btn" data-act="spagain" data-v="missed">Practice my missed words</button>`:''}<button class="btn ${missed.length?'tint':''}" data-act="spagain" data-v="same">Play again</button><button class="btn tint" data-act="exit">Done</button></div></section>`;
@@ -2360,6 +2558,7 @@ function fbView(){
   const prizes=[...DIVS.map(d=>[d+' champion','+10 stars',inf.divsDone.includes(d)]),['AFC champion','+25 stars and a headband',inf.confsDone.includes('AFC')],['NFC champion','+25 stars and a headband',inf.confsDone.includes('NFC')],['Hall of Fame','+50 stars for all 32 teams',inf.all]];
   const ci=x=>nflHas(x.id,inf);
   return clubNav('American Football')+`<div class="largehead"><h1>American Football</h1><p class="mute">Just for fun, not schoolwork. Learn the teams and how the game works, and win bonus prizes.</p></div>
+  ${reviewCard('nfl')}
   <section class="card"><div class="row between"><h3>Today's bonuses</h3><span class="pill">${inf.teamsM.length} of 32 teams</span></div>
     <div class="perks">${perks.map(([a,b,d])=>`<div class="perk ${d?'done':''}"><b>${a}${d?' ✓':''}</b><span>${b}</span></div>`).join('')}</div></section>
   <div class="sect">Play</div>
@@ -2394,7 +2593,7 @@ function nqRunView(){
   const opts=q.opts.map((o,i)=>{let cls='choice';if(st.wrong.includes(o))cls+=' bad';if(st.done&&o===q.ans)cls+=' ok';
     return`<button class="${cls}" data-act="nqpick" data-v="${i}" ${st.done||st.wrong.includes(o)?'disabled':''}>${esc(o)}</button>`}).join('');
   return top+`<section class="card"><div class="row between"><span class="pill">Question ${r.i+1} of ${N}</span><span class="score pill plain">Points <span class="num">${goals}</span></span></div>${raceTrack(r,f)}
-  <p class="qtext word">${esc(q.prompt)}</p><div class="choices w">${opts}</div>
+  <p class="qtext word">${esc(q.prompt)}</p><div class="row">${hearBtn('Read it to me','nqhear')}</div><div class="choices w">${opts}</div>
   ${st.done&&st.ok?`<div class="fb good">${esc(st.cheer)} ${st.h?'Right, on the second try.':'Right!'}</div><p>${esc(q.why)}</p>`:''}
   ${!st.done&&st.wrong.length?`<div class="fb try">Not that one. Try again.</div>`:''}
   ${st.done&&!st.ok?`<div class="fb try">The answer is <b>${esc(q.ans)}</b>.</div><p>${esc(q.why)}</p>`:''}
@@ -2407,7 +2606,7 @@ function fdRunView(){
     if(r.sel.has(id))cls+=' sel';if(r.bad.includes(id))cls+=' bad';if(r.done&&r.ans.includes(id))cls+=' ok';
     return`<button class="${cls}" style="--dc:${col}" data-act="fdtoggle" data-v="${id}" ${r.done||r.bad.includes(id)?'disabled':''}>${helmetSvg('#9a9aa8')}<b>${esc(t.nick)}</b></button>`}).join('');
   return top+`<section class="card"><div class="row between"><span class="pill">Round ${fd.i+1} of ${N}</span><span class="score pill plain">Picked <span class="num">${r.sel.size}</span> of 4</span></div>
-  <p class="qtext word">Build the <b>${r.div}</b>. Tap the 4 teams that play in it.</p>
+  <p class="qtext word">Build the <b>${r.div}</b>. Tap the 4 teams that play in it.</p><div class="row">${hearBtn('Read it to me','fdhear')}</div>
   <div class="tcards">${cards}</div>
   ${r.msg==='right'?`<div class="fb good">${esc(r.cheer)} ${r.tries>1?'Right, on the second try.':'A perfect draft!'}</div>`:''}
   ${r.msg==='retry'?`<div class="fb try">Some of those belong in other divisions. They are faded out now. Pick again.</div>`:''}
@@ -2431,6 +2630,7 @@ function fbResView(){
   ${x.aw.rep?`<div class="fb try">${REP_NOTE}</div>`:x.aw.capped?`<div class="fb try">You already earned stars in ${NFL_DAILY} games today. This one still counts toward your prizes!</div>`
     :`<div class="card" style="box-shadow:inset 0 0 0 1px var(--line);padding:14px;gap:6px"><h3>Bonus breakdown</h3>${x.aw.parts.map(([a,n])=>`<div class="bk"><span>${esc(a)}</span><span class="num">+${n}</span></div>`).join('')}${x.milestone?`<div class="bk"><span>Collection prize</span><span class="num">+${x.milestone}</span></div>`:''}</div>`}
   ${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
+  ${learnHtml(x.learn)}
   ${x.missed.length?`<h3>Let's look at these</h3>${x.missed.map(m=>`<details><summary>${esc(m.prompt)}</summary><p style="margin-top:8px"><b>${esc(m.ans)}</b>. ${esc(m.why)}</p></details>`).join('')}`:'<div class="fb good">No misses. Perfect!</div>'}
   <div class="row"><button class="btn" data-act="fbstart" data-v="${x.game}">Play again</button><button class="btn tint" data-act="exit">Done</button></div></section>`;
 }
@@ -2709,13 +2909,13 @@ function geoBadges(gi){
 function pickSoc(game,n){
   const lv=socInfo().inf.level,c=SOC_CAT[game];
   const pool=c==='all'?SOCQ:SOCQ.filter(q=>q.c===c);
-  return weightedPick(pool,q=>LV_W[lv['s:'+q.id]||'n'],n).map(q=>({k:'s:'+q.id,c:q.c,prompt:q.q,opts:q.opts.length===4?shuffle(q.opts):q.opts,ans:q.a,why:q.why}));
+  return weightedPick(pool,q=>rw('s:'+q.id,LV_W[lv['s:'+q.id]||'n']),n).map(q=>({k:'s:'+q.id,c:q.c,prompt:q.q,opts:q.opts.length===4?shuffle(q.opts):q.opts,ans:q.a,why:q.why}));
 }
 function pickGeo(game){
   const lv=geoInfo().inf.level;
-  if(game==='gfl')return weightedPick(FLQ,q=>LV_W[lv['f:'+q.id]||'n'],10).map(q=>({k:'f:'+q.id,c:'florida',prompt:q.q,opts:shuffle(q.opts),ans:q.a,why:q.why}));
+  if(game==='gfl')return weightedPick(FLQ,q=>rw('f:'+q.id,LV_W[lv['f:'+q.id]||'n']),10).map(q=>({k:'f:'+q.id,c:'florida',prompt:q.q,opts:shuffle(q.opts),ans:q.a,why:q.why}));
   const pre=game==='gab'?'a:':'g:';
-  return weightedPick(STATES,s=>LV_W[lv[pre+s.ab]||'n'],10).map(s=>{
+  return weightedPick(STATES,s=>rw(pre+s.ab,LV_W[lv[pre+s.ab]||'n']),10).map(s=>{
     if(game==='gcap')return{k:'g:'+s.ab,c:'capital',prompt:`What is the capital of ${s.name}?`,opts:mcOpts(s.cap,STATES.map(x=>x.cap)),ans:s.cap,why:`${s.cap} is the capital of ${s.name}.`};
     if(game==='gstate')return{k:'g:'+s.ab,c:'state',prompt:`${s.cap} is the capital of which state?`,opts:mcOpts(s.name,STATES.map(x=>x.name)),ans:s.name,why:`${s.cap} is the capital of ${s.name}.`};
     return{k:'a:'+s.ab,c:'abbr',prompt:`What is the mail code (abbreviation) for ${s.name}?`,opts:mcOpts(s.ab,STATES.map(x=>x.ab)),ans:s.ab,why:`${s.name} is ${s.ab}.`};
@@ -2727,7 +2927,7 @@ function geoAward(items){
   return{parts,total:parts.reduce((n,p)=>n+p[1],0),capped:false};
 }
 function finishOther(sport,items,missed){
-  const snap=prizeSnap(),bs=stats().stars,key=nq.review?'rev:'+sport:sport+':'+nq.game,rep=actDone(key),pbB=sport==='geo'&&!rep?playbookBonus('geo'):0;
+  const snap=prizeSnap(),bs=stats().stars,ls=learnSnap(sport),key=nq.review?'rev:'+sport:sport+':'+nq.game,rep=actDone(key),pbB=sport==='geo'&&!rep?playbookBonus('geo'):0;
   let aw=sport==='soc'?sportAward(socSess(),items,'Kickoff bonus'):geoAward(items);if(rep)aw=Object.assign({},aw,{parts:[],total:0,rep:true});
   const correct=items.filter(i=>i.ok).length;
   const sess={ts:Date.now(),mode:sport,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-nq.t0)/1000)),stars:bdayX(aw.total+pbB),
@@ -2735,7 +2935,7 @@ function finishOther(sport,items,missed){
   saveSession(sess);
   fbres={game:nq.game,sport,sess,aw,missed,playbook:pbB,cards:[],divs:[],confs:[],allNow:false,rulesNew:0,milestone:0,
     items:prizeNew(snap),
-    stops:journeyNew(bs)};
+    stops:journeyNew(bs),learn:learned(sport,ls,sess.items)};
   S.view='fbres';render();
 }
 const clubNav=title=>`<div class="navbar"><button class="back" data-act="nav" data-v="club">${ICON.chev}Sports</button><span class="mid">${esc(title)}</span>${syncPill()}</div>`;
@@ -2765,6 +2965,7 @@ function socView(){
   const row=(l,n,t)=>`<div class="row between"><b>${l}</b><span class="pill plain">${n} of ${t} mastered</span></div>`;
   const cnt=c=>SOCQ.filter(q=>q.c===c).length;
   return clubNav('Soccer')+`<div class="largehead"><h1>Soccer</h1><p class="mute">Learn the rules, the positions and where to stand. Just for fun, not schoolwork.</p></div>
+  ${reviewCard('soc')}
   <section class="card"><div class="row between"><h3>Today's bonuses</h3><span class="pill">${si.n} of ${SOCQ.length} mastered</span></div>${perkHtml(perks)}</section>
   <div class="sect">Learn</div>
   <section class="modes"><button class="mode lead" data-act="socstudy"><span class="ic">${ICON.whistle}</span><span><h3>Rookie Rules</h3><span class="d">Rules, positions and spacing, with pictures. No score.</span></span>${ICON.next}</button></section>
@@ -2791,6 +2992,7 @@ function geoView(){
   const gi=geoInfo(),inf=gi.inf;
   const dot=id=>{const l=inf.level[id];return!l||l==='n'?'':l};
   return nav('Geography')+`${subjBanner('geo','Geography','All 50 states and their capitals. Master a state by getting it right twice in a row with no help.')}
+  ${reviewCard('geo')}
   <section class="card"><div class="row between"><h3>Florida spotlight</h3><span class="pill">${gi.fl.length} of ${FLQ.length} facts</span></div>
     <p class="mute">We live in Florida, so let's know it best.</p>
     <div class="dl">${FLFACTS.map(([a,b])=>`<div><b>${esc(a)}</b><span>${esc(b)}</span></div>`).join('')}</div>
@@ -2955,7 +3157,7 @@ function esTyped(it,val){
   else it.msg='retry';
 }
 function finishEs(){
-  const g=es.game,key=es.review?'rev:es':'es:'+g,rep=actDone(key),snap=prizeSnap(),bs=stats().stars,pbB=rep?0:playbookBonus('es');
+  const g=es.game,key=es.review?'rev:es':'es:'+g,rep=actDone(key),snap=prizeSnap(),bs=stats().stars,ls=learnSnap('es'),pbB=rep?0:playbookBonus('es');
   let items;
   if(g==='match')items=es.items.map(it=>{const n=es.wr[it.es]||0;return{w:it.es,ok:n===0,h:0,given:''}});
   else items=es.items.map(it=>{
@@ -2970,7 +3172,7 @@ function finishEs(){
   const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-es.t0)/1000)),stars:rep?0:bdayX(starsFor(g==='quiz'?'estest':'es',credit(items))+pbB),
     items:items.map(i=>({t:'es',g,w:i.w,ok:i.ok,h:i.h,err:null,given:i.given,a:key}))};
   saveSession(sess);
-  es.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(bs),pb:pbB,rep});
+  es.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(bs),pb:pbB,rep,learn:learned('es',ls,sess.items)});
   S.view='esresults';render();
 }
 function esBadges(){
@@ -3007,7 +3209,7 @@ const ESB={
       ${it.msg==='reveal'?`<div class="fb try"><b>${esc(it.es)}</b> means ${esc(it.wd.en)}.</div>`:''}`,''];
   },
   type(it){
-    return[`<p class="mute">Type the Spanish word for:</p>${esPrompt(it.wd)}
+    return[`<p class="mute">Type the Spanish word for:</p>${esPrompt(it.wd)}<div class="row">${hearBtn('Read it to me','eshearen')}</div>
       ${it.hint&&!it.done?`<p class="mute num">Starts with <b>${esc(it.es[0])}</b>, ${plainEs(it.es).length} letters</p>`:''}
       ${it.done?'':esInput('')}${esTypedFb(it)}`,`<button class="btn" data-act="escheck">Check</button><button class="btn quiet" data-act="eshint">Hint</button>`];
   },
@@ -3037,10 +3239,10 @@ const ESB={
       ${it.done?`<div class="fb good">${BURST}${esc(it.cheer||'¡Muy bien!')} ${it.helped?'Solved, with a little help.':'Solved!'}</div>`:''}`,`<button class="btn quiet" data-act="eshint">Hint</button>`];
   },
   quiz(it){
-    if(it.kind==='type')return[`<p class="mute">Type the Spanish word for:</p>${esPrompt(it.wd)}${esInput(it.val)}`,''];
+    if(it.kind==='type')return[`<p class="mute">Type the Spanish word for:</p>${esPrompt(it.wd)}<div class="row">${hearBtn('Read it to me','eshearen')}</div>${esInput(it.val)}`,''];
     const es2en=it.dir==='es2en';
     const opts=it.opts.map(o=>`<button class="choice ${it.pick===o.es?'sel':''}" data-act="esopt" data-v="${esc(o.es)}">${es2en?`<span class="ee">${esc(o.e)}</span> ${esc(o.en)}`:esc(o.es)}</button>`).join('');
-    const head=es2en?`<p class="mute">What does this mean?</p><div class="esword">${esc(it.es)}</div><div class="row">${esHear('Escucha')}</div>`:`<p class="mute">How do you say this in Spanish?</p>${esPrompt(it.wd)}`;
+    const head=es2en?`<p class="mute">What does this mean?</p><div class="esword">${esc(it.es)}</div><div class="row">${esHear('Escucha')}</div>`:`<p class="mute">How do you say this in Spanish?</p>${esPrompt(it.wd)}<div class="row">${hearBtn('Read it to me','eshearen')}</div>`;
     return[head+`<div class="choices w">${opts}</div>`,''];
   }
 };
@@ -3074,6 +3276,7 @@ function esResultsView(){
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
   <div><div class="bigscore"><span style="color:var(--gold)">★</span> +${s.stars}</div><span class="mute">stars earned</span></div></div>
   <p>${msg}</p>${s.rep?`<div class="fb try">${REP_NOTE}</div>`:''}${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
+  ${learnHtml(s.learn)}
   ${missed.length?`<h3>Words to look at again</h3><div class="wchips">${missed.map(i=>{const w=ES_BY[i.w]||{es:i.w,en:'',e:''};return`<button class="wchip" data-act="esay" data-v="${esc(w.es)}"><span class="ee">${esc(w.e)}</span> <b>${esc(w.es)}</b> <span class="mute">${esc(w.en)}</span></button>`}).join('')}</div>`:'<div class="fb good">Every word right. ¡Perfecto!</div>'}
   <div class="row">${missed.length?`<button class="btn" data-act="esagain" data-v="missed">Practice my missed words</button>`:''}<button class="btn ${missed.length?'tint':''}" data-act="esagain" data-v="same">Play again</button><button class="btn tint" data-act="exit">Done</button></div></section>`;
 }
@@ -3092,6 +3295,7 @@ function esView(){
   const game=(k,g)=>`<button class="mode ${g.lead?'lead':''}" data-act="esstart" data-v="${k}"><span class="ic">${ICON[g.ic]}</span><span><h3>${g.name}</h3><span class="d">${g.d}</span>${starTag('es:'+k)}</span>${ICON.next}</button>`;
   return nav('Español')+`${subjBanner('es','Español',esMastered()+' of '+ES_ALL.length+' words mastered')}
   ${esBanner()}
+  ${reviewCard('es')}
   ${esListChips()}
   <section class="card"><div class="row between"><h3>${esc(cur)}</h3><span class="pill">${mastered} of ${words.length} mastered</span></div>
     <p class="mute">${esc(note)} Tap a word to hear it.</p><div class="wchips">${chips}</div>
@@ -3134,6 +3338,7 @@ function esAct(a,v){
     case'esflip':{const o=S.esOpen||(S.esOpen=new Set());if(o.has(v))o.delete(v);else{o.add(v);sayEs(v)}render();return true}
     case'esay':sayEs(v);return true;
     case'eshear':if(it)sayEs(it.es);return true;
+    case'eshearen':if(it&&it.wd)say(it.wd.en);return true;
     case'esopt':{
       if(!it)return true;
       if(es.game==='quiz'){it.pick=v;render();return true}
@@ -3998,6 +4203,7 @@ function settingsTab(){
   return`<section class="card"><h3>Settings</h3>
   <label class="row">Exam length <select id="examLen">${[10,11,12,13,14,15].map(n=>`<option ${Number(S.settings.examLen)===n?'selected':''}>${n}</option>`).join('')}</select> questions</label>
   <label class="row">Exam timer <select id="examTimer"><option value="on" ${timerOn()?'selected':''}>${fmtT(EXAM_SECS)} per question</option><option value="off" ${timerOn()?'':'selected'}>Off</option></select></label>
+  <label class="row">Read questions aloud automatically <select id="autoRead"><option value="off">Off (a Read it to me button is on every question)</option><option value="on" ${S.settings.autoRead?'selected':''}>On</option></select></label>
   <label class="row">Sports Club <select id="fbOn"><option value="on" ${fbOn()?'selected':''}>Show (extra, just for fun)</option><option value="off" ${fbOn()?'':'selected'}>Hide</option></select></label>
   <label class="row">Birthday <select id="bdM">${['','January','February','March','April','May','June','July','August','September','October','November','December'].map((m,i)=>`<option value="${i?String(i).padStart(2,'0'):''}" ${(bdayDate()&&bdayDate().m+1===i)?'selected':''}>${m||'Not set'}</option>`).join('')}</select> <select id="bdD">${Array.from({length:32},(_,i)=>`<option value="${i?String(i).padStart(2,'0'):''}" ${(bdayDate()&&bdayDate().d===i)?'selected':''}>${i||'Day'}</option>`).join('')}</select></label>
   <label class="row">New parent PIN <input class="txt" id="newPin" type="password" inputmode="numeric" maxlength="8" placeholder="leave blank to keep" style="width:200px"></label>
@@ -4062,21 +4268,22 @@ function render(){
   const a=document.getElementById('ans')||document.getElementById('spin')||document.getElementById('esin');
   if(a&&!a.disabled)a.focus({preventScroll:true});
   const p=document.getElementById('pin');if(p)p.focus({preventScroll:true});
+  autoRead();
 }
 function finish(){
-  const exam=run.mode==='exam',key=exam?'exam':run.rev?'rev:math':run.skill?'sk:'+run.skill:run.mode,rep=actDone(key),before=stats().stars,snap=prizeSnap(),pbB=rep?0:playbookBonus('math');
+  const exam=run.mode==='exam',key=exam?'exam':run.rev?'rev:math':run.skill?'sk:'+run.skill:run.mode,rep=actDone(key),before=stats().stars,snap=prizeSnap(),ls=learnSnap('math'),pbB=rep?0:playbookBonus('math');
   const items=run.qs.map((q,i)=>{
     const st=run.st[i];
     if(exam){
       const g=run.answers[i],ok=g!==''&&Number(g)===q.ans;
-      return{t:q.type,k:q.kind,ok,to:timerOn()&&run.used[i]>=EXAM_SECS*1000?1:0,err:ok?null:g===''?'blank':classify(q,g),given:g};
+      return{t:q.type,k:q.kind,ok,to:timerOn()&&run.used[i]>=EXAM_SECS*1000?1:0,err:ok?null:g===''?'blank':classify(q,g),given:g,lv:1};
     }
-    return{t:q.type,k:q.kind,ok:st.ok,h:st.helped?1:0,err:st.err||null,given:st.given};
+    return{t:q.type,k:q.kind,ok:st.ok,h:st.helped?1:0,err:st.err||null,given:st.given,lv:q.lv==null?1:q.lv};
   });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-run.t0)/1000)),stars:rep?0:bdayX(starsFor(exam?'exam':'math',credit(items))+pbB),items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,h:i.h||0,to:i.to||0,err:i.err,a:key}))};
+  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-run.t0)/1000)),stars:rep?0:bdayX(starsFor(exam?'exam':'math',credit(items))+pbB),items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,h:i.h||0,to:i.to||0,err:i.err,a:key,lv:i.lv==null?1:i.lv}))};
   saveSession(sess);
-  run.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),pb:pbB,rep});S.view='results';render();
+  run.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),pb:pbB,rep,learn:learned('math',ls,sess.items)});S.view='results';render();
 }
 function guidedSubmit(val){
   const q=run.qs[run.i],st=run.st[run.i];
@@ -4205,6 +4412,10 @@ function act(a,v,d){
       if(S.splist===v){S.splist=UNIT3[0].id;store.set('lmath.splist',S.splist)}
       touchProfile();
       render();break;
+    case'revstart':startReview(v);break;
+    case'qhear':if(r&&r.qs)say(mathSpeech(r.qs[r.i]));break;
+    case'nqhear':if(nq)say(nqSpeech(nq.qs[nq.i]));break;
+    case'fdhear':if(fd){const x=fd.rounds[fd.i];say('Build the '+x.div+'. Tap the 4 teams that play in it.')}break;
     case'nav':S.view=v;if(v!=='parent'){S.unlocked=false}S.pinErr=false;render();break;
     case'av':setAv(d.k,v);break;
     case'room':setRoom(d.k,v);break;
@@ -4220,7 +4431,7 @@ function act(a,v,d){
     case'unlock':{const el=document.getElementById('pin');if(el&&el.value===String(S.settings.pin)){S.unlocked=true;S.pinErr=false}else S.pinErr=true;render();break}
     case'saveSettings':{
       const n=Number(document.getElementById('examLen').value),np=document.getElementById('newPin').value.trim();
-      S.settings.examLen=n;S.settings.examTimer=document.getElementById('examTimer').value!=='off';S.settings.football=document.getElementById('fbOn').value!=='off';if(/^\d{4,8}$/.test(np))S.settings.pin=np;
+      S.settings.examLen=n;S.settings.examTimer=document.getElementById('examTimer').value!=='off';S.settings.football=document.getElementById('fbOn').value!=='off';{const ar=document.getElementById('autoRead');if(ar)S.settings.autoRead=ar.value==='on'}if(/^\d{4,8}$/.test(np))S.settings.pin=np;
       {const bm=document.getElementById('bdM'),bd=document.getElementById('bdD');if(bm&&bd){const a=getAv();if(bm.value&&bd.value)a.bday=bm.value+bd.value;else delete a.bday;store.set('lmath.avatar',a);touchProfile()}}
       store.set('lmath.settings',S.settings);
       render();const s=document.getElementById('saved');if(s)s.textContent=np&&!/^\d{4,8}$/.test(np)?'Saved. PIN must be 4 to 8 digits, so it was not changed.':'Saved.';break}
