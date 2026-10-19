@@ -324,6 +324,25 @@ textarea.txt{font:inherit;padding:12px 14px;border:0;border-radius:14px;backgrou
   @keyframes pop{0%{transform:scale(.9);opacity:.3}60%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
   .bigscore{animation:pop .6s ease-out}
 }
+.hwcard{background:linear-gradient(135deg,var(--card),var(--card2));box-shadow:inset 0 0 0 2px #E8741A,var(--shadow)}
+.hwtop{display:flex;align-items:center;gap:14px}
+.hwnum{font-size:3rem;line-height:1;color:#E8741A;min-width:64px;text-align:center}
+.pbrows{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pbrow{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--card2);border-radius:16px;padding:10px 4px;font-weight:800;font-size:.82rem;text-align:center;box-shadow:inset 0 0 0 1px var(--line)}
+.pbrow i{width:28px;height:28px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--line);display:grid;place-items:center;font-style:normal;color:#fff}
+.pbrow.on{background:var(--good-bg);color:var(--good)}.pbrow.on i{background:var(--good);box-shadow:none}
+.affirm{align-items:flex-start;background:linear-gradient(140deg,var(--hero1),var(--hero2));color:#fff;border:0}
+.affirm .pill{background:rgba(255,255,255,.22);color:#fff}
+.affirm p{font-family:var(--f-head);font-weight:800;font-size:1.2rem;line-height:1.35}
+.pill.combo{background:var(--warn-bg);color:var(--warn);animation:none}
+.choices .choice{border-radius:20px;box-shadow:inset 0 -5px 0 var(--cc,var(--line)),inset 0 0 0 2px var(--line)}
+.choices .choice:nth-child(4n+1){--cc:#9B1B2A}.choices .choice:nth-child(4n+2){--cc:#E3B520}.choices .choice:nth-child(4n+3){--cc:#2B4590}.choices .choice:nth-child(4n){--cc:#1F6B3A}
+.choice.sel{box-shadow:inset 0 -5px 0 var(--accent),inset 0 0 0 3px var(--accent)}
+.choice.ok{box-shadow:inset 0 -5px 0 var(--good),inset 0 0 0 3px var(--good)}
+.choice.bad{box-shadow:inset 0 -5px 0 var(--warn),inset 0 0 0 3px var(--warn)}
+.bigword{background:linear-gradient(135deg,var(--accent-soft),var(--card2));border:2px solid var(--line)}
+.tile{box-shadow:inset 0 -4px 0 var(--accent),inset 0 0 0 2px var(--line)}
+.card:has(.dots){border-top:5px solid var(--accent)}
 :root.hw{--spark:rgba(255,140,40,.65);--hero1:#7A2A00;--hero2:#2A0F4A}
 :root.hw .hero{box-shadow:inset 0 0 0 2px rgba(255,140,40,.7),var(--shadow)}
 </style>
@@ -688,6 +707,35 @@ function badges(st){
     {l:'X',n:'Times Titan',d:'Get 20 multiplication problems right',on:mulOk>=20}
   ];
 }
+/* ---------- Today's Playbook: math + spelling + (Español or geography) in one day = +25 stars ---------- */
+const PB_BONUS=25;
+const pbCat=s=>s.mode==='geo'?'geo':isEs(s)?'es':s.mode==='spell'?'spell':['smart','guided','exam'].includes(s.mode)?'math':null;
+function playbookState(extra){
+  const today=dayKey(Date.now()),c=new Set(S.sessions.filter(s=>dayKey(s.ts)===today).map(pbCat));
+  if(extra)c.add(extra);
+  const p={math:c.has('math'),spell:c.has('spell'),other:c.has('es')||c.has('geo')};p.done=p.math&&p.spell&&p.other;return p;
+}
+/* paid once, to the session that completes the set */
+const playbookBonus=cat=>!playbookState().done&&playbookState(cat).done?PB_BONUS:0;
+const PB_NOTE="Today's Playbook complete! +"+PB_BONUS+' bonus stars';
+function playbookHtml(){
+  const p=playbookState(),row=(ok,l)=>`<div class="pbrow ${ok?'on':''}"><i>${ok?'✓':''}</i><span>${l}</span></div>`;
+  return`<section class="card pbcard"><div class="row between"><h3>Today's Playbook</h3><span class="pill">${p.done?'+'+PB_BONUS+' earned!':'+'+PB_BONUS+' stars'}</span></div>
+  <p class="mute">Finish math, spelling, and Español or geography today for ${PB_BONUS} bonus stars.</p>
+  <div class="pbrows">${row(p.math,'Math')}${row(p.spell,'Spelling')}${row(p.other,'Español or Geography')}</div></section>`;
+}
+/* ---------- a confidence builder that changes every day ---------- */
+const AFFIRM=[
+  ['Respect',['I treat people kindly, even when we disagree.','I listen with my whole attention when someone is talking.','I take care of my body, my things, and other people\'s things.','My words can lift people up, and I choose them carefully.','I take turns and share the spotlight.','I respect myself by doing my best, not by being perfect.','Everyone is different, and that makes our world better.']],
+  ['Integrity',['I do the right thing even when nobody is watching.','I tell the truth, even when it is hard.','When I make a mistake, I own it and I fix it.','I keep my promises, big and small.','I do my own work, and I am proud of it.','My yes means yes and my no means no.','I am the same person at home, at school, and everywhere.']],
+  ['Courage',['Brave does not mean not scared. It means trying anyway.','I can do hard things, one step at a time.','Asking for help takes courage too.','Mistakes are how my brain grows stronger.','I stand up for what is right and for people who need a friend.','I try new things, even when I feel nervous.','When something feels tough, I keep going.']],
+  ['Curiosity',['Questions are my superpower. I keep asking why.','Every day I learn something I did not know yesterday.','I look closely, I wonder, and I explore.','Not knowing yet is the start of learning.','I am curious about people, places and ideas.','I love figuring things out, even the tricky ones.','The world is full of amazing things, and I get to discover them.']]
+];
+function affirmHtml(){
+  const day=Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/86400000),v=AFFIRM[day%4],msg=v[1][Math.floor(day/4)%7];
+  return`<section class="card affirm"><span class="pill">Today's value: ${v[0]}</span><p>${esc(msg)}</p></section>`;
+}
+const comboChip=ok=>{let n=0;for(let i=ok.length-1;i>=0&&ok[i];i--)n++;return n>=2?`<span class="pill combo">🔥 ${n} in a row</span>`:''};
 /* ---------- subjects and stars ---------- */
 /* Math and spelling pay about double what they used to. Español pays the most. The database rules cap one session at 100 stars. */
 function starsFor(kind,n){
@@ -718,7 +766,15 @@ function counterHtml(){
   return`<section class="card cnt" aria-label="Sessions so far"><div class="row between"><h3>Sessions so far</h3><span class="pill">${c.all} in all</span></div>
   <div class="cgrid">${SUBJ.map(s=>`<button class="ct" style="--c:${s.c}" data-act="nav" data-v="${s.v}" aria-label="${s.n}: ${c[s.k].n} sessions, ${c[s.k].t} today"><span class="ci">${ICON[s.ic]}</span><b class="num">${c[s.k].n}</b><span class="cl">${s.n}</span><small>${c[s.k].t?'+'+c[s.k].t+' today':'none today'}</small></button>`).join('')}</div></section>`;
 }
-function journeyNew(before){const now=stats().stars;return STOPS.filter(p=>p.at>0&&p.at>before&&p.at<=now).map(p=>p.n)}
+function journeyNew(before){
+  const now=stats().stars;
+  return STOPS.filter(p=>p.at>0&&p.at>before&&p.at<=now).map((p,i,a)=>{
+    const k=STOPS.indexOf(p),nx=STOPS[k+1];
+    if(p.n==='Tower')return'the Tower! A brand new path opens, with '+STOP_FULL[nx.n]+' next';
+    if(!nx)return'the Graduation Feast! You finished the whole journey';
+    return STOP_FULL[p.n]||p.n;
+  });
+}
 
 
 /* ---------- prizes: one rule decides whether anything is unlocked ---------- */
@@ -824,7 +880,8 @@ const ITEMS=[
   {id:'compass',slot:'extra',name:'Explorer compass',at:null,u:'Master 20 state capitals',grp:'geo'},
   {id:'shades',slot:'extra',name:'Sunshine State shades',at:null,u:'Master 10 Florida facts',grp:'geo'}
 ];
-const STOPS=[{n:'Platform',at:0,c:'#B8283A'},{n:'Boats',at:25,c:'#3C57B8'},{n:'Castle',at:75,c:'#8C93A0'},{n:'Great Hall',at:150,c:'#E3B94F'},{n:'Owlery',at:250,c:'#2E8A4F'},{n:'Tower',at:400,c:'#8A5AC8'}];
+const STOPS=[{n:'Platform',at:0,c:'#B8283A'},{n:'Boats',at:25,c:'#3C57B8'},{n:'Castle',at:75,c:'#8C93A0'},{n:'Great Hall',at:150,c:'#E3B94F'},{n:'Owlery',at:250,c:'#2E8A4F'},{n:'Tower',at:400,c:'#8A5AC8'},{n:'Pitch',at:650,c:'#C0303F'},{n:'Library',at:950,c:'#8A5A34'},{n:'Potions',at:1350,c:'#2B7BD6'},{n:'Greenhouse',at:1800,c:'#3E9B5E'},{n:'Forest',at:2400,c:'#1F6B3A'},{n:'Lake',at:3100,c:'#2FA6B8'},{n:'Secret Room',at:4000,c:'#B8864A'},{n:'Graduation',at:5200,c:'#E3B94F'}];
+const STOP_FULL={Pitch:'the Quidditch Pitch',Library:'the Library',Potions:'the Potions Classroom',Greenhouse:'the Greenhouse','Forest':'the Forbidden Forest',Lake:'the Black Lake','Secret Room':'the Room of Requirement',Graduation:'the Graduation Feast'};
 const CHEERS=['Brilliant!','Wizard work!','Spell cast!','Magical!','Sparkling work!','Top marks!',...(new Date().getMonth()===9?['Spooky good!','Boo-tiful!']:[])];
 const FACTS=[
   'A day on Venus is longer than its year. It spins once in about 243 Earth days but circles the Sun in about 225.',
@@ -1135,15 +1192,17 @@ function kartSvg(av){
   return`<svg viewBox="0 0 64 40" width="56" aria-hidden="true"><path d="M20 28L3 21V35Z" fill="#D9A441"/><path d="M12 24.5L4 22M12 28L3 28M12 31.5L4 34" stroke="#A8741A" stroke-width="1.2" stroke-linecap="round"/><rect x="18" y="26.4" width="42" height="3.4" rx="1.7" fill="#6B3E1E"/><rect x="17" y="25.6" width="5" height="5" rx="1.5" fill="${hs[2]}"/><rect x="31" y="13" width="14" height="15" rx="5" fill="#241A2E"/><path d="M34 15L38 27M42 15L38 27" stroke="${hs[1]}" stroke-width="2" fill="none"/><rect x="34" y="25" width="6" height="8" rx="3" fill="#241A2E"/><circle cx="38" cy="9" r="7.5" fill="${skin}"/><path d="M30.5 9A7.5 7.5 0 0 1 45.5 9Z" fill="${hair}"/><path d="M60 28L64 26M60 28L64 30" stroke="#E3B94F" stroke-width="1.5" stroke-linecap="round"/></svg>`;
 }
 function journeySvg(stars){
-  const X=i=>28+i*48.8;let idx=0;STOPS.forEach((p,i)=>{if(stars>=p.at)idx=i});
-  let rx=X(idx);if(idx<STOPS.length-1)rx+=(stars-STOPS[idx].at)/(STOPS[idx+1].at-STOPS[idx].at)*(X(idx+1)-X(idx));
-  let g=`<line x1="${X(0)}" x2="${X(5)}" y1="28" y2="28" stroke="rgba(255,255,255,.35)" stroke-width="3" stroke-linecap="round"/><line x1="${X(0)}" x2="${rx.toFixed(1)}" y1="28" y2="28" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`;
-  STOPS.forEach((p,i)=>{
+  /* six stops show at a time; the map slides along as she travels */
+  let idx=0;STOPS.forEach((p,i)=>{if(stars>=p.at)idx=i});
+  const W=6,s0=Math.max(0,Math.min(idx-2,STOPS.length-W)),V=STOPS.slice(s0,s0+W),X=i=>28+i*48.8;
+  const k=idx-s0;let rx=X(k);if(idx<STOPS.length-1&&k<W-1)rx+=(stars-STOPS[idx].at)/(STOPS[idx+1].at-STOPS[idx].at)*(X(k+1)-X(k));
+  let g=`<line x1="${X(0)}" x2="${X(W-1)}" y1="28" y2="28" stroke="rgba(255,255,255,.35)" stroke-width="3" stroke-linecap="round"/><line x1="${X(0)}" x2="${rx.toFixed(1)}" y1="28" y2="28" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`;
+  V.forEach((p,i)=>{
     const reached=stars>=p.at;
-    g+=`<g opacity="${reached?1:.65}">${p.ring?`<ellipse cx="${X(i)}" cy="28" rx="15" ry="4.5" fill="none" stroke="#fff" stroke-width="2" opacity=".8"/>`:''}<circle cx="${X(i)}" cy="28" r="9" fill="${p.c}" stroke="#fff" stroke-width="1.5"/></g><text x="${X(i)}" y="52" text-anchor="middle">${p.n}</text>`;
+    g+=`<g opacity="${reached?1:.65}"><circle cx="${X(i)}" cy="28" r="9" fill="${p.c}" stroke="#fff" stroke-width="1.5"/></g><text x="${X(i)}" y="52" text-anchor="middle">${p.n}</text>`;
   });
   g+=`<g transform="translate(${rx.toFixed(1)} 28)"><path d="M-3-3C-9-12-17-10-15-3C-12-5-7-5-3-3ZM3-3C9-12 17-10 15-3C12-5 7-5 3-3Z" fill="#fff" stroke="#E3B94F" stroke-width="1"/><circle r="5.5" fill="#E3B94F" stroke="#fff" stroke-width="1.4"/></g>`;
-  return`<svg viewBox="0 0 300 58" role="img" aria-label="Journey to the Great Hall and the Tower">${g}</svg>`;
+  return`<svg viewBox="0 0 300 58" role="img" aria-label="Broom journey from the platform to the Graduation Feast">${g}</svg>`;
 }
 const ICON={
   home:'<svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" fill="currentColor"/></svg>',
@@ -1197,9 +1256,9 @@ setInterval(()=>{
 
 /* ---------- spelling: word lists and sentences ---------- */
 const UNIT3=[
-  {id:'u3w1',name:'Week 1',note:'Words with ar and or',words:['alarm','author','carnivore','carton','charted','dormant','forgotten','import','march','ornament','pardon','report']},
-  {id:'u3w2',name:'Week 2',note:'Words with er, ir and ur',words:['caterpillar','circus','dangerous','jersey','nerve','occur','return','serve','stir','summer','thirteen','turtle']},
-  {id:'u3w3',name:'Week 3',note:'Test week of November 4',words:['after','button','challenge','collect','elbow','forgive','hunger','lesson','mention','problematic','projection','suddenly']}
+  {id:'u3w1',name:'Test: Wednesday, October 21',note:'Words with ar and or',words:['alarm','author','carnivore','carton','charted','dormant','forgotten','import','march','ornament','pardon','report']},
+  {id:'u3w2',name:'Test: Wednesday, October 28',note:'Words with er, ir and ur',words:['caterpillar','circus','dangerous','jersey','nerve','occur','return','serve','stir','summer','thirteen','turtle']},
+  {id:'u3w3',name:'Test: Wednesday, November 4',note:'Mixed spelling patterns',words:['after','button','challenge','collect','elbow','forgive','hunger','lesson','mention','problematic','projection','suddenly']}
 ];
 const SENT={
   alarm:'The loud alarm woke everyone up at seven o\'clock.',author:'My favorite author wrote a book about a brave dog.',carnivore:'A lion is a carnivore because it eats meat.',
@@ -1490,7 +1549,7 @@ document.addEventListener('pointerup',huntEnd);
 document.addEventListener('pointercancel',()=>{drag=null;paintSel([])});
 
 function finishSpell(){
-  const g=sp.game,before=stats().stars,snap=prizeSnap(),b0=schoolStars();
+  const g=sp.game,before=stats().stars,snap=prizeSnap(),pbB=playbookBonus('spell');
   const items=g==='hunt'?sp.hunt.words.map(x=>({w:x.w,ok:x.found,h:x.h||0,err:null,given:''}))
     :sp.items.map(it=>{
       if(g==='test'){const ok=it.val.trim().toLowerCase()===it.w;return{w:it.w,ok,h:0,err:ok?null:spErr(it.val,it.w),given:it.val.trim()}}
@@ -1498,10 +1557,10 @@ function finishSpell(){
       return{w:it.w,ok,h:it.helped?1:0,err:!ok&&(g==='cards'||g==='sent')&&it.given?spErr(it.given,it.w):null,given:it.given||''};
     });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-sp.t0)/1000)),stars:starsFor(g==='test'?'spelltest':'spell',correct),
+  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-sp.t0)/1000)),stars:Math.min(100,starsFor(g==='test'?'spelltest':'spell',correct)+pbB),
     items:items.map(i=>({t:'sp',g,w:i.w,ok:i.ok,h:i.h,err:i.err}))};
   saveSession(sess);
-  sp.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before)});
+  sp.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),pb:pbB});
   S.view='spresults';render();
 }
 function spBadges(){
@@ -1799,7 +1858,7 @@ function homeView(){
   if(!S.home||S.view==='pickhome')return home+homePicker()+tabbar('home');
   const st=stats(),av=getAv(),last=S.sessions[0];
   let idx=0;STOPS.forEach((p,i)=>{if(st.stars>=p.at)idx=i});
-  const nextTxt=idx<STOPS.length-1?`Next stop: ${STOPS[idx+1].n}, only ${STOPS[idx+1].at-st.stars} more stars`:'You reached the Tower! Amazing.';
+  const nextTxt=idx<STOPS.length-1?`Stop ${idx+1} of ${STOPS.length}. Next: ${STOP_FULL[STOPS[idx+1].n]||STOPS[idx+1].n}, only ${STOPS[idx+1].at-st.stars} more stars`:'You finished the whole journey to the Graduation Feast! Amazing.';
   const MC={math:'#2F6BFF',spell:'#E5389B',es:'#F26A1B',geo:'#12A073',club:'#B45309'};
   const m=(k,ic,t,d,lead)=>`<button class="mode ${lead?'lead':''}" style="--c:${MC[k]||'var(--accent)'}" data-act="nav" data-v="${k}"><span class="ic">${ICON[ic]}</span><span><h3>${t}</h3><span class="d">${d}</span></span>${ICON.next}</button>`;
   const fact=FACTS[Math.floor(Date.now()/86400000)%FACTS.length];
@@ -1812,6 +1871,7 @@ function homeView(){
     <div class="stats"><div class="stat"><b class="num">${st.stars}</b><span>stars</span></div><div class="stat"><b class="num">${st.streak}</b><span>day streak</span></div><div class="stat"><b class="num">${S.sessions.length}</b><span>sessions</span></div></div>
     <div class="journey">${journeySvg(st.stars)}<p>${nextTxt}</p></div></section>
   ${halloween()?halloweenCard():''}
+  ${playbookHtml()}
   ${counterHtml()}
   ${prizeCardHtml()}
   <div class="sect">Pick a subject</div>
@@ -1824,14 +1884,7 @@ function homeView(){
   ${fbOn()?`<div class="sect">Just for fun</div><section class="modes">${m('club','football','Sports Club',`Soccer rules and American football teams. Bonus prizes inside!`)}</section>`:''}
   ${last?`<p class="mute" style="padding-inline:6px">Last activity: ${esc(sessName(last))}, ${last.correct} of ${last.total} on ${fmtDate(last.ts)}.</p>`:''}
   <section class="spark"><b>Professor's fact of the day</b><p>${esc(fact)}</p></section>
-  <div class="sect">Your math bracelet</div>
-  <section class="card"><div class="bracelet">${badges(st).map(b=>`<div class="bead ${b.on?'':'off'}" title="${esc(b.n)}">${b.l}</div>`).join('')}</div>
-    <div class="dl">${badges(st).map(b=>`<div class="${b.on?'':'off'}"><b>${b.on?'★ ':''}${esc(b.n)}</b><span>${esc(b.d)}</span></div>`).join('')}</div></section>
-  <div class="sect">Your spelling bracelet</div>
-  <section class="card"><div class="bracelet">${spBadges().map(b=>`<div class="bead ${b.on?'':'off'}" title="${esc(b.n)}">${b.l}</div>`).join('')}</div>
-    <div class="dl">${spBadges().map(b=>`<div class="${b.on?'':'off'}"><b>${b.on?'★ ':''}${esc(b.n)}</b><span>${esc(b.d)}</span></div>`).join('')}</div></section>
-  <div class="sect">Tu pulsera de español</div>
-  <section class="card">${braceletHtml(esBadges())}</section>
+  ${affirmHtml()}
   ${tabbar('home')}`;
 }
 
@@ -1851,6 +1904,8 @@ function mathView(){
     ${m('guided','ball','Guided Practice','10 questions with hints and a second try.')}
     ${m('exam','trophy','Practice Exam',`${Number(S.settings.examLen)||12} questions, no hints${timerOn()?`, ${fmtT(EXAM_SECS)} each`:''}. O.W.L. day!`)}
   </section>
+  <div class="sect">Your math bracelet</div>
+  <section class="card">${braceletHtml(badges(stats()))}</section>
   ${tabbar('math')}`;
 }
 
@@ -1873,6 +1928,8 @@ function spellView(){
   <div class="sect">Practice these words</div>
   <section class="modes">${Object.entries(SP_GAMES).map(([k,g])=>game(k,g)).join('')}</section>
   <p class="mute" style="padding-inline:6px">A word is mastered after two clean tries in a row. Hints and second tries count as learning, not mastered.</p>
+  <div class="sect">Your spelling bracelet</div>
+  <section class="card">${braceletHtml(spBadges())}</section>
   ${tabbar('spell')}`;
 }
 
@@ -1912,6 +1969,7 @@ function runView(){
   const f=exam?r.answers.filter(a=>a!=='').length/N:(r.i+(st.done?1:0))/N;
   let body=`<div class="row between"><span class="pill">Question ${r.i+1} of ${N}</span>${exam?examPill(r):`<span class="score pill plain">Spells <span class="num">${goals}</span></span>`}</div>
   ${dotsHtml(r.i,N,i=>exam?(r.answers[i]!==''?'d':''):r.st[i].done?(r.st[i].ok?'d':'x'):'')}
+  ${exam?'':comboChip(r.st.slice(0,r.i+(st.done?1:0)).map(x=>x.ok))}
   ${raceTrack(r,f)}
   ${exam&&timerOn()?timerBar(r):''}
   <div class="paper">Paper first: write your work on your paper. Then ${q.fmt==='mc'?'tap':'type'} your answer.</div>
@@ -1942,7 +2000,7 @@ function resultsView(){
   const msg=p>=90?'Amazing work! You really know this.':p>=75?'Strong work. A little more practice and it will be even better.':'Good effort. Every try builds the skill. Keep going.';
   const missed=run.qs.map((q,i)=>({q,it:s.items[i]})).filter(x=>!x.it.ok);
   const fact=FACTS[Math.floor(Math.random()*FACTS.length)];
-  const wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`)];
+  const wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.pb?[PB_NOTE]:[])];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Full time!</span><span style="min-width:64px"></span></div>`+`
   <section class="card"><h2>${exam?'Final whistle!':'Great session!'}</h2>
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
@@ -2063,14 +2121,14 @@ function spRunView(){
   const[body,btns]=SPB[r.game](it);
   const showBtns=!it.done&&btns;
   const next=test?`<button class="btn" data-act="spnext">${last?'Turn in test':'Next word'}</button>`:it.done?`<button class="btn" data-act="spnext">${last?'See my results':'Next word'}</button>`:'';
-  const head=`<div class="row between"><span class="pill">Word ${r.i+1} of ${N}</span>${test?'':`<span class="score pill plain">Right <span class="num">${okN}</span></span>`}</div>${dotsHtml(r.i,N,i=>r.items[i].done?(r.items[i].ok?'d':'x'):'')}${raceTrack(r,f)}`;
+  const head=`<div class="row between"><span class="pill">Word ${r.i+1} of ${N}</span>${test?'':`<span class="score pill plain">Right <span class="num">${okN}</span></span>`}</div>${dotsHtml(r.i,N,i=>r.items[i].done?(r.items[i].ok?'d':'x'):'')}${r.game==='test'||r.game==='quiz'?'':comboChip(r.items.slice(0,r.i+(it.done?1:0)).map(x=>x.ok))}${raceTrack(r,f)}`;
   return top+`<section class="card">${head}${body}<div class="row between"><div class="row">${test?'':showBtns?btns:''}</div>${next}</div></section>`;
 }
 function spResultsView(){
   const s=sp.result,p=pct(s),test=sp.game==='test';
   const msg=p>=90?'Amazing spelling! You really know these words.':p>=75?'Strong work. A little more practice and every word will stick.':'Good effort. Every try builds the skill. Keep going.';
   const missed=s.items.filter(i=>!i.ok),helped=s.items.filter(i=>i.ok&&i.h).length;
-  const wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`)];
+  const wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.pb?[PB_NOTE]:[])];
   const fact=FACTS[Math.floor(Math.random()*FACTS.length)];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Great job!</span><span style="min-width:64px"></span></div>
   <section class="card"><h2>${test?'Test complete!':'Nice practice!'}</h2>
@@ -2158,7 +2216,7 @@ function fbResView(){
   const wins=[
     ...x.cards.map(n=>`New card: ${n}`),...x.divs.map(d=>`${d} champion! Bonus stars added.`),...x.confs.map(c=>`${c} champion! Bonus stars and a prize.`),
     ...(x.allNow?['Hall of Fame! You mastered all 32 teams.']:[]),...(x.rulesNew>0&&x.milestone>0&&!x.divs.length&&!x.confs.length?['Rules bonus earned!']:[]),
-    ...x.items.map(n=>`New prize: ${n}`),...x.stops.map(n=>`Your broom reached ${n}!`)
+    ...x.items.map(n=>`New prize: ${n}`),...x.stops.map(n=>`Your broom reached ${n}!`),...(x.playbook?[PB_NOTE]:[])
   ];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">${x.sport==='geo'?'Quiz complete!':'Final whistle!'}</span><span style="min-width:64px"></span></div>
   <section class="card"><h2>${esc(gameName(x.game))} complete!</h2>
@@ -2464,13 +2522,13 @@ function geoAward(items){
   return{parts,total:parts.reduce((n,p)=>n+p[1],0),capped:false};
 }
 function finishOther(sport,items,missed){
-  const snap=prizeSnap(),bs=stats().stars;
+  const snap=prizeSnap(),bs=stats().stars,pbB=sport==='geo'?playbookBonus('geo'):0;
   const aw=sport==='soc'?sportAward(socSess(),items,'Kickoff bonus'):geoAward(items);
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:sport,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-nq.t0)/1000)),stars:aw.total,
+  const sess={ts:Date.now(),mode:sport,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-nq.t0)/1000)),stars:Math.min(100,aw.total+pbB),
     items:items.map(i=>({t:sport,g:nq.game,c:i.c,k:i.k,ok:i.ok,h:i.h||0,err:null}))};
   saveSession(sess);
-  fbres={game:nq.game,sport,sess,aw,missed,cards:[],divs:[],confs:[],allNow:false,rulesNew:0,milestone:0,
+  fbres={game:nq.game,sport,sess,aw,missed,playbook:pbB,cards:[],divs:[],confs:[],allNow:false,rulesNew:0,milestone:0,
     items:prizeNew(snap),
     stops:journeyNew(bs)};
   S.view='fbres';render();
@@ -2692,7 +2750,7 @@ function esTyped(it,val){
   else it.msg='retry';
 }
 function finishEs(){
-  const g=es.game,snap=prizeSnap(),bs=stats().stars,b0=schoolStars();
+  const g=es.game,snap=prizeSnap(),bs=stats().stars,pbB=playbookBonus('es');
   let items;
   if(g==='match')items=es.items.map(it=>{const n=es.wr[it.es]||0;return{w:it.es,ok:n===0,h:0,given:''}});
   else items=es.items.map(it=>{
@@ -2704,10 +2762,10 @@ function finishEs(){
     return{w:it.es,ok:!!it.ok,h:it.helped?1:0,given:String(it.given||'').slice(0,40)};
   });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-es.t0)/1000)),stars:starsFor(g==='quiz'?'estest':'es',correct),
+  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-es.t0)/1000)),stars:Math.min(100,starsFor(g==='quiz'?'estest':'es',correct)+pbB),
     items:items.map(i=>({t:'es',g,w:i.w,ok:i.ok,h:i.h,err:null,given:i.given}))};
   saveSession(sess);
-  es.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(bs),});
+  es.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(bs),pb:pbB});
   S.view='esresults';render();
 }
 function esBadges(){
@@ -2799,13 +2857,13 @@ function esRunView(){
   const okN=r.items.filter(x=>x.ok).length,f=(r.i+(it.done?1:0))/N;
   const[body,btns]=ESB[r.game](it);
   const next=quiz?`<button class="btn" data-act="esnext">${last?'Turn in test':'Next'}</button>`:it.done?`<button class="btn" data-act="esnext">${last?'See my results':'Next word'}</button>`:'';
-  const head=`<div class="row between"><span class="pill">Word ${r.i+1} of ${N}</span>${quiz?'':`<span class="score pill plain">Right <span class="num">${okN}</span></span>`}</div>${dotsHtml(r.i,N,i=>r.items[i].done?(r.items[i].ok?'d':'x'):'')}${raceTrack(r,f)}`;
+  const head=`<div class="row between"><span class="pill">Word ${r.i+1} of ${N}</span>${quiz?'':`<span class="score pill plain">Right <span class="num">${okN}</span></span>`}</div>${dotsHtml(r.i,N,i=>r.items[i].done?(r.items[i].ok?'d':'x'):'')}${r.game==='test'||r.game==='quiz'?'':comboChip(r.items.slice(0,r.i+(it.done?1:0)).map(x=>x.ok))}${raceTrack(r,f)}`;
   return top+`<section class="card">${head}${body}<div class="row between"><div class="row">${!quiz&&!it.done&&btns?btns:''}</div>${next}</div></section>`;
 }
 function esResultsView(){
   const s=es.result,p=pct(s),quiz=es.game==='quiz';
   const msg=p>=90?'¡Fantástico! You really know these words.':p>=75?'¡Muy bien! A little more practice and every word will stick.':'¡Buen trabajo! Every try builds the skill. Keep going.';
-  const missed=s.items.filter(i=>!i.ok),wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`)];
+  const missed=s.items.filter(i=>!i.ok),wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.pb?[PB_NOTE]:[])];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">¡Buen trabajo!</span><span style="min-width:64px"></span></div>
   <section class="card"><h2>${quiz?'¡Examen completo!':'¡Qué bien!'}</h2>
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
@@ -3628,7 +3686,29 @@ function hwFront(){
   const candy=`<g transform="translate(40 152)"><path d="M-9 0Q-10-8 0-8Q10-8 9 0Z" fill="#6B3FB5"/><circle cx="-3" cy="-9" r="2.2" fill="#FF7BAF"/><circle cx="3" cy="-9.5" r="2.2" fill="#FFD24D"/><path d="M-1-11L1-13L3-11" stroke="#58D68D" stroke-width="1.6" fill="none"/></g>`;
   return pump+ghost+candy;
 }
-const halloweenCard=()=>`<section class="card" style="flex-direction:row;align-items:center;gap:14px;background:linear-gradient(135deg,var(--card),var(--card2));box-shadow:inset 0 0 0 2px #E8741A,var(--shadow)"><svg viewBox="0 0 60 56" width="64" aria-hidden="true"><path d="M30 8Q30 2 36 0" stroke="#2E8A4F" stroke-width="4" fill="none" stroke-linecap="round"/><ellipse cx="18" cy="32" rx="16" ry="19" fill="#E8741A"/><ellipse cx="42" cy="32" rx="16" ry="19" fill="#E8741A"/><ellipse cx="30" cy="32" rx="14" ry="20" fill="#F58A2A"/><path d="M17 26L24 20L24 30ZM43 26L36 20L36 30Z" fill="#2A1630"/><path d="M16 40Q30 52 44 40L40 36L35 41L30 36L25 41L20 36Z" fill="#2A1630"/></svg><div><h3>Happy Halloween, Laila!</h3><p class="mute">Spooky decorations are up in your room, and new costume pieces are waiting in your closet. No stars needed.</p></div></section>`;
+const HW_FACTS=[
+  'Halloween began more than 2,000 years ago as a Celtic festival called Samhain, which marked the end of summer.',
+  'The word Halloween comes from "All Hallows\' Eve," the night before a holiday on November 1.',
+  'The first jack-o\'-lanterns were carved from turnips in Ireland. Pumpkins came later in America.',
+  'A pumpkin is a fruit, because it has seeds inside. It is also a kind of squash.',
+  'Trick-or-treating grew from "guising," when people dressed up and performed songs and tricks for treats.',
+  'Bats are the only mammals that can truly fly, and real bats eat lots of insects.',
+  'Spiders are not insects. They have eight legs and belong to a group called arachnids.',
+  'Some giant pumpkins weigh over 2,500 pounds. That is as heavy as a small car!',
+  'Orange stands for the autumn harvest, and black for the dark nights as winter gets closer.',
+  'Owls can turn their heads about 270 degrees, so they can look almost all the way behind them.',
+  'Candy corn was invented more than 100 years ago, and it was first called "chicken feed."',
+  'Long ago, people wore costumes on this night so spooky spirits would not recognize them.',
+  'A giant pumpkin can grow from a tiny seed to a monster in about four months.'
+];
+function halloweenCard(){
+  const d=new Date(),h=new Date(d.getFullYear(),9,31),n=new Date(d.getFullYear(),d.getMonth(),d.getDate()),left=Math.round((h-n)/86400000);
+  const big=left>1?left:left===1?1:left===0?'🎃':'👻';
+  const head=left>1?'days until Halloween':left===1?'day until Halloween':left===0?'Happy Halloween, Laila!':'Halloween was a blast!';
+  const fact=HW_FACTS[Math.floor(n/86400000)%HW_FACTS.length];
+  return`<section class="card hwcard"><div class="hwtop"><b class="hwnum num">${big}</b><div><h3>${head}</h3><span class="mute">Spooky decorations are in your room, and costume pieces are in your closet.</span></div></div>
+  <div class="spark"><b>Halloween fun fact</b><p>${esc(fact)}</p></div></section>`;
+}
 
 /* parent area */
 function parentView(){
@@ -3775,7 +3855,7 @@ function render(){
   const p=document.getElementById('pin');if(p)p.focus({preventScroll:true});
 }
 function finish(){
-  const exam=run.mode==='exam',before=stats().stars,snap=prizeSnap(),b0=schoolStars();
+  const exam=run.mode==='exam',before=stats().stars,snap=prizeSnap(),pbB=playbookBonus('math');
   const items=run.qs.map((q,i)=>{
     const st=run.st[i];
     if(exam){
@@ -3785,9 +3865,9 @@ function finish(){
     return{t:q.type,k:q.kind,ok:st.ok,h:st.helped?1:0,err:st.err||null,given:st.given};
   });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-run.t0)/1000)),stars:starsFor(exam?'exam':'math',correct),items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,h:i.h||0,to:i.to||0,err:i.err}))};
+  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-run.t0)/1000)),stars:Math.min(100,starsFor(exam?'exam':'math',correct)+pbB),items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,h:i.h||0,to:i.to||0,err:i.err}))};
   saveSession(sess);
-  run.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before)});S.view='results';render();
+  run.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),pb:pbB});S.view='results';render();
 }
 function guidedSubmit(val){
   const q=run.qs[run.i],st=run.st[run.i];
