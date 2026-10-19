@@ -1089,32 +1089,88 @@ function getAv(){
 }
 function mixHex(a,b,k){const p=x=>[1,3,5].map(i=>parseInt(x.slice(i,i+2),16)),A=p(a),B=p(b);return'#'+A.map((v,i)=>Math.round(v+(B[i]-v)*k).toString(16).padStart(2,'0')).join('')}
 const lighten=(h,k)=>mixHex(h,'#FFFFFF',k),darken=(h,k)=>mixHex(h,'#000000',k);
+const CURLY=['curly','curls3a','curls3b','coils3c','curlpuffs','curlpony','twistout','knots'];
 function avatarSvg(c){
   if(isBirthday()&&!c._nobday)c=Object.assign({},c,{head:'bdayhat'});
   const skin=SKIN[c.skin]||SKIN[1],hair=HAIR[c.hair]||HAIR[1],out=OUTFIT[c.outfit]||OUTFIT[0];
   let back='';
-  if(c.style==='curly')back=cloud(60,50,30,12,13,hair);
   if(c.style==='puffs')back=cloud(22,32,10,8,6,hair)+cloud(98,32,10,8,6,hair);
   if(c.style==='braids')back=chain(30,66,22,120,7,6.5,hair)+chain(90,66,98,120,7,6.5,hair);
   if(c.style==='long')back=`<path d="M22 64C22 18 98 18 98 64L102 112Q60 124 18 112Z" fill="${hair}"/>`;
   if(c.style==='pony')back=`<path d="M90 48Q118 58 108 100Q100 80 86 72Z" fill="${hair}"/><ellipse cx="60" cy="48" rx="34" ry="30" fill="${hair}"/>`;
   if(c.style==='buns')back=`<circle cx="28" cy="26" r="15" fill="${hair}"/><circle cx="92" cy="26" r="15" fill="${hair}"/>`;
-  /* curl-pattern styles (type 3a loose curls, 3b springy ringlets, 3c tight coils), each curl has a little swirl */
-  const cu=(x,y,r)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${hair}"/><path d="M${x-r*.5} ${y}a${r*.5} ${r*.5} 0 1 1 ${r} 0" stroke="${darken(hair,.25)}" stroke-width="1.1" fill="none" stroke-linecap="round" opacity=".75"/>`;
-  const side=(n,x0,y0,dy,r,sw)=>Array.from({length:n},(_,i)=>cu(x0+(i%2?sw:0),y0+i*dy,r)+cu(120-x0-(i%2?sw:0),y0+i*dy,r)).join('');
-  const ring=(n,cx,cy,rad,r,a0,a1)=>Array.from({length:n},(_,i)=>{const a=(a0+(a1-a0)*i/(n-1))*Math.PI/180;return cu((cx+rad*Math.cos(a)).toFixed(1),(cy+rad*Math.sin(a)).toFixed(1),r)}).join('');
-  if(c.style==='curls3a')back=cloud(60,50,30,12,12,hair)+side(6,22,64,10,7.5,4);
-  if(c.style==='curls3b')back=cloud(60,48,33,14,14,hair)+side(6,19,60,10.5,10,5)+ring(10,60,50,33,9,170,370);
-  if(c.style==='coils3c')back=ring(26,60,52,36,7.5,0,360)+ring(18,60,52,27,7,0,360)+cloud(60,50,28,10,10,hair);
-  if(c.style==='curlpuffs')back=ring(9,26,30,12,8,0,360)+ring(9,94,30,12,8,0,360)+cu(26,30,11)+cu(94,30,11)+side(2,26,56,8,6,0);
-  if(c.style==='curlpony')back=ring(9,60,23,16,9,0,360)+cu(60,23,12)+cloud(60,52,29,10,11,hair)+`<rect x="48" y="31" width="24" height="5" rx="2.4" fill="#FF7BAF"/>`;
-  if(c.style==='twistout')back=cloud(60,50,30,12,12,hair)+[[24,70,-14],[18,86,-8],[22,102,-3],[96,70,14],[102,86,8],[98,102,3]].map(p=>`<ellipse cx="${p[0]}" cy="${p[1]}" rx="7.5" ry="15" transform="rotate(${p[2]} ${p[0]} ${p[1]})" fill="${hair}"/><path d="M${p[0]-2} ${p[1]-9}q4 4 0 8t0 8" stroke="${darken(hair,.25)}" stroke-width="1.2" fill="none" opacity=".7"/>`).join('');
-  if(c.style==='knots')back=ring(7,60,48,34,9,190,350)+ring(2,60,48,34,9,160,380);
   const hs=houseOf(c),INK='#2A1630';
   const D=[];
   const lg=(n,a,b,dir)=>{const id='a'+n+(a+b).replace(/[^0-9a-f]/gi,'');if(!D.some(d=>d.includes('id="'+id+'"')))D.push(`<linearGradient id="${id}" x1="0" y1="0" x2="${dir==='h'?1:0}" y2="${dir==='h'?0:1}"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`);return`url(#${id})`};
   const rg=(n,a,b,cx,cy)=>{const id='r'+n+(a+b).replace(/[^0-9a-f]/gi,'');if(!D.some(d=>d.includes('id="'+id+'"')))D.push(`<radialGradient id="${id}" cx="${cx||.35}" cy="${cy||.3}" r=".75"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></radialGradient>`);return`url(#${id})`};
   const sp=(x,y,r,col)=>`<path d="M${x} ${y-r}Q${x+r*.18} ${y-r*.18} ${x+r} ${y}Q${x+r*.18} ${y+r*.18} ${x} ${y+r}Q${x-r*.18} ${y+r*.18} ${x-r} ${y}Q${x-r*.18} ${y-r*.18} ${x} ${y-r}Z" fill="${col||'#fff'}"/>`;
+/*CURLY-START*/
+  /* ---- curly hair, drawn as real curls: a soft shaded shape, then spiral strands and corkscrew locks on top ---- */
+  let curlFront='',hairFill=hair;
+  if(CURLY.includes(c.style)){
+    let seed=17;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+    const f=n=>Math.round(n*10)/10;
+    const HL1=lighten(hair,.2),HL2=lighten(hair,.4),HD=darken(hair,.38);
+    hairFill=rg('hv',lighten(hair,.16),darken(hair,.1),.4,.25);
+    /* a cloud-like outline: n soft bumps around an ellipse */
+    const puff=(cx,cy,rx,ry,n,amp)=>{
+      const P=[];for(let i=0;i<n;i++){const a=i/n*2*Math.PI-Math.PI/2;P.push([cx+rx*Math.cos(a),cy+ry*Math.sin(a),a])}
+      let d='M'+f(P[0][0])+' '+f(P[0][1]);
+      for(let i=0;i<n;i++){const p=P[i],q=P[(i+1)%n],m=(p[2]+(i+1===n?q[2]+2*Math.PI:q[2]))/2,k=1+amp*(.75+.5*rnd());
+        d+='Q'+f(cx+rx*k*Math.cos(m))+' '+f(cy+ry*k*Math.sin(m))+' '+f(q[0])+' '+f(q[1])}
+      return`<path d="${d}Z" fill="${hairFill}"/>`;
+    };
+    /* a spiral strand (the curl itself), drawn dark with a bright edge */
+    const spin=(x,y,r,turns,rot)=>{
+      let d='';const N=Math.round(turns*11);
+      for(let i=0;i<=N;i++){const t=i/N,a=rot+t*turns*2*Math.PI,rr=r*(.12+.88*t);d+=(i?'L':'M')+f(x+rr*Math.cos(a))+' '+f(y+rr*Math.sin(a))}
+      return`<path d="${d}" stroke="${HD}" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/><path d="${d}" stroke="${HL1}" stroke-width=".8" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".55" transform="translate(-.5 -.6)"/>`;
+    };
+    const rim=(cx,cy,rx,ry,a0,a1,n,r,turns)=>{let s='';for(let i=0;i<n;i++){const a=(a0+(a1-a0)*(n>1?i/(n-1):.5))*Math.PI/180,j=.82+.12*rnd();s+=spin(cx+rx*j*Math.cos(a),cy+ry*j*Math.sin(a),r*(.8+.4*rnd()),turns,rnd()*6.28)}return s};
+    /* a corkscrew lock hanging down: thick glossy tube that winds as it falls */
+    const lock=(x,y,len,amp,turns,w,tilt)=>{
+      let d='';const N=Math.round(turns*10);
+      for(let i=0;i<=N;i++){const t=i/N;d+=(i?'L':'M')+f(x+amp*Math.sin(t*turns*2*Math.PI)*(1-.3*t)+tilt*t)+' '+f(y+len*t)}
+      return`<path d="${d}" stroke="${HD}" stroke-width="${f(w+1.8)}" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" stroke="${hairFill}" stroke-width="${w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" stroke="${HL1}" stroke-width="${f(w*.3)}" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".7" transform="translate(-.8 -.8)"/>`;
+    };
+    const both=(fn)=>fn(-1)+fn(1);
+    const tie=(x,y,w)=>`<rect x="${x-w/2}" y="${y-2.4}" width="${w}" height="4.8" rx="2.4" fill="#FF7BAF"/><path d="M${x-w/2+2} ${y-1}H${x+w/2-2}" stroke="#fff" stroke-width=".9" opacity=".5" stroke-linecap="round"/>`;
+    const S=c.style;
+    if(S==='curly'){
+      back=puff(60,47,37,32,16,.28)+both(s=>lock(60+s*33,52,50,4,3,8.5,s*3)+lock(60+s*27,60,44,3.4,2.6,7,s*1))+rim(60,47,37,32,168,372,13,4.4,1.7);
+      curlFront=both(s=>lock(60+s*30,45,32,2,2,5,s*1.5))+spin(48,37,4.2,1.7,1)+spin(64,35,4.6,1.7,3)+spin(74,39,4,1.7,5);
+    }
+    if(S==='curls3a'){
+      back=puff(60,48,36,31,14,.2)+both(s=>lock(60+s*34,50,56,3.2,2.1,9,s*2)+lock(60+s*28,62,46,2.8,1.8,7.5,s*1))+rim(60,48,36,31,170,370,12,4.6,1.5);
+      curlFront=both(s=>lock(60+s*30,45,36,2,1.6,5.4,s*2))+spin(52,37,4,1.6,2)+spin(68,36,4,1.6,4);
+    }
+    if(S==='curls3b'){
+      back=puff(60,46,34,30,15,.22)+both(s=>[0,1,2].map(i=>lock(60+s*(36-i*4.6),48+i*4,68-i*7,2.8,4.6,5.8,s*(1+i))).join(''))+rim(60,46,34,30,170,370,12,3.8,1.6);
+      curlFront=both(s=>lock(60+s*29,46,34,1.6,2.8,4.2,s*1.5))+spin(52,37,3.6,1.6,2)+spin(68,36,3.6,1.6,4);
+    }
+    if(S==='coils3c'){
+      back=puff(60,45,40,36,22,.2)+rim(60,45,40,36,0,360,34,3.8,1.9);
+      curlFront=rim(60,56,29,27,198,342,9,3.3,1.8);
+    }
+    if(S==='curlpuffs'){
+      back=both(s=>puff(60+s*36,31,13,13,11,.3)+rim(60+s*36,31,13,13,0,360,8,3.6,1.7)+lock(60+s*37,42,24,2.2,1.8,5.4,s*2))+tie(24,43,9)+tie(96,43,9);
+      curlFront=both(s=>lock(60+s*30,48,22,1.6,1.8,4.4,s*1.5))+spin(54,38,3.4,1.6,2)+spin(68,37,3.4,1.6,4);
+    }
+    if(S==='curlpony'){
+      back=lock(87,26,56,3.4,3,7.6,7)+lock(93,34,48,3,2.6,6.6,5)+lock(81,30,52,3,2.8,6.6,8)+puff(60,22,19,16,12,.3)+rim(60,22,19,16,0,360,10,4,1.7);
+      curlFront=tie(60,35,11)+both(s=>lock(60+s*30,48,24,1.8,1.8,4.6,s*1.5))+spin(52,40,3.6,1.6,1)+spin(68,40,3.6,1.6,3);
+    }
+    if(S==='twistout'){
+      back=puff(60,48,35,30,14,.17)+both(s=>lock(60+s*35,50,56,3,1.4,10,s*1)+lock(60+s*29,58,50,2.6,1.3,8.4,s*2)+lock(60+s*23,64,40,2.2,1.2,7,s*1))+rim(60,48,35,30,172,368,10,4.2,1.4);
+      curlFront=both(s=>lock(60+s*30,46,36,2,1.3,6,s*2))+spin(52,37,4,1.5,2)+spin(68,36,4,1.5,4);
+    }
+    if(S==='knots'){
+      const knot=(x,y,r)=>`<circle cx="${f(x)}" cy="${f(y+.8)}" r="${r}" fill="#000" opacity=".16"/><circle cx="${f(x)}" cy="${f(y)}" r="${r}" fill="${hairFill}" stroke="${HD}" stroke-width=".9"/>`+spin(x,y,r*.82,2.2,rnd()*6.28);
+      back=[[60,22],[44,26],[76,26],[32,36],[88,36]].map(p=>knot(p[0],p[1],7.2)).join('');
+      curlFront=`<path d="M60 30V44M44 34Q42 40 41 45M76 34Q78 40 79 45" stroke="${darken(skin,.12)}" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".8"/>`+[[28,52],[92,52],[34,44],[86,44],[46,38],[74,38]].map(p=>knot(p[0],p[1],6.6)).join('');
+    }
+  }
+/*CURLY-END*/
   const GOLD=lg('gold','#F7DE8A','#B07A1C'),GOLDH=lg('goldh','#F7DE8A','#B07A1C','h'),TXT='font-family:Inter,system-ui,sans-serif';
   const BODY='M18 130C20 100 38 92 60 92C82 92 100 100 102 130Z';
   let top=`<path d="${BODY}" fill="${lg('tee',lighten(out,.14),darken(out,.2))}"/><path d="M26 128C28 108 40 98 52 95" stroke="#fff" stroke-width="2" fill="none" opacity=".16" stroke-linecap="round"/>`;
@@ -1190,10 +1246,8 @@ function avatarSvg(c){
   if(PRZ.top[c.top]){const r=PRZ.top[c.top](X);top=r.top;topD=r.topD||topD}
   const head=`<rect x="52" y="82" width="16" height="16" rx="6" fill="${darken(skin,.08)}"/><circle cx="60" cy="58" r="30" fill="${rg('skin',lighten(skin,.1),skin,.4,.35)}"/>`;
   /* hair cap: covers the whole top of the head (arc a bit larger than the head), with a soft hairline */
-  let fringe=`<path d="M27 58A33 33 0 0 1 93 58C89 49 80 43 71 41.5C64 44 56 44 49 41.5C40 43 31 49 27 58Z" fill="${hair}"/><path d="M36 44C46 34 62 32 76 38" stroke="#fff" stroke-width="2.4" fill="none" opacity=".16" stroke-linecap="round"/>`;
-  if(c.style==='curly'){for(let i=0;i<7;i++){const a=(205+i*21.7)*Math.PI/180;fringe+=`<circle cx="${(60+27*Math.cos(a)).toFixed(1)}" cy="${(58+25*Math.sin(a)).toFixed(1)}" r="8.5" fill="${hair}"/>`}}
-  const HL={curls3a:[11,7],curls3b:[13,8.5],coils3c:[16,6],curlpuffs:[12,6],curlpony:[11,6.5],twistout:[11,6.5],knots:[0,0]}[c.style];
-  if(HL&&HL[0]){for(let i=0;i<HL[0];i++){const a=(200+i*(140/(HL[0]-1)))*Math.PI/180;fringe+=cu((60+28*Math.cos(a)).toFixed(1),(56+27*Math.sin(a)).toFixed(1),HL[1])}}
+  let fringe=`<path d="M27 58A33 33 0 0 1 93 58C89 49 80 43 71 41.5C64 44 56 44 49 41.5C40 43 31 49 27 58Z" fill="${hairFill}"/><path d="M36 44C46 34 62 32 76 38" stroke="#fff" stroke-width="2.4" fill="none" opacity=".16" stroke-linecap="round"/>`;
+  if(curlFront)fringe+=curlFront;
   const face=`<path d="M43 56Q50 53 56 56M64 56Q70 53 77 56" stroke="${darken(hair,.1)}" stroke-width="1.8" fill="none" stroke-linecap="round"/><ellipse cx="50" cy="62" rx="3.4" ry="3.7" fill="${INK}"/><ellipse cx="70" cy="62" rx="3.4" ry="3.7" fill="${INK}"/><circle cx="51.2" cy="60.6" r="1.1" fill="#fff"/><circle cx="71.2" cy="60.6" r="1.1" fill="#fff"/><path d="M60 64Q62 68 59 69" stroke="${darken(skin,.22)}" stroke-width="1.3" fill="none" stroke-linecap="round"/><path d="M52 72Q60 80 68 72" stroke="${INK}" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="43" cy="70" r="5" fill="#FF6FA5" opacity=".28"/><circle cx="77" cy="70" r="5" fill="#FF6FA5" opacity=".28"/>`;
   let hd='';
   if(c.head==='bow')hd=`<g transform="translate(82 34)"><path d="M0 0C-8-10-18-10-17 0C-16 9-8 9 0 0Z" fill="${lg('bw','#FF7BAF','#C21E5C')}"/><path d="M0 0C8-10 18-10 17 0C16 9 8 9 0 0Z" fill="${lg('bw','#FF7BAF','#C21E5C')}"/><path d="M-3 1L-12 12L-6 10L-1 14ZM3 1L12 12L6 10L1 14Z" fill="#C21E5C"/><path d="M-13-2C-10-6-6-5-4-2M13-2C10-6 6-5 4-2" stroke="#fff" stroke-width="1" fill="none" opacity=".55"/><ellipse rx="4" ry="4.6" fill="${lg('bk','#FF9AC1','#D12A6A')}"/><ellipse cx="-1" cy="-1.5" rx="1.3" ry="1.6" fill="#fff" opacity=".7"/></g>`;
@@ -4121,7 +4175,7 @@ function closetPanel(){
   const list=ITEMS.filter(x=>x.slot===tab&&vis(x)),sorted=[...list.filter(x=>prizeUnlocked(x,env)),...list.filter(x=>!prizeUnlocked(x,env))];
   const count=k=>{const l=ITEMS.filter(x=>x.slot===k&&vis(x));return l.filter(x=>prizeUnlocked(x,env)).length+'/'+l.length};
   return`<section class="card"><h3>Your closet</h3><p class="mute">Change how Laila looks. Tap Laila in the room, or Closet, any time.</p>${sw('skin',SKIN,'Skin')}${sw('hair',HAIR,'Hair color')}
-    <div class="sect" style="padding-inline:0">Hair style</div><div class="seg wrap">${[['curly','Curly'],['curls3a','Loose curls (3a)'],['curls3b','Springy curls (3b)'],['coils3c','Tight coils (3c)'],['curlpuffs','Curly puffs'],['curlpony','Curly puff'],['twistout','Twist-out'],['knots','Bantu knots'],['puffs','Puffs'],['braids','Braids'],['long','Straight'],['pony','Ponytail'],['buns','Buns']].map(([k,l])=>`<button class="${av.style===k?'on':''}" data-act="av" data-k="style" data-v="${k}">${l}</button>`).join('')}</div>
+    <div class="sect" style="padding-inline:0">Hair style</div><div class="seg wrap">${[['curly','Curly'],['curls3a','Loose curls'],['curls3b','Ringlets'],['coils3c','Round afro'],['curlpuffs','Curly puffs'],['curlpony','Curly ponytail'],['twistout','Twist-out'],['knots','Bantu knots'],['puffs','Puffs'],['braids','Braids'],['long','Straight'],['pony','Ponytail'],['buns','Buns']].map(([k,l])=>`<button class="${av.style===k?'on':''}" data-act="av" data-k="style" data-v="${k}">${l}</button>`).join('')}</div>
     ${sw('outfit',OUTFIT,'Outfit color')}
     <div class="sect" style="padding-inline:0">Hogwarts house</div><div class="seg wrap">${Object.entries(HOUSES).map(([k,h])=>`<button class="${houseOf(av)===h?'on':''}" data-act="av" data-k="house" data-v="${k}">${h[0]}</button>`).join('')}</div></section>
   <div class="seg">${slots.map(([k,l])=>`<button class="${tab===k?'on':''}" data-act="closettab" data-v="${k}">${l} <span class="num">${count(k)}</span></button>`).join('')}</div>
