@@ -859,6 +859,17 @@ function avatarSvg(c){
   if(c.style==='long')back=`<path d="M22 64C22 18 98 18 98 64L102 112Q60 124 18 112Z" fill="${hair}"/>`;
   if(c.style==='pony')back=`<path d="M90 48Q118 58 108 100Q100 80 86 72Z" fill="${hair}"/><ellipse cx="60" cy="48" rx="34" ry="30" fill="${hair}"/>`;
   if(c.style==='buns')back=`<circle cx="28" cy="26" r="15" fill="${hair}"/><circle cx="92" cy="26" r="15" fill="${hair}"/>`;
+  /* curl-pattern styles (type 3a loose curls, 3b springy ringlets, 3c tight coils), each curl has a little swirl */
+  const cu=(x,y,r)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${hair}"/><path d="M${x-r*.5} ${y}a${r*.5} ${r*.5} 0 1 1 ${r} 0" stroke="${darken(hair,.25)}" stroke-width="1.1" fill="none" stroke-linecap="round" opacity=".75"/>`;
+  const side=(n,x0,y0,dy,r,sw)=>Array.from({length:n},(_,i)=>cu(x0+(i%2?sw:0),y0+i*dy,r)+cu(120-x0-(i%2?sw:0),y0+i*dy,r)).join('');
+  const ring=(n,cx,cy,rad,r,a0,a1)=>Array.from({length:n},(_,i)=>{const a=(a0+(a1-a0)*i/(n-1))*Math.PI/180;return cu((cx+rad*Math.cos(a)).toFixed(1),(cy+rad*Math.sin(a)).toFixed(1),r)}).join('');
+  if(c.style==='curls3a')back=cloud(60,50,30,12,12,hair)+side(6,22,64,10,7.5,4);
+  if(c.style==='curls3b')back=cloud(60,48,33,14,14,hair)+side(6,19,60,10.5,10,5)+ring(10,60,50,33,9,170,370);
+  if(c.style==='coils3c')back=ring(26,60,52,36,7.5,0,360)+ring(18,60,52,27,7,0,360)+cloud(60,50,28,10,10,hair);
+  if(c.style==='curlpuffs')back=ring(9,26,30,12,8,0,360)+ring(9,94,30,12,8,0,360)+cu(26,30,11)+cu(94,30,11)+side(2,26,56,8,6,0);
+  if(c.style==='curlpony')back=ring(9,60,23,16,9,0,360)+cu(60,23,12)+cloud(60,52,29,10,11,hair)+`<rect x="48" y="31" width="24" height="5" rx="2.4" fill="#FF7BAF"/>`;
+  if(c.style==='twistout')back=cloud(60,50,30,12,12,hair)+[[24,70,-14],[18,86,-8],[22,102,-3],[96,70,14],[102,86,8],[98,102,3]].map(p=>`<ellipse cx="${p[0]}" cy="${p[1]}" rx="7.5" ry="15" transform="rotate(${p[2]} ${p[0]} ${p[1]})" fill="${hair}"/><path d="M${p[0]-2} ${p[1]-9}q4 4 0 8t0 8" stroke="${darken(hair,.25)}" stroke-width="1.2" fill="none" opacity=".7"/>`).join('');
+  if(c.style==='knots')back=ring(7,60,48,34,9,190,350)+ring(2,60,48,34,9,160,380);
   const hs=houseOf(c),INK='#2A1630';
   const D=[];
   const lg=(n,a,b,dir)=>{const id='a'+n+(a+b).replace(/[^0-9a-f]/gi,'');if(!D.some(d=>d.includes('id="'+id+'"')))D.push(`<linearGradient id="${id}" x1="0" y1="0" x2="${dir==='h'?1:0}" y2="${dir==='h'?0:1}"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`);return`url(#${id})`};
@@ -941,6 +952,8 @@ function avatarSvg(c){
   /* hair cap: covers the whole top of the head (arc a bit larger than the head), with a soft hairline */
   let fringe=`<path d="M27 58A33 33 0 0 1 93 58C89 49 80 43 71 41.5C64 44 56 44 49 41.5C40 43 31 49 27 58Z" fill="${hair}"/><path d="M36 44C46 34 62 32 76 38" stroke="#fff" stroke-width="2.4" fill="none" opacity=".16" stroke-linecap="round"/>`;
   if(c.style==='curly'){for(let i=0;i<7;i++){const a=(205+i*21.7)*Math.PI/180;fringe+=`<circle cx="${(60+27*Math.cos(a)).toFixed(1)}" cy="${(58+25*Math.sin(a)).toFixed(1)}" r="8.5" fill="${hair}"/>`}}
+  const HL={curls3a:[11,7],curls3b:[13,8.5],coils3c:[16,6],curlpuffs:[12,6],curlpony:[11,6.5],twistout:[11,6.5],knots:[0,0]}[c.style];
+  if(HL&&HL[0]){for(let i=0;i<HL[0];i++){const a=(200+i*(140/(HL[0]-1)))*Math.PI/180;fringe+=cu((60+28*Math.cos(a)).toFixed(1),(56+27*Math.sin(a)).toFixed(1),HL[1])}}
   const face=`<path d="M43 56Q50 53 56 56M64 56Q70 53 77 56" stroke="${darken(hair,.1)}" stroke-width="1.8" fill="none" stroke-linecap="round"/><ellipse cx="50" cy="62" rx="3.4" ry="3.7" fill="${INK}"/><ellipse cx="70" cy="62" rx="3.4" ry="3.7" fill="${INK}"/><circle cx="51.2" cy="60.6" r="1.1" fill="#fff"/><circle cx="71.2" cy="60.6" r="1.1" fill="#fff"/><path d="M60 64Q62 68 59 69" stroke="${darken(skin,.22)}" stroke-width="1.3" fill="none" stroke-linecap="round"/><path d="M52 72Q60 80 68 72" stroke="${INK}" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="43" cy="70" r="5" fill="#FF6FA5" opacity=".28"/><circle cx="77" cy="70" r="5" fill="#FF6FA5" opacity=".28"/>`;
   let hd='';
   if(c.head==='bow')hd=`<g transform="translate(82 34)"><path d="M0 0C-8-10-18-10-17 0C-16 9-8 9 0 0Z" fill="${lg('bw','#FF7BAF','#C21E5C')}"/><path d="M0 0C8-10 18-10 17 0C16 9 8 9 0 0Z" fill="${lg('bw','#FF7BAF','#C21E5C')}"/><path d="M-3 1L-12 12L-6 10L-1 14ZM3 1L12 12L6 10L1 14Z" fill="#C21E5C"/><path d="M-13-2C-10-6-6-5-4-2M13-2C10-6 6-5 4-2" stroke="#fff" stroke-width="1" fill="none" opacity=".55"/><ellipse rx="4" ry="4.6" fill="${lg('bk','#FF9AC1','#D12A6A')}"/><ellipse cx="-1" cy="-1.5" rx="1.3" ry="1.6" fill="#fff" opacity=".7"/></g>`;
@@ -3567,7 +3580,7 @@ function closetPanel(){
   const list=ITEMS.filter(x=>x.slot===tab&&vis(x)),sorted=[...list.filter(x=>prizeUnlocked(x,env)),...list.filter(x=>!prizeUnlocked(x,env))];
   const count=k=>{const l=ITEMS.filter(x=>x.slot===k&&vis(x));return l.filter(x=>prizeUnlocked(x,env)).length+'/'+l.length};
   return`<section class="card"><h3>Your closet</h3><p class="mute">Change how Laila looks. Tap Laila in the room, or Closet, any time.</p>${sw('skin',SKIN,'Skin')}${sw('hair',HAIR,'Hair color')}
-    <div class="sect" style="padding-inline:0">Hair style</div><div class="seg wrap">${[['curly','Curly'],['puffs','Puffs'],['braids','Braids'],['long','Straight'],['pony','Ponytail'],['buns','Buns']].map(([k,l])=>`<button class="${av.style===k?'on':''}" data-act="av" data-k="style" data-v="${k}">${l}</button>`).join('')}</div>
+    <div class="sect" style="padding-inline:0">Hair style</div><div class="seg wrap">${[['curly','Curly'],['curls3a','Loose curls (3a)'],['curls3b','Springy curls (3b)'],['coils3c','Tight coils (3c)'],['curlpuffs','Curly puffs'],['curlpony','Curly puff'],['twistout','Twist-out'],['knots','Bantu knots'],['puffs','Puffs'],['braids','Braids'],['long','Straight'],['pony','Ponytail'],['buns','Buns']].map(([k,l])=>`<button class="${av.style===k?'on':''}" data-act="av" data-k="style" data-v="${k}">${l}</button>`).join('')}</div>
     ${sw('outfit',OUTFIT,'Outfit color')}
     <div class="sect" style="padding-inline:0">Hogwarts house</div><div class="seg wrap">${Object.entries(HOUSES).map(([k,h])=>`<button class="${houseOf(av)===h?'on':''}" data-act="av" data-k="house" data-v="${k}">${h[0]}</button>`).join('')}</div></section>
   <div class="seg">${slots.map(([k,l])=>`<button class="${tab===k?'on':''}" data-act="closettab" data-v="${k}">${l} <span class="num">${count(k)}</span></button>`).join('')}</div>
