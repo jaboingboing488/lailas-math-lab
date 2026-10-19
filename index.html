@@ -787,7 +787,10 @@ function affirmHtml(){
 const comboChip=ok=>{let n=0;for(let i=ok.length-1;i>=0&&ok[i];i--)n++;return n>=2?`<span class="pill combo">🔥 ${n} in a row</span>`:''};
 /* ---------- subjects and stars ---------- */
 /* Math and spelling pay about double what they used to. Español pays the most. The database rules cap one session at 100 stars. */
+/* a right answer is worth 1 when it came on the first try with no hint, and half when it needed a second try or a hint */
+const credit=items=>items.reduce((n,i)=>n+(i.ok?(i.h?.5:1):0),0);
 function starsFor(kind,n){
+  n=Math.round(n);
   const base={math:n*2+4,exam:n*3+6,spell:n*2+4,spelltest:n*3+6,es:n*3+6,estest:n*4+10}[kind]||0;
   return Math.min(100,base);
 }
@@ -1611,7 +1614,7 @@ function finishSpell(){
       return{w:it.w,ok,h:it.helped?1:0,err:!ok&&(g==='cards'||g==='sent')&&it.given?spErr(it.given,it.w):null,given:it.given||''};
     });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-sp.t0)/1000)),stars:bdayX(starsFor(g==='test'?'spelltest':'spell',correct)+pbB),
+  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-sp.t0)/1000)),stars:bdayX(starsFor(g==='test'?'spelltest':'spell',credit(items))+pbB),
     items:items.map(i=>({t:'sp',g,w:i.w,ok:i.ok,h:i.h,err:i.err}))};
   saveSession(sess);
   sp.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),pb:pbB});
@@ -1744,7 +1747,7 @@ function hotCount(items){let run=0,n=0;items.forEach(i=>{if(i.ok&&!i.h){run++;if
 function sportAward(list,items,label){
   const today=list.filter(s=>dayKey(s.ts)===fbDay());
   if(today.length>=NFL_DAILY)return{parts:[],total:0,capped:true};
-  const correct=items.filter(i=>i.ok).length,parts=[['Right answers',correct],[label,2]];
+  const parts=[['Right answers',Math.round(credit(items))],[label,2]];
   if(items.length>=4&&items.every(i=>i.ok&&!i.h))parts.push(['Perfect game',5]);
   const hot=hotCount(items);if(hot)parts.push(['Hot streak x'+hot,hot*2]);
   if(!today.length)parts.push(['Daily double',3]);
@@ -2063,7 +2066,7 @@ function resultsView(){
   <div><div class="bigscore"><span style="color:var(--gold)">★</span> +${s.stars}</div><span class="mute">stars earned</span></div></div>
   ${podiumSvg(p)}
   ${s.items.filter(i=>i.to).length?`<p class="mute">${s.items.filter(i=>i.to).length} question${s.items.filter(i=>i.to).length>1?'s':''} ran out of time.</p>`:''}
-  ${s.items.filter(i=>i.ok&&i.h).length?`<p class="mute">${s.items.filter(i=>i.ok&&i.h).length} of your right answers used a hint or a second try.</p>`:''}
+  ${s.items.filter(i=>i.ok&&i.h).length?`<p class="mute">${s.items.filter(i=>i.ok&&i.h).length} of your right answers used a hint or a second try, so they earned half a star-point each. Answer on the first try, no hint, for the full amount.</p>`:''}
   <p>${msg}</p>
   ${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
   <section class="spark"><b>Professor's fact of the day</b><p>${esc(fact)}</p></section>
@@ -2190,7 +2193,7 @@ function spResultsView(){
   <section class="card"><h2>${test?'Test complete!':'Nice practice!'}</h2>
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
   <div><div class="bigscore"><span style="color:var(--gold)">★</span> +${s.stars}</div><span class="mute">stars earned</span></div></div>
-  ${helped?`<p class="mute">${helped} of your right words used a hint or a second try.</p>`:''}
+  ${helped?`<p class="mute">${helped} of your right words used a hint or a second try, so they earned half a star-point each. Spell on the first try, no hint, for the full amount.</p>`:''}
   <p>${msg}</p>${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
   <section class="spark"><b>Professor's fact of the day</b><p>${esc(fact)}</p></section>
   ${missed.length?`<h3>Words to look at again</h3>${missed.map(i=>`<div class="card" style="box-shadow:inset 0 0 0 1px var(--line);padding:14px">${i.given?diffHtml(i.given,i.w):`<div class="diff"><div><small>Word</small><br>${esc(i.w)}</div></div>`}${i.err?`<p class="mute">${esc(SP_ERR[i.err]||'')}</p>`:''}</div>`).join('')}`:'<div class="fb good">Every word right. Perfect!</div>'}
@@ -2573,7 +2576,7 @@ function pickGeo(game){
   });
 }
 function geoAward(items){
-  const correct=items.filter(i=>i.ok).length,parts=[['Right answers',correct],['Practice bonus',3]];
+  const parts=[['Right answers',Math.round(credit(items))],['Practice bonus',3]];
   if(items.length>=4&&items.every(i=>i.ok&&!i.h))parts.push(['Perfect game',5]);
   return{parts,total:parts.reduce((n,p)=>n+p[1],0),capped:false};
 }
@@ -2818,7 +2821,7 @@ function finishEs(){
     return{w:it.es,ok:!!it.ok,h:it.helped?1:0,given:String(it.given||'').slice(0,40)};
   });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-es.t0)/1000)),stars:bdayX(starsFor(g==='quiz'?'estest':'es',correct)+pbB),
+  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-es.t0)/1000)),stars:bdayX(starsFor(g==='quiz'?'estest':'es',credit(items))+pbB),
     items:items.map(i=>({t:'es',g,w:i.w,ok:i.ok,h:i.h,err:null,given:i.given}))};
   saveSession(sess);
   es.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(bs),pb:pbB});
@@ -3925,7 +3928,7 @@ function finish(){
     return{t:q.type,k:q.kind,ok:st.ok,h:st.helped?1:0,err:st.err||null,given:st.given};
   });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-run.t0)/1000)),stars:bdayX(starsFor(exam?'exam':'math',correct)+pbB),items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,h:i.h||0,to:i.to||0,err:i.err}))};
+  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-run.t0)/1000)),stars:bdayX(starsFor(exam?'exam':'math',credit(items))+pbB),items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,h:i.h||0,to:i.to||0,err:i.err}))};
   saveSession(sess);
   run.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),pb:pbB});S.view='results';render();
 }
