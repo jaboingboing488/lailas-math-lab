@@ -142,6 +142,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .choice.bad{background:var(--warn-bg);box-shadow:inset 0 0 0 3px var(--warn);opacity:.7}
 .choice.ok{background:var(--good-bg);box-shadow:inset 0 0 0 3px var(--good)}
 input.ans{font-family:var(--f-num);font-weight:700;font-size:2rem;width:100%;max-width:280px;padding:10px 16px;border:0;border-radius:18px;background:var(--card2);box-shadow:inset 0 0 0 2px var(--line);color:var(--ink)}
+.cal .calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:10px}
+.cal .dow{text-align:center;font-weight:800;font-size:.72rem;color:var(--mute)}
+.cal .cd{aspect-ratio:1/1.1;border-radius:10px;background:var(--card2);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:3px 0 4px;min-width:0;min-height:44px;color:var(--ink)}
+.cal .cd.out{visibility:hidden;box-shadow:none;background:none}
+.cal .cd.today{box-shadow:inset 0 0 0 2px var(--accent);background:var(--accent-soft)}
+.cal .cd.sel{outline:2px solid var(--gold);outline-offset:1px}
+.cal .dn2{font-weight:800;font-size:.85rem;line-height:1.1}
+.cal .ev{font-size:.7rem;line-height:1;min-height:.7rem}
+.cal .dts{display:flex;gap:2px;min-height:6px}
+.cal .dts i{width:5px;height:5px;border-radius:50%}
+.cal .calday{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.cal .calday ul{margin:6px 0 0;padding-left:18px;display:grid;gap:4px}
 .learn ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .learn li{display:flex;gap:10px;align-items:flex-start}
 .learn li i{font-style:normal;flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:#fff;font-size:.85rem;font-weight:800}
@@ -1430,9 +1442,9 @@ setInterval(()=>{
 
 /* ---------- spelling: word lists and sentences ---------- */
 const UNIT3=[
-  {id:'u3w1',name:'Test: Wednesday, October 21',note:'Words with ar and or',words:['alarm','author','carnivore','carton','charted','dormant','forgotten','import','march','ornament','pardon','report']},
-  {id:'u3w2',name:'Test: Wednesday, October 28',note:'Words with er, ir and ur',words:['caterpillar','circus','dangerous','jersey','nerve','occur','return','serve','stir','summer','thirteen','turtle']},
-  {id:'u3w3',name:'Test: Wednesday, November 4',note:'Mixed spelling patterns',words:['after','button','challenge','collect','elbow','forgive','hunger','lesson','mention','problematic','projection','suddenly']}
+  {id:'u3w1',date:'2026-10-21',name:'Test: Wednesday, October 21',note:'Words with ar and or',words:['alarm','author','carnivore','carton','charted','dormant','forgotten','import','march','ornament','pardon','report']},
+  {id:'u3w2',date:'2026-10-28',name:'Test: Wednesday, October 28',note:'Words with er, ir and ur',words:['caterpillar','circus','dangerous','jersey','nerve','occur','return','serve','stir','summer','thirteen','turtle']},
+  {id:'u3w3',date:'2026-11-04',name:'Test: Wednesday, November 4',note:'Mixed spelling patterns',words:['after','button','challenge','collect','elbow','forgive','hunger','lesson','mention','problematic','projection','suddenly']}
 ];
 const SENT={
   alarm:'The loud alarm woke everyone up at seven o\'clock.',author:'My favorite author wrote a book about a brave dog.',carnivore:'A lion is a carnivore because it eats meat.',
@@ -2222,6 +2234,62 @@ function autoRead(){
   if(key&&key!==spokeKey){spokeKey=key;say(txt)}
 }
 
+/* ---------- calendar: school dates, holidays, her birthday, and the days she practiced ---------- */
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const SUBJ_COL={math:'#3A7BFF',spell:'#E5409B',es:'#FF8A1F',geo:'#1FA971',soc:'#0E9F6E',nfl:'#B45309'};
+const SUBJ_NAME={math:'Math',spell:'Spelling',es:'Español',geo:'States',soc:'Soccer',nfl:'Football'};
+const subjOfSess=s=>s.mode==='geo'?'geo':s.mode==='soc'?'soc':s.mode==='nfl'?'nfl':isEs(s)?'es':s.mode==='spell'?'spell':'math';
+function eventsOn(key){
+  const[y,m,d]=key.split('-').map(Number),out=[];
+  UNIT3.forEach(u=>{if(u.date===key)out.push({k:'test',n:'Spelling test: '+u.note})});
+  if(m===10&&d===31)out.push({k:'hol',n:'Halloween'});
+  const b=bdayDate();if(b&&b.m===m-1&&b.d===d)out.push({k:'bday',n:'Your birthday!'});
+  const compact=key.replace(/-/g,'');
+  (getAv().events||[]).forEach(e=>{e=String(e);if(e.slice(0,8)===compact)out.push({k:'mine',n:e.slice(9)})});
+  return out;
+}
+function practiceByDay(){
+  const m=new Map();
+  S.sessions.forEach(s=>{const k=dayKey(s.ts),e=m.get(k)||m.set(k,{subs:new Set(),n:0,stars:0}).get(k);e.subs.add(subjOfSess(s));e.n++;e.stars+=s.stars||0});
+  return m;
+}
+function calCard(){
+  const t=etNow(),off=S.calOff||0,ym=t.y*12+t.m+off,y=Math.floor(ym/12),m=((ym%12)+12)%12;
+  const first=new Date(Date.UTC(y,m,1)).getUTCDay(),days=new Date(Date.UTC(y,m+1,0)).getUTCDate();
+  const pd=practiceByDay(),sel=S.calSel||t.key,pad=n=>String(n).padStart(2,'0');
+  let cells='';
+  for(let i=0;i<first;i++)cells+='<span class="cd out"></span>';
+  for(let d=1;d<=days;d++){
+    const key=y+'-'+pad(m+1)+'-'+pad(d),ev=eventsOn(key),p=pd.get(key);
+    const mark=ev.length?({test:'✏️',hol:'🎃',bday:'🎂',mine:'⭐'})[ev[0].k]:'';
+    cells+=`<button class="cd ${key===t.key?'today':''} ${key===sel?'sel':''}" data-act="calday" data-v="${key}" aria-label="${MONTHS[m]} ${d}${ev.length?', '+esc(ev.map(e=>e.n).join(', ')):''}${p?', practiced':''}"><span class="dn2">${d}</span><span class="ev">${mark}</span><span class="dts">${p?[...p.subs].slice(0,4).map(s=>`<i style="background:${SUBJ_COL[s]}"></i>`).join(''):''}</span></button>`;
+  }
+  const[,sm,sd]=sel.split('-').map(Number),sev=eventsOn(sel),sp_=pd.get(sel);
+  const lines=sev.map(e=>`<li><b>${esc(e.n)}</b></li>`);
+  if(sp_)lines.push(`<li>Practiced ${[...sp_.subs].map(s=>SUBJ_NAME[s]).join(', ')}: ${sp_.n} session${sp_.n>1?'s':''} and ${sp_.stars} stars</li>`);
+  else if(sel<=t.key)lines.push('<li class="mute">No practice this day.</li>');
+  else if(!sev.length)lines.push('<li class="mute">Nothing planned.</li>');
+  return`<section class="card cal"><div class="row between"><h3>${MONTHS[m]} ${y}</h3><div class="row"><button class="chip" data-act="calnav" data-v="-1" aria-label="Previous month">‹</button>${off?'<button class="chip" data-act="calnav" data-v="0">Today</button>':''}<button class="chip" data-act="calnav" data-v="1" aria-label="Next month">›</button></div></div>
+  <div class="calgrid">${['S','M','T','W','T','F','S'].map(d=>`<span class="dow">${d}</span>`).join('')}${cells}</div>
+  <div class="legend">${Object.keys(SUBJ_NAME).filter(k=>fbOn()||(k!=='soc'&&k!=='nfl')).map(k=>`<span><i style="background:${SUBJ_COL[k]}"></i>${SUBJ_NAME[k]}</span>`).join('')}</div>
+  <div class="calday"><b>${MONTHS[sm-1]} ${sd}</b><ul>${lines.join('')}</ul></div></section>`;
+}
+function calView(){return nav('Calendar')+`<div class="largehead"><h1>Calendar</h1><p class="mute">Tests, holidays and every day you practiced.</p></div>${calCard()}`+tabbar('home')}
+/* the little wall calendar in her room: today in red, practice days in green */
+function roomCal(){
+  const t=etNow(),days=new Date(Date.UTC(t.y,t.m+1,0)).getUTCDate(),first=new Date(Date.UTC(t.y,t.m,1)).getUTCDay(),pd=practiceByDay();
+  const pad=n=>String(n).padStart(2,'0');
+  let s='<rect x="429" y="46" width="46" height="54" rx="3" fill="#000" opacity=".14"/><rect x="427" y="44" width="46" height="54" rx="3" fill="#FFFBF0" stroke="#8A6B4A" stroke-width="1.2"/><rect x="427" y="44" width="46" height="12" rx="3" fill="#8A1523"/><rect x="427" y="51" width="46" height="5" fill="#8A1523"/><circle cx="436" cy="44" r="1.6" fill="#E3B94F"/><circle cx="464" cy="44" r="1.6" fill="#E3B94F"/>';
+  s+=`<text x="450" y="53.5" text-anchor="middle" font-size="7" font-weight="800" fill="#FFF3D6" style="font-family:Inter,system-ui,sans-serif">${MONTHS[t.m].slice(0,3).toUpperCase()}</text>`;
+  for(let d=1;d<=days;d++){
+    const i=first+d-1,x=430+(i%7)*6+3,y=61+Math.floor(i/7)*6.2+2.6,key=t.y+'-'+pad(t.m+1)+'-'+pad(d);
+    if(key===t.key)s+=`<circle cx="${x}" cy="${y}" r="2.7" fill="#C0303F"/>`;
+    else if(pd.has(key))s+=`<circle cx="${x}" cy="${y}" r="2.1" fill="#27A06A"/>`;
+    else s+=`<circle cx="${x}" cy="${y}" r="1.1" fill="#B9A98A"/>`;
+  }
+  return`<g class="hot" data-act="nav" data-v="cal"><title>Calendar</title>${s}</g>`;
+}
+
 /* a colorful header for each subject, with the live session counter */
 function subjBanner(k,title,sub){
   const c=subjectCounts()[k],L={math:mathSess,spell:spellSess,es:esSess,geo:geoSess}[k],stars=L?sumStars(L()):0,s=SUBJ.find(x=>x.k===k);
@@ -2267,6 +2335,7 @@ function homeView(){
   ${halloween()?halloweenCard():''}
   ${playbookHtml()}
   ${homeReview()}
+  ${calCard()}
   ${counterHtml()}
   ${prizeCardHtml()}
   <div class="sect">Pick a subject</div>
@@ -3596,6 +3665,7 @@ function roomSvg(R,av){
   if(R.walldeco.includes('pennants'))deco+=`<path d="M336 100Q406 118 478 100" stroke="#6B5A3A" fill="none"/>`+[344,366,388,410,432,454].map((x,i)=>`<path d="M${x} ${106+Math.sin(i)*3}l9 0l-4.5 14Z" fill="${['#B8283A','#E3B94F','#2B4590','#2E8A4F','#B8283A','#E3B94F'][i]}"/>`).join('');
   deco+=decoExtra(R)+decoExtra2(R);
   g+=hot('walls',deco);
+  g+=roomCal();
   const hk=R.hook,oc=OUTFIT[av.outfit]||OUTFIT[0];
   let hang='';
   if(hk==='backpack')hang=`<path d="M118 70C118 56 134 56 134 70" stroke="#6B3E1E" stroke-width="2.6" fill="none" stroke-linecap="round"/><ellipse cx="127" cy="111" rx="17" ry="3" fill="#000" opacity=".12"/><rect x="111" y="66" width="30" height="43" rx="11" fill="url(#pbp)" stroke="#B3236B" stroke-width=".8"/><rect x="114" y="87" width="24" height="17" rx="5" fill="url(#pbq)" stroke="#B3236B" stroke-width=".8"/><path d="M118 95H134" stroke="#fff" stroke-width="1.6" opacity=".7" stroke-linecap="round"/><path d="M115 77H137" stroke="#fff" stroke-width="2" opacity=".75"/><circle cx="126" cy="77" r="2.2" fill="url(#gld)"/><path d="M115 73Q120 69 128 70" stroke="#fff" stroke-width="1.4" fill="none" opacity=".55" stroke-linecap="round"/>`;
@@ -4209,6 +4279,12 @@ function settingsTab(){
   <label class="row">New parent PIN <input class="txt" id="newPin" type="password" inputmode="numeric" maxlength="8" placeholder="leave blank to keep" style="width:200px"></label>
   <div class="row"><button class="btn" data-act="saveSettings">Save settings</button><span id="saved" class="mute"></span></div>
   <p class="mute">The birthday syncs between homes with her look. The PIN, exam length, timer and Sports Club switch are saved on this device only (the PIN is never uploaded). Set them the same on each computer. Progress, her avatar and closet, her word lists and math topics sync between homes.</p></section>
+  <section class="card"><h3>Calendar events</h3>
+  <p class="mute">Tests, field trips and other dates show on her calendar at home and on the wall of her room. They sync to both homes.</p>
+  ${(getAv().events||[]).slice().sort().map(e=>`<div class="row between"><span><b>${esc(String(e).slice(9))}</b> <span class="mute">${esc(String(e).slice(0,4)+'-'+String(e).slice(4,6)+'-'+String(e).slice(6,8))}</span></span><button class="btn quiet" data-act="delevent" data-v="${esc(e)}">Remove</button></div>`).join('')}
+  <label class="row">Date <input class="txt" id="evDate" type="date" style="width:180px"></label>
+  <label class="row">Name <input class="txt" id="evTitle" maxlength="28" placeholder="Field trip" style="width:220px"></label>
+  <div class="row"><button class="btn" data-act="addevent">Add event</button><span id="evMsg" class="mute"></span></div></section>
   <section class="card"><h3>My spelling lists</h3>
   <p class="mute">Unit 3 is built in. Add a list here for another unit or extra words. Custom lists sync to both homes.</p>
   ${customLists().length?customLists().map(l=>`<div class="row between"><span><b>${esc(l.name)}</b> <span class="mute">${l.words.length} words</span></span><button class="btn quiet" data-act="dellist" data-v="${esc(l.id)}">Remove</button></div>`).join(''):''}
@@ -4244,6 +4320,7 @@ function buildView(){
     case'spresults':h=spResultsView();break;
     case'parent':h=parentView();break;
     case'closet':h=closetView();break;
+    case'cal':h=calView();break;
     default:h=homeView();
   }
   return h;
@@ -4413,6 +4490,15 @@ function act(a,v,d){
       touchProfile();
       render();break;
     case'revstart':startReview(v);break;
+    case'calnav':S.calOff=v==='0'?0:(S.calOff||0)+Number(v);render();break;
+    case'calday':S.calSel=v;render();break;
+    case'addevent':{
+      const dv=document.getElementById('evDate').value,title=document.getElementById('evTitle').value.replace(/[^\w#.:' !?-]/g,'').trim().slice(0,28),msg=document.getElementById('evMsg');
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(dv)||!title){msg.textContent='Pick a date and add a short name.';break}
+      const a=getAv(),cut=keyAdd(etNow().key,-60).replace(/-/g,'');
+      a.events=[...(a.events||[]).filter(e=>String(e).slice(0,8)>=cut),dv.replace(/-/g,'')+':'+title].slice(-30);
+      store.set('lmath.avatar',a);touchProfile();render();document.getElementById('evMsg').textContent='Added to the calendar.';break}
+    case'delevent':{const a=getAv();a.events=(a.events||[]).filter(e=>e!==v);store.set('lmath.avatar',a);touchProfile();render();break}
     case'qhear':if(r&&r.qs)say(mathSpeech(r.qs[r.i]));break;
     case'nqhear':if(nq)say(nqSpeech(nq.qs[nq.i]));break;
     case'fdhear':if(fd){const x=fd.rounds[fd.i];say('Build the '+x.div+'. Tap the 4 teams that play in it.')}break;
