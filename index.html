@@ -1500,6 +1500,7 @@ function sentCheck(it,val){
   const n=val.split(/\s+/).filter(Boolean).length;
   it.chk=[[new RegExp('\\b'+it.w+'\\b','i').test(val),`Uses the word "${it.w}" spelled just right`],[/^[A-Z]/.test(val),'Starts with a capital letter'],[/[.!?]["')]*$/.test(val),'Ends with a . or ! or ?'],[n>=4,'Has at least 4 words']];
   if(it.chk.every(c=>c[0])){it.done=true;it.ok=true;it.helped=it.tries>1||it.hint;it.msg='right';it.cheer=pick(CHEERS)}
+  else if(it.tries>=3){it.done=true;it.ok=false;it.msg='reveal'}
   else it.msg='retry';
 }
 function spotTap(it,v){
@@ -2136,10 +2137,11 @@ const SPB={
       <div class="row">${hearBtn('Hear it')}</div>
       ${it.hint&&ex?`<div class="spark"><b>Example</b><p>${esc(ex)}</p></div>`:''}
       ${it.done?'':`<div class="row"><input class="ans w" id="spin" type="text" autocomplete="off" autocapitalize="sentences" autocorrect="off" spellcheck="false" aria-label="Your sentence" placeholder="Type your sentence" style="max-width:none;font-size:1.2rem" value="${esc(it.msg==='retry'?it.given:'')}"></div>`}
-      ${it.chk&&it.msg!=='skipped'?`<ul class="chk">${it.chk.map(([y,t])=>`<li class="${y?'y':'n'}">${y?'✓':'○'} ${esc(t)}</li>`).join('')}</ul>`:''}
+      ${it.chk?`<ul class="chk">${it.chk.map(([y,t])=>`<li class="${y?'y':'n'}">${y?'✓':'○'} ${esc(t)}</li>`).join('')}</ul>`:''}
       ${it.msg==='right'?`<div class="fb good">${BURST}${esc(it.cheer||'Nice!')} Great sentence!</div>`:''}
-      ${it.msg==='skipped'?`<div class="fb try">No problem. We will see this word again soon.</div>`:''}`,
-      `<button class="btn" data-act="spcheck">Check</button><button class="btn quiet" data-act="sphint">Show an example</button><button class="btn quiet" data-act="spskip">Skip</button>`];
+      ${it.msg==='reveal'?`<div class="fb try">Good try. Check the list above to see what to fix next time.</div>`:''}
+      `,
+      `<button class="btn" data-act="spcheck">Check</button><button class="btn quiet" data-act="sphint">Show an example</button>`];
   },
   spot(it){
     return[`<p class="qtext word">Which one is spelled right?</p><div class="choices w">${it.opts.map(o=>{
@@ -4031,7 +4033,6 @@ function act(a,v,d){
       else if(sp.game==='spot'){it.hint=true;if(!it.gone){const bad=it.opts.filter(o=>o!==it.w&&!it.wrong.includes(o));if(bad.length>1)it.gone=pick(bad)}}
       else it.hint=true;
       render();break}
-    case'spskip':{const it=sp.items[sp.i];it.done=true;it.ok=false;it.msg='skipped';render();break}
     case'sptile':{
       const it=sp.items[sp.i];
       if(sp.game==='fill')fillTap(it,v);else scrPlace(it,Number(v));
