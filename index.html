@@ -142,6 +142,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visi
 .choice.bad{background:var(--warn-bg);box-shadow:inset 0 0 0 3px var(--warn);opacity:.7}
 .choice.ok{background:var(--good-bg);box-shadow:inset 0 0 0 3px var(--good)}
 input.ans{font-family:var(--f-num);font-weight:700;font-size:2rem;width:100%;max-width:280px;padding:10px 16px;border:0;border-radius:18px;background:var(--card2);box-shadow:inset 0 0 0 2px var(--line);color:var(--ink)}
+.dn{display:block;color:var(--good);font-weight:700;font-size:.78rem;margin-top:2px}
 .fb{border-radius:18px;padding:12px 16px;font-weight:800}
 .fb.good{background:var(--good-bg);color:var(--good)}
 .fb.try{background:var(--warn-bg);color:var(--warn)}
@@ -372,8 +373,13 @@ const store={
   get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 };
-const dayKey=ts=>new Date(ts).toLocaleDateString('en-CA');
-const fmtDate=ts=>new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+/* every "today" in the app is today in Eastern time, whatever the device clock says */
+const ETF=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'});
+const dayKey=ts=>ETF.format(ts);
+const keyAdd=(k,n)=>{const[y,m,d]=k.split('-').map(Number);return new Date(Date.UTC(y,m-1,d+n)).toISOString().slice(0,10)};
+const keyNum=k=>{const[y,m,d]=k.split('-').map(Number);return Math.round(Date.UTC(y,m-1,d)/86400000)};
+const etNow=()=>{const k=dayKey(Date.now()),[y,m,d]=k.split('-').map(Number);return{y,m:m-1,d,key:k,n:keyNum(k)}};
+const fmtDate=ts=>new Date(ts).toLocaleDateString('en-US',{timeZone:'America/New_York',month:'short',day:'numeric'});
 
 /* ---------- problem types ---------- */
 const TYPES={
@@ -568,6 +574,22 @@ let run=null,sp=null,db=null;
 const pending=new Set(store.get('lmath.pending',[]));
 S.sessions=store.get('lmath.sessions',[]);
 let dbSessions=null;
+/* The whole history lives on the device (IndexedDB). Each launch downloads only sessions newer than the newest one it has,
+   so the 1000-session limit on one download never drops old sessions, and the app opens with her history already there. */
+const histMap=new Map(),HC={db:null};
+const syncDbSessions=()=>{dbSessions=[...histMap.values()]};
+function hcOpen(){
+  return new Promise(res=>{
+    try{
+      if(typeof indexedDB==='undefined'){res(null);return}
+      const rq=indexedDB.open('lailas-lab',1);
+      rq.onupgradeneeded=()=>rq.result.createObjectStore('sessions',{keyPath:'id'});
+      rq.onsuccess=()=>res(rq.result);rq.onerror=()=>res(null);rq.onblocked=()=>res(null);
+    }catch(e){res(null)}
+  });
+}
+const hcAll=h=>new Promise(res=>{try{const r=h.transaction('sessions').objectStore('sessions').getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>res([])}catch(e){res([])}});
+function hcPut(list){if(!HC.db||!list.length)return;try{const st=HC.db.transaction('sessions','readwrite').objectStore('sessions');list.forEach(s=>st.put(s))}catch(e){}}
 
 function mergedSessions(){
   const byId=new Map();
@@ -601,7 +623,7 @@ function cleanSession(id,d){
   const items=(Array.isArray(d.items)?d.items:[]).slice(0,20).map(i=>{
     i=i&&typeof i==='object'?i:{};
     const o={ok:i.ok?1:0,h:i.h?1:0};
-    ['t','g','c','k','w','given'].forEach(f=>{if(typeof i[f]==='string')o[f]=cleanTxt(i[f],60)});
+    ['t','g','c','k','w','given','a'].forEach(f=>{if(typeof i[f]==='string')o[f]=cleanTxt(i[f],60)});
     o.err=typeof i.err==='string'?cleanTxt(i.err,40):null;
     if(typeof i.to==='number')o.to=cleanNum(i.to);
     return o;
@@ -614,49 +636,123 @@ async function loadFirestore(){
   const [A,F]=await Promise.all([import(B+'firebase-app.js'),import(B+'firebase-firestore.js')]);
   const fs=F.getFirestore(A.initializeApp(FB_CONFIG));
   return{
-    recent:(n,ok,err)=>F.onSnapshot(F.query(F.collection(fs,'sessions'),F.orderBy('ts','desc'),F.limit(n)),ok,err),
+    recent:(since,ok,err)=>F.onSnapshot(F.query(F.collection(fs,'sessions'),F.where('ts','>',since),F.orderBy('ts','desc'),F.limit(1000)),ok,err),
+    older:async(before,n)=>(await F.getDocs(F.query(F.collection(fs,'sessions'),F.where('ts','<',before),F.orderBy('ts','desc'),F.limit(n)))).docs,
     save:s=>F.setDoc(F.doc(fs,'sessions',s.id),s),
     profile:(ok,err)=>F.onSnapshot(F.doc(fs,'profile','laila'),ok,err),
     saveProfile:p=>F.setDoc(F.doc(fs,'profile','laila'),p)
   };
 }
+const QUIET_VIEWS=['run','sprun','esrun','nqrun','fdrun'];
+async function backfillHistory(){
+  /* older sessions, 500 at a time, only when this device has never had the full history */
+  try{
+    let guard=0;
+    for(;;){
+      const oldest=Math.min(...[...histMap.values()].map(s=>s.ts));
+      const docs=await db.older(oldest,500);
+      const got=docs.map(d=>cleanSession(d.id,d.data())).filter(Boolean);
+      got.forEach(s=>histMap.set(s.id,s));hcPut(got);
+      if(docs.length<500||++guard>40)break;
+    }
+    store.set('lmath.histFull',1);
+    syncDbSessions();refreshSessions();saveLocalCopy();
+    if(!QUIET_VIEWS.includes(S.view))render();
+  }catch(e){}
+}
 async function initDb(){
+  HC.db=await hcOpen();
+  if(HC.db){
+    const c=(await hcAll(HC.db)).map(x=>cleanSession(x.id,x)).filter(Boolean);
+    if(c.length){c.forEach(s=>histMap.set(s.id,s));syncDbSessions();refreshSessions();if(!QUIET_VIEWS.includes(S.view))render()}
+  }
   try{db=await loadFirestore()}catch(e){db=null}
   if(!db){S.sync='local';render();return}
   try{
     initProfileSync();
-    db.recent(1000,snap=>{
+    const have=HC.db&&store.get('lmath.histFull',0)&&histMap.size;
+    const since=have?Math.max(0,Math.max(...[...histMap.values()].map(s=>s.ts))-3*86400000):0;
+    let first=true;
+    db.recent(since,snap=>{
       S.sync='live';
-      dbSessions=snap.docs.map(d=>cleanSession(d.id,d.data())).filter(Boolean);
-      dbSessions.forEach(s=>pending.delete(s.id));
+      const got=snap.docs.map(d=>cleanSession(d.id,d.data())).filter(Boolean);
+      got.forEach(s=>{histMap.set(s.id,s);pending.delete(s.id)});hcPut(got);
+      syncDbSessions();
       refreshSessions();saveLocalCopy();
-      store.get('lmath.sessions',[]).filter(s=>pending.has(s.id)&&!dbSessions.some(d=>d.id===s.id)).forEach(pushSession);
-      if(S.view!=='run'&&S.view!=='sprun')render();
+      store.get('lmath.sessions',[]).filter(s=>pending.has(s.id)&&!histMap.has(s.id)).forEach(pushSession);
+      if(!QUIET_VIEWS.includes(S.view))render();
+      if(first){
+        first=false;
+        if(!have){if(snap.docs.length<1000)store.set('lmath.histFull',1);else if(db.older)backfillHistory()}
+      }
     },()=>{S.sync='local';render()});
   }catch(e){S.sync='local';render()}
 }
 /* look, topics, chosen word list and custom lists follow Laila between homes (newest change wins) */
 const PROFILE_SAFE=['home','math','spell','fb','club','soc','geo','closet'];
 function profileData(){return{avatar:getAv(),topics:S.topics,splist:String(S.splist),lists:customLists(),updated:store.get('lmath.profileTs',0)}}
-function pushProfile(){
-  if(!db||!db.saveProfile||!store.get('lmath.profileTs',0))return;
-  db.saveProfile(profileData()).catch(()=>{});
+/* Changes made on one device are merged with the other device's changes, field by field, so nothing is overwritten.
+   A device only uploads after it has seen the cloud copy, and remembers the last synced copy to tell what it changed. */
+let remoteSeen=false;
+const PBASE='lmath.profileBase',PDIRTY='lmath.profileDirty';
+const pSame=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const pObj=x=>x&&typeof x==='object'&&!Array.isArray(x);
+const P_POS=['posters'];
+function m3(b,l,r,key){
+  if(pSame(l,r))return l;
+  if(pSame(l,b))return r;
+  if(pSame(r,b))return l;
+  if(pObj(l)&&pObj(r)){
+    const bb=pObj(b)?b:{},o={};
+    new Set([...Object.keys(l),...Object.keys(r),...Object.keys(bb)]).forEach(k=>{const v=m3(bb[k],l[k],r[k],k);if(v!==undefined)o[k]=v});
+    return o;
+  }
+  if(Array.isArray(l)&&Array.isArray(r)&&!P_POS.includes(key)){
+    const bb=Array.isArray(b)?b:[],j=JSON.stringify,bs=new Set(bb.map(j)),ls=new Set(l.map(j)),rs=new Set(r.map(j));
+    const kept=bb.filter(x=>ls.has(j(x))&&rs.has(j(x))),add=[...l,...r].filter(x=>!bs.has(j(x)));
+    const seen=new Set();return[...kept,...add].filter(x=>{const s=j(x);if(seen.has(s))return false;seen.add(s);return true});
+  }
+  return l;
 }
-function touchProfile(){store.set('lmath.profileTs',Date.now());pushProfile()}
+const pCore=d=>({avatar:d.avatar,topics:d.topics,splist:d.splist,lists:d.lists});
+function adoptProfile(p){
+  if(p.avatar&&Object.keys(p.avatar).length)store.set('lmath.avatar',p.avatar);
+  if(Array.isArray(p.topics)&&p.topics.length){S.topics=p.topics.slice(0,5);store.set('lmath.topics',S.topics)}
+  if(p.splist){S.splist=p.splist;store.set('lmath.splist',p.splist)}
+  store.set('lmath.lists',(p.lists||[]).slice(0,10));
+}
+function pushProfile(){
+  if(!db||!db.saveProfile||!store.get('lmath.profileTs',0)||!remoteSeen||!store.get(PDIRTY,false))return;
+  const d=profileData();
+  db.saveProfile(d).then(()=>{store.set(PBASE,pCore(d));store.set(PDIRTY,false)}).catch(()=>{});
+}
+function touchProfile(){store.set('lmath.profileTs',Date.now());store.set(PDIRTY,true);pushProfile()}
+function reconcileProfile(p){
+  const mine=store.get('lmath.profileTs',0),theirs=p.updated||0,base=store.get(PBASE,null);
+  const dirty=store.get(PDIRTY,false)||mine>theirs;
+  if(!dirty){
+    if(theirs>mine){adoptProfile(p);store.set('lmath.profileTs',theirs);store.set(PBASE,pCore(p));if(PROFILE_SAFE.includes(S.view))render()}
+    else store.set(PBASE,pCore(p));
+    return;
+  }
+  const loc=pCore(profileData());
+  if(pSame(loc,pCore(p))){store.set(PDIRTY,false);store.set(PBASE,pCore(p));store.set('lmath.profileTs',Math.max(mine,theirs));return}
+  const m=m3(base||{},loc,pCore(p),'');
+  if(!Array.isArray(m.topics)||!m.topics.length)m.topics=loc.topics;
+  m.topics=m.topics.slice(0,5);m.lists=(m.lists||[]).slice(0,10);
+  if(!pObj(m.avatar)||Object.keys(m.avatar).length>40)m.avatar=loc.avatar;
+  adoptProfile(m);
+  touchProfile();
+  if(PROFILE_SAFE.includes(S.view))render();
+}
 function initProfileSync(){
   if(!db.profile)return;
   db.profile(snap=>{
-    const mine=store.get('lmath.profileTs',0);
-    if(!snap.exists()){pushProfile();return}
-    const p=cleanProfile(snap.data()||{});
-    if((p.updated||0)>mine){
-      if(p.avatar&&Object.keys(p.avatar).length)store.set('lmath.avatar',p.avatar);
-      if(Array.isArray(p.topics)&&p.topics.length){S.topics=p.topics;store.set('lmath.topics',p.topics)}
-      if(p.splist){S.splist=p.splist;store.set('lmath.splist',p.splist)}
-      store.set('lmath.lists',p.lists);
-      store.set('lmath.profileTs',p.updated);
-      if(PROFILE_SAFE.includes(S.view))render();
-    }else if((p.updated||0)<mine)pushProfile();
+    const md=snap.metadata;
+    if(md&&(md.fromCache||md.hasPendingWrites))return;
+    remoteSeen=true;
+    if(!snap.exists()){if(store.get('lmath.profileTs',0))store.set(PDIRTY,true);pushProfile();return}
+    reconcileProfile(cleanProfile(snap.data()||{}));
   },()=>{});
 }
 function pushSession(s){
@@ -666,7 +762,8 @@ function pushSession(s){
 function saveSession(s){
   s.id='s'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   S.sessions.unshift(s);
-  if(dbSessions)dbSessions.unshift(s);
+  if(dbSessions){histMap.set(s.id,s);syncDbSessions()}
+  hcPut([s]);
   pending.add(s.id);saveLocalCopy();
   pushSession(s);
 }
@@ -682,9 +779,9 @@ function stats(){
   /* football is extra: its sessions give stars (plus collection prizes) but do not count toward the school streak */
   const ss=S.sessions.filter(s=>!['nfl','soc'].includes(s.mode)),stars=S.sessions.reduce((n,s)=>n+(s.stars||0),0)+nflInfo(nflSess()).bonus;
   const days=new Set(ss.map(s=>dayKey(s.ts)));
-  let streak=0;const d=new Date();
-  if(!days.has(dayKey(d)))d.setDate(d.getDate()-1);
-  while(days.has(dayKey(d))){streak++;d.setDate(d.getDate()-1)}
+  let streak=0,k=dayKey(Date.now());
+  if(!days.has(k))k=keyAdd(k,-1);
+  while(days.has(k)){streak++;k=keyAdd(k,-1)}
   const items=mathSess().flatMap(s=>(s.items||[]).map(i=>Object.assign({ts:s.ts,mode:s.mode},i)));
   return{stars,streak,items,sessions:ss.length};
 }
@@ -722,15 +819,15 @@ function badges(st){
 const bdayDate=()=>{const b=String((store.get('lmath.avatar',{})||{}).bday||'');return/^\d{4}$/.test(b)?{m:+b.slice(0,2)-1,d:+b.slice(2)}:null};
 function bdayLeft(){
   const b=bdayDate();if(!b)return null;
-  const n=new Date(),today=new Date(n.getFullYear(),n.getMonth(),n.getDate());
-  let x=new Date(n.getFullYear(),b.m,b.d);if(x<today)x=new Date(n.getFullYear()+1,b.m,b.d);
-  return Math.round((x-today)/86400000);
+  const t=etNow();
+  let x=Date.UTC(t.y,b.m,b.d)/86400000;if(x<t.n)x=Date.UTC(t.y+1,b.m,b.d)/86400000;
+  return Math.round(x-t.n);
 }
 const isBirthday=()=>bdayLeft()===0;
 /* on her birthday every star counts double (one session is still capped at 100 by the database rules) */
 const bdayX=n=>Math.min(100,isBirthday()?n*2:n);
 const BD_NOTE='Birthday bonus: all your stars counted double today!';
-const giftYear=()=>'bday'+new Date().getFullYear();
+const giftYear=()=>'bday'+etNow().y;
 const giftHas=()=>(getAv().gifts||[]).some(g=>/^bday/.test(g));
 const giftOpened=()=>(getAv().gifts||[]).includes(giftYear());
 const CONF_COL=['#FFD24D','#FF7BAF','#58D68D','#3AA0F0','#8E5CFF','#FF9A3C'];
@@ -781,7 +878,7 @@ const AFFIRM=[
   ['Curiosity',['Questions are my superpower. I keep asking why.','Every day I learn something I did not know yesterday.','I look closely, I wonder, and I explore.','Not knowing yet is the start of learning.','I am curious about people, places and ideas.','I love figuring things out, even the tricky ones.','The world is full of amazing things, and I get to discover them.']]
 ];
 function affirmHtml(){
-  const day=Math.floor((Date.now()-new Date().getTimezoneOffset()*60000)/86400000),v=AFFIRM[day%4],msg=v[1][Math.floor(day/4)%7];
+  const day=etNow().n,v=AFFIRM[day%4],msg=v[1][Math.floor(day/4)%7];
   return`<section class="card affirm"><span class="pill">Today's value: ${v[0]}</span><p>${esc(msg)}</p></section>`;
 }
 const comboChip=ok=>{let n=0;for(let i=ok.length-1;i>=0&&ok[i];i--)n++;return n>=2?`<span class="pill combo">🔥 ${n} in a row</span>`:''};
@@ -794,6 +891,18 @@ function starsFor(kind,n){
   const base={math:n*2+4,exam:n*3+6,spell:n*2+4,spelltest:n*3+6,es:n*3+6,estest:n*4+10}[kind]||0;
   return Math.min(100,base);
 }
+/* Stars pay once a day for each activity. A second round of the same activity that day is practice only. */
+function actOf(s){
+  const it=(s.items&&s.items[0])||{};
+  if(it.a)return it.a;
+  if(isEs(s))return'es:'+(it.g||'');
+  if(s.mode==='spell')return'sp:'+(it.g||'');
+  if(['nfl','soc','geo'].includes(s.mode))return s.mode+':'+(it.g||'');
+  return s.mode;
+}
+const actDone=key=>{const t=dayKey(Date.now());return S.sessions.some(s=>dayKey(s.ts)===t&&actOf(s)===key)};
+const starTag=key=>actDone(key)?'<small class="dn">&#10003; stars earned today</small>':'';
+const REP_NOTE='Practice round: you already earned stars for this activity today. Try a different activity, or come back tomorrow for more stars!';
 const sumStars=l=>l.reduce((n,s)=>n+(s.stars||0),0);
 /* school stars = math, spelling, Español and geography. Sports quizzes do not count. */
 const schoolStars=()=>sumStars(S.sessions.filter(s=>!['nfl','soc'].includes(s.mode)));
@@ -935,7 +1044,7 @@ const ITEMS=[
 ];
 const STOPS=[{n:'Platform',at:0,c:'#B8283A'},{n:'Boats',at:25,c:'#3C57B8'},{n:'Castle',at:75,c:'#8C93A0'},{n:'Great Hall',at:150,c:'#E3B94F'},{n:'Owlery',at:250,c:'#2E8A4F'},{n:'Tower',at:400,c:'#8A5AC8'},{n:'Pitch',at:650,c:'#C0303F'},{n:'Library',at:950,c:'#8A5A34'},{n:'Potions',at:1350,c:'#2B7BD6'},{n:'Greenhouse',at:1800,c:'#3E9B5E'},{n:'Forest',at:2400,c:'#1F6B3A'},{n:'Lake',at:3100,c:'#2FA6B8'},{n:'Secret Room',at:4000,c:'#B8864A'},{n:'Graduation',at:5200,c:'#E3B94F'}];
 const STOP_FULL={Pitch:'the Quidditch Pitch',Library:'the Library',Potions:'the Potions Classroom',Greenhouse:'the Greenhouse','Forest':'the Forbidden Forest',Lake:'the Black Lake','Secret Room':'the Room of Requirement',Graduation:'the Graduation Feast'};
-const CHEERS=['Brilliant!','Wizard work!','Spell cast!','Magical!','Sparkling work!','Top marks!',...(new Date().getMonth()===9?['Spooky good!','Boo-tiful!']:[])];
+const CHEERS=['Brilliant!','Wizard work!','Spell cast!','Magical!','Sparkling work!','Top marks!',...(etNow().m===9?['Spooky good!','Boo-tiful!']:[])];
 const FACTS=[
   'A day on Venus is longer than its year. It spins once in about 243 Earth days but circles the Sun in about 225.',
   'Light from the Sun takes about 8 minutes to reach Earth.',
@@ -1331,6 +1440,26 @@ const SENT={
   hunger:'Hunger made my stomach growl.',lesson:'Today\'s math lesson was about subtraction.',mention:'Did she mention what time the game starts?',
   problematic:'A leaky boat is problematic.',projection:'The projection on the wall showed a map of space.',suddenly:'Suddenly, the lights went out.'
 };
+/* Fourth-grade words from the Harry Potter books. They appear on November 4 if no new list of her own has been added. */
+const HP_LISTS=[
+  {id:'hp1',name:'Hogwarts words 1',note:'Fourth-grade words from the Harry Potter books',words:['castle','wizard','magical','mystery','platform','courage','whisper','lantern','shadow','journey','curious','enormous']},
+  {id:'hp2',name:'Hogwarts words 2',note:'Fourth-grade words from the Harry Potter books',words:['potion','cauldron','broomstick','feather','scarlet','lightning','trophy','secret','dungeon','ancient','invisible','enchanted']},
+  {id:'hp3',name:'Hogwarts words 3',note:'Fourth-grade words from the Harry Potter books',words:['dragon','unicorn','phoenix','goblin','giant','ghost','corridor','staircase','passage','library','greenhouse','chamber']}
+];
+Object.assign(SENT,{
+  castle:'The old castle on the hill had tall stone towers.',wizard:'The wizard waved his wand and the candles lit up.',magical:'The magical forest glowed with tiny floating lights.',
+  mystery:'Nobody could solve the mystery of the missing key.',platform:'We waited on the platform for the train to arrive.',courage:'It takes courage to try something brand new.',
+  whisper:'Please whisper in the library so everyone can read.',lantern:'She carried a lantern down the dark hallway.',shadow:'My shadow followed me all the way down the path.',
+  journey:'The journey to school took about ten minutes.',curious:'The curious kitten peeked into every box.',enormous:'The giant wore an enormous pair of boots.',
+  potion:'The potion in the bottle bubbled and turned purple.',cauldron:'A big iron cauldron sat over the fire.',broomstick:'The witch flew across the moon on her broomstick.',
+  feather:'A single white feather floated down from the owl.',scarlet:'The scarlet scarf kept her neck warm in the snow.',lightning:'Lightning flashed across the dark night sky.',
+  trophy:'The winning team lifted the shiny trophy.',secret:'We found a secret door behind the bookshelf.',dungeon:'The dungeon was cold, dark and damp.',
+  ancient:'The ancient book was older than anyone in town.',invisible:'The cloak made her invisible to everyone in the room.',enchanted:'The enchanted mirror could tell stories.',
+  dragon:'The friendly dragon breathed a puff of warm smoke.',unicorn:'A silver unicorn stepped out from the trees.',phoenix:'The phoenix burst into flames and rose again.',
+  goblin:'The goblin counted gold coins in the vault.',giant:'The giant ducked to fit through the doorway.',ghost:'A friendly ghost floated through the wall.',
+  corridor:'We tiptoed down the long corridor.',staircase:'The staircase turned and led to a new floor.',passage:'A hidden passage led out of the library.',
+  library:'She borrowed three books from the library.',greenhouse:'Plants grow all year long inside the greenhouse.',chamber:'The treasure was locked in a chamber far below.'
+});
 const SP_GAMES={
   test:{name:'Practice Test',d:'Hear each word and a sentence, then type it. No hints, like the real test.',ic:'trophy',lead:1},
   cards:{name:'Look, Cover, Write',d:'Study a word, cover it, then write it from memory.',ic:'cards'},
@@ -1343,7 +1472,19 @@ const SP_GAMES={
 };
 const SP_ERR={blank:'Left blank',missing:'Left out a letter',extra:'Added an extra letter',swap:'Swapped two letters',vowel:'Wrong vowel',otherl:'Wrong letter'};
 const customLists=()=>store.get('lmath.lists',[]);
-const spLists=()=>UNIT3.concat(customLists());
+/* shown from November 4 when no list of her own was added, and kept after that */
+function hpOn(){
+  if(store.get('lmath.hpOn',false))return true;
+  if(dayKey(Date.now())>='2026-11-04'&&!customLists().length){store.set('lmath.hpOn',true);return true}
+  return false;
+}
+/* the day after the last test, switch her from the old lists to the first Hogwarts list (once) */
+function hpAuto(){
+  if(!hpOn()||dayKey(Date.now())<'2026-11-05'||store.get('lmath.hpPicked',false))return;
+  store.set('lmath.hpPicked',true);
+  if(/^u3w/.test(S.splist)){S.splist='hp1';store.set('lmath.splist','hp1');touchProfile()}
+}
+const spLists=()=>UNIT3.concat(hpOn()?HP_LISTS:[],customLists());
 const allWords=()=>[...new Set(spLists().flatMap(l=>l.words))];
 const sentOf=w=>SENT[w]||null;
 const blankSent=w=>{const s=sentOf(w);return s?s.replace(new RegExp('\\b'+w+'\\b','i'),'_____'):null};
@@ -1607,7 +1748,7 @@ document.addEventListener('pointerup',huntEnd);
 document.addEventListener('pointercancel',()=>{drag=null;paintSel([])});
 
 function finishSpell(){
-  const g=sp.game,before=stats().stars,snap=prizeSnap(),pbB=playbookBonus('spell');
+  const g=sp.game,key=sp.review?'rev:sp':'sp:'+g,rep=actDone(key),before=stats().stars,snap=prizeSnap(),pbB=rep?0:playbookBonus('spell');
   const items=g==='hunt'?sp.hunt.words.map(x=>({w:x.w,ok:x.found,h:x.h||0,err:null,given:''}))
     :sp.items.map(it=>{
       if(g==='test'){const ok=it.val.trim().toLowerCase()===it.w;return{w:it.w,ok,h:0,err:ok?null:spErr(it.val,it.w),given:it.val.trim()}}
@@ -1615,10 +1756,10 @@ function finishSpell(){
       return{w:it.w,ok,h:it.helped?1:0,err:!ok&&(g==='cards'||g==='sent')&&it.given?spErr(it.given,it.w):null,given:it.given||''};
     });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-sp.t0)/1000)),stars:bdayX(starsFor(g==='test'?'spelltest':'spell',credit(items))+pbB),
-    items:items.map(i=>({t:'sp',g,w:i.w,ok:i.ok,h:i.h,err:i.err}))};
+  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-sp.t0)/1000)),stars:rep?0:bdayX(starsFor(g==='test'?'spelltest':'spell',credit(items))+pbB),
+    items:items.map(i=>({t:'sp',g,w:i.w,ok:i.ok,h:i.h,err:i.err,a:key}))};
   saveSession(sess);
-  sp.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),pb:pbB});
+  sp.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),pb:pbB,rep});
   S.view='spresults';render();
 }
 function spBadges(){
@@ -1853,11 +1994,12 @@ function fdCheck(){
 }
 function finishNfl(game,items,missed){
   const infoB=nflInfo(nflSess()),snap=prizeSnap();
-  const aw=nflAward(items);
+  const key=game!=='draft'&&nq&&nq.review?'rev:nfl':'nfl:'+game,rep=actDone(key);
+  let aw=nflAward(items);if(rep)aw=Object.assign({},aw,{parts:[],total:0,rep:true});
   const correct=items.filter(i=>i.ok).length;
   const started=game==='draft'?fd.t0:nq.t0;
   const sess={ts:Date.now(),mode:'nfl',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-started)/1000)),stars:bdayX(aw.total),
-    items:items.map(i=>({t:'nfl',g:game,c:i.c,k:i.k,ok:i.ok,h:i.h||0,err:null}))};
+    items:items.map(i=>({t:'nfl',g:game,c:i.c,k:i.k,ok:i.ok,h:i.h||0,err:null,a:key}))};
   const bs=stats().stars;
   saveSession(sess);
   const infoA=nflInfo(nflSess());
@@ -1919,7 +2061,7 @@ function homeView(){
   const nextTxt=idx<STOPS.length-1?`Stop ${idx+1} of ${STOPS.length}. Next: ${STOP_FULL[STOPS[idx+1].n]||STOPS[idx+1].n}, only ${STOPS[idx+1].at-st.stars} more stars`:'You finished the whole journey to the Graduation Feast! Amazing.';
   const MC={math:'#2F6BFF',spell:'#E5389B',es:'#F26A1B',geo:'#12A073',club:'#B45309'};
   const m=(k,ic,t,d,lead)=>`<button class="mode ${lead?'lead':''}" style="--c:${MC[k]||'var(--accent)'}" data-act="nav" data-v="${k}"><span class="ic">${ICON[ic]}</span><span><h3>${t}</h3><span class="d">${d}</span></span>${ICON.next}</button>`;
-  const fact=FACTS[Math.floor(Date.now()/86400000)%FACTS.length];
+  const fact=FACTS[etNow().n%FACTS.length];
   const wst=wordStats(),cur=spLists().find(l=>l.id===S.splist)||UNIT3[0];
   const mastered=cur.words.filter(w=>wordLevel(wst[w.toLowerCase()])==='m').length;
   const lastMath=mathSess()[0];
@@ -1950,10 +2092,10 @@ function homeView(){
 
 function mathView(){
   const st=stats(),acc=typeAcc(st.items,20);
-  const m=(k,ic,t,d,lead)=>`<button class="mode ${lead?'lead':''}" data-act="start" data-v="${k}"><span class="ic">${ICON[ic]}</span><span><h3>${t}</h3><span class="d">${d}</span></span>${ICON.next}</button>`;
+  const m=(k,ic,t,d,lead)=>`<button class="mode ${lead?'lead':''}" data-act="start" data-v="${k}"><span class="ic">${ICON[ic]}</span><span><h3>${t}</h3><span class="d">${d}</span>${starTag(k)}</span>${ICON.next}</button>`;
   const chips=GROUPS.map(g=>`<button class="chip ${S.topics.includes(g.k)?'on':''}" aria-pressed="${S.topics.includes(g.k)}" data-act="topic" data-v="${g.k}">${g.label}</button>`).join('');
   const skill=k=>{const a=acc[k],p=a.n?Math.round(100*a.c/a.n):null;
-    return`<button class="skill" data-act="skill" data-v="${k}"><b>${esc(TYPES[k].label)}</b><span class="track2"><span class="fill ${p!==null&&p<70?'low':''}" style="width:${p||0}%"></span></span><small>${p===null?'Not tried yet':p+'% right'}</small></button>`};
+    return`<button class="skill" data-act="skill" data-v="${k}"><b>${esc(TYPES[k].label)}</b><span class="track2"><span class="fill ${p!==null&&p<70?'low':''}" style="width:${p||0}%"></span></span><small>${p===null?'Not tried yet':p+'% right'}</small>${starTag('sk:'+k)}</button>`};
   return nav('Math')+`${subjBanner('math','Math','Pick one skill to practice, or play a mix.')}
   <div class="sect">Practice one skill</div>
   ${SKILL_SECTIONS.map(([t,ks])=>`<div class="sect" style="padding-top:0;color:var(--accent)">${t}</div><section class="skills">${ks.map(skill).join('')}</section>`).join('')}
@@ -1970,6 +2112,7 @@ function mathView(){
 }
 
 function spellView(){
+  hpAuto();
   const lists=spLists(),st=wordStats();
   if(!['all','tricky'].includes(S.splist)&&!lists.some(l=>l.id===S.splist))S.splist=UNIT3[0].id;
   const sel=S.splist,cur=lists.find(l=>l.id===sel);
@@ -1978,7 +2121,7 @@ function spellView(){
   const mastered=words.filter(w=>wordLevel(st[w])==='m').length;
   const note=sel==='tricky'?(words.length?'Words that need more practice, picked from everything Laila has tried.':'No tricky words yet. Every activity below uses a mix from all the lists until some words need more practice.'):sel==='all'?'A mix from every list. Each activity picks 12 words.':cur.note;
   const chips=words.length?words.map(w=>`<button class="wchip" data-act="sayword" data-v="${esc(w)}" aria-label="Hear ${esc(w)}"><i class="${wordLevel(st[w])==='n'?'':wordLevel(st[w])}"></i>${esc(w)}</button>`).join(''):'<p class="mute">No tricky words yet. Practice a list first and the words she misses will show up here.</p>';
-  const game=(k,g)=>`<button class="mode ${g.lead?'lead':''}" ${words.length||sel==='tricky'?'':'disabled'} data-act="spstart" data-v="${k}"><span class="ic">${ICON[g.ic]}</span><span><h3>${g.name}</h3><span class="d">${g.d}</span></span>${ICON.next}</button>`;
+  const game=(k,g)=>`<button class="mode ${g.lead?'lead':''}" ${words.length||sel==='tricky'||sel==='review'?'':'disabled'} data-act="spstart" data-v="${k}"><span class="ic">${ICON[g.ic]}</span><span><h3>${g.name}</h3><span class="d">${g.d}</span>${starTag('sp:'+k)}</span>${ICON.next}</button>`;
   return nav('Spelling')+`${subjBanner('spell','Spelling','Choose a word list, then choose how to practice.')}
   <div class="seg wrap">${opts.map(([k,l])=>`<button class="${sel===k?'on':''}" data-act="splist" data-v="${esc(k)}">${esc(l)}</button>`).join('')}</div>
   <section class="card"><div class="row between"><h3>${sel==='tricky'?'Tricky words':sel==='all'?'All words':esc(cur.name)}</h3><span class="pill">${mastered} of ${words.length} mastered</span></div>
@@ -2060,7 +2203,7 @@ function resultsView(){
   const msg=p>=90?'Amazing work! You really know this.':p>=75?'Strong work. A little more practice and it will be even better.':'Good effort. Every try builds the skill. Keep going.';
   const missed=run.qs.map((q,i)=>({q,it:s.items[i]})).filter(x=>!x.it.ok);
   const fact=FACTS[Math.floor(Math.random()*FACTS.length)];
-  const wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.pb?[PB_NOTE]:[]),...(isBirthday()?[BD_NOTE]:[])];
+  const wins=[...(s.unlocked||[]).map(n=>`New prize: ${n}`),...(s.stop||[]).map(n=>`Your broom reached ${n}!`),...(s.pb?[PB_NOTE]:[]),...(isBirthday()&&!s.rep?[BD_NOTE]:[])];
   return`<div class="navbar"><button class="back" data-act="exit">${ICON.chev}Done</button><span class="mid">Full time!</span><span style="min-width:64px"></span></div>`+`
   <section class="card"><h2>${exam?'Final whistle!':'Great session!'}</h2>
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
@@ -2069,6 +2212,7 @@ function resultsView(){
   ${s.items.filter(i=>i.to).length?`<p class="mute">${s.items.filter(i=>i.to).length} question${s.items.filter(i=>i.to).length>1?'s':''} ran out of time.</p>`:''}
   ${s.items.filter(i=>i.ok&&i.h).length?`<p class="mute">${s.items.filter(i=>i.ok&&i.h).length} of your right answers used a hint or a second try, so they earned half a star-point each. Answer on the first try, no hint, for the full amount.</p>`:''}
   <p>${msg}</p>
+  ${s.rep?`<div class="fb try">${REP_NOTE}</div>`:''}
   ${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
   <section class="spark"><b>Professor's fact of the day</b><p>${esc(fact)}</p></section>
   ${missed.length?`<h3>Let's look at ${missed.length===1?'this one':'these'}</h3>${missed.map(({q,it})=>`<details><summary>${esc(qLabel(q))}${it.given!==''&&it.given!==undefined?` <span class="mute">(you wrote ${esc(it.given)})</span>`:''}</summary><ol class="steps" style="margin-top:10px">${steps(q).map(x=>`<li>${esc(x)}</li>`).join('')}</ol></details>`).join('')}`:'<div class="fb good">No misses. Perfect!</div>'}
@@ -2196,7 +2340,7 @@ function spResultsView(){
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
   <div><div class="bigscore"><span style="color:var(--gold)">★</span> +${s.stars}</div><span class="mute">stars earned</span></div></div>
   ${helped?`<p class="mute">${helped} of your right words used a hint or a second try, so they earned half a star-point each. Spell on the first try, no hint, for the full amount.</p>`:''}
-  <p>${msg}</p>${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
+  <p>${msg}</p>${s.rep?`<div class="fb try">${REP_NOTE}</div>`:''}${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
   <section class="spark"><b>Professor's fact of the day</b><p>${esc(fact)}</p></section>
   ${missed.length?`<h3>Words to look at again</h3>${missed.map(i=>`<div class="card" style="box-shadow:inset 0 0 0 1px var(--line);padding:14px">${i.given?diffHtml(i.given,i.w):`<div class="diff"><div><small>Word</small><br>${esc(i.w)}</div></div>`}${i.err?`<p class="mute">${esc(SP_ERR[i.err]||'')}</p>`:''}</div>`).join('')}`:'<div class="fb good">Every word right. Perfect!</div>'}
   <div class="row">${missed.length?`<button class="btn" data-act="spagain" data-v="missed">Practice my missed words</button>`:''}<button class="btn ${missed.length?'tint':''}" data-act="spagain" data-v="same">Play again</button><button class="btn tint" data-act="exit">Done</button></div></section>`;
@@ -2206,7 +2350,7 @@ function spResultsView(){
 function dprog(d,inf){return`<span class="dprog" aria-label="${teamsIn(d).filter(t=>inf.mastered.has(t.id)).length} of 4 teams mastered">${teamsIn(d).map(t=>`<i class="${inf.mastered.has(t.id)?'m':['l','t'].includes(inf.level[t.id])?'l':''}"></i>`).join('')}</span>`}
 function fbView(){
   const inf=nflInfo(nflSess()),today=nflSess().filter(s=>dayKey(s.ts)===fbDay()).length,left=Math.max(0,NFL_DAILY-today);
-  const g=(k,x)=>`<button class="mode ${x.lead?'lead':''}" data-act="fbstart" data-v="${k}"><span class="ic">${ICON[x.ic]}</span><span><h3>${x.name}</h3><span class="d">${x.d}</span></span>${ICON.next}</button>`;
+  const g=(k,x)=>`<button class="mode ${x.lead?'lead':''}" data-act="fbstart" data-v="${k}"><span class="ic">${ICON[x.ic]}</span><span><h3>${x.name}</h3><span class="d">${x.d}</span>${starTag('nfl:'+k)}</span>${ICON.next}</button>`;
   const perks=[
     ['Daily double',today?'Claimed today':'+3 stars on your first game today',!!today],
     ['Perfect game','+5 stars for no misses and no hints',false],
@@ -2284,7 +2428,7 @@ function fbResView(){
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
   <div><div class="bigscore"><span style="color:var(--gold)">★</span> +${s.stars+(x.milestone||0)}</div><span class="mute">stars earned</span></div></div>
   <p>${msg}</p>
-  ${x.aw.capped?`<div class="fb try">You already earned stars in ${NFL_DAILY} games today. This one still counts toward your prizes!</div>`
+  ${x.aw.rep?`<div class="fb try">${REP_NOTE}</div>`:x.aw.capped?`<div class="fb try">You already earned stars in ${NFL_DAILY} games today. This one still counts toward your prizes!</div>`
     :`<div class="card" style="box-shadow:inset 0 0 0 1px var(--line);padding:14px;gap:6px"><h3>Bonus breakdown</h3>${x.aw.parts.map(([a,n])=>`<div class="bk"><span>${esc(a)}</span><span class="num">+${n}</span></div>`).join('')}${x.milestone?`<div class="bk"><span>Collection prize</span><span class="num">+${x.milestone}</span></div>`:''}</div>`}
   ${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
   ${x.missed.length?`<h3>Let's look at these</h3>${x.missed.map(m=>`<details><summary>${esc(m.prompt)}</summary><p style="margin-top:8px"><b>${esc(m.ans)}</b>. ${esc(m.why)}</p></details>`).join('')}`:'<div class="fb good">No misses. Perfect!</div>'}
@@ -2583,11 +2727,11 @@ function geoAward(items){
   return{parts,total:parts.reduce((n,p)=>n+p[1],0),capped:false};
 }
 function finishOther(sport,items,missed){
-  const snap=prizeSnap(),bs=stats().stars,pbB=sport==='geo'?playbookBonus('geo'):0;
-  const aw=sport==='soc'?sportAward(socSess(),items,'Kickoff bonus'):geoAward(items);
+  const snap=prizeSnap(),bs=stats().stars,key=nq.review?'rev:'+sport:sport+':'+nq.game,rep=actDone(key),pbB=sport==='geo'&&!rep?playbookBonus('geo'):0;
+  let aw=sport==='soc'?sportAward(socSess(),items,'Kickoff bonus'):geoAward(items);if(rep)aw=Object.assign({},aw,{parts:[],total:0,rep:true});
   const correct=items.filter(i=>i.ok).length;
   const sess={ts:Date.now(),mode:sport,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-nq.t0)/1000)),stars:bdayX(aw.total+pbB),
-    items:items.map(i=>({t:sport,g:nq.game,c:i.c,k:i.k,ok:i.ok,h:i.h||0,err:null}))};
+    items:items.map(i=>({t:sport,g:nq.game,c:i.c,k:i.k,ok:i.ok,h:i.h||0,err:null,a:key}))};
   saveSession(sess);
   fbres={game:nq.game,sport,sess,aw,missed,playbook:pbB,cards:[],divs:[],confs:[],allNow:false,rulesNew:0,milestone:0,
     items:prizeNew(snap),
@@ -2597,7 +2741,7 @@ function finishOther(sport,items,missed){
 const clubNav=title=>`<div class="navbar"><button class="back" data-act="nav" data-v="club">${ICON.chev}Sports</button><span class="mid">${esc(title)}</span>${syncPill()}</div>`;
 const perkHtml=perks=>`<div class="perks">${perks.map(([a,b,d])=>`<div class="perk ${d?'done':''}"><b>${a}${d?' ✓':''}</b><span>${b}</span></div>`).join('')}</div>`;
 const braceletHtml=bs=>`<div class="bracelet">${bs.map(b=>`<div class="bead ${b.on?'':'off'}" title="${esc(b.n)}">${b.l}</div>`).join('')}</div><div class="dl">${bs.map(b=>`<div class="${b.on?'':'off'}"><b>${b.on?'★ ':''}${esc(b.n)}</b><span>${esc(b.d)}</span></div>`).join('')}</div>`;
-const gameBtn=(k,x)=>`<button class="mode ${x.lead?'lead':''}" data-act="fbstart" data-v="${k}"><span class="ic">${ICON[x.ic]}</span><span><h3>${x.name}</h3><span class="d">${x.d}</span></span>${ICON.next}</button>`;
+const gameBtn=(k,x)=>`<button class="mode ${x.lead?'lead':''}" data-act="fbstart" data-v="${k}"><span class="ic">${ICON[x.ic]}</span><span><h3>${x.name}</h3><span class="d">${x.d}</span>${starTag((SOC_GAMES[k]?'soc:':GEO_GAMES[k]?'geo:':'nfl:')+k)}</span>${ICON.next}</button>`;
 
 function clubView(){
   const ni=nflInfo(nflSess()),si=socInfo();
@@ -2811,7 +2955,7 @@ function esTyped(it,val){
   else it.msg='retry';
 }
 function finishEs(){
-  const g=es.game,snap=prizeSnap(),bs=stats().stars,pbB=playbookBonus('es');
+  const g=es.game,key=es.review?'rev:es':'es:'+g,rep=actDone(key),snap=prizeSnap(),bs=stats().stars,pbB=rep?0:playbookBonus('es');
   let items;
   if(g==='match')items=es.items.map(it=>{const n=es.wr[it.es]||0;return{w:it.es,ok:n===0,h:0,given:''}});
   else items=es.items.map(it=>{
@@ -2823,10 +2967,10 @@ function finishEs(){
     return{w:it.es,ok:!!it.ok,h:it.helped?1:0,given:String(it.given||'').slice(0,40)};
   });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-es.t0)/1000)),stars:bdayX(starsFor(g==='quiz'?'estest':'es',credit(items))+pbB),
-    items:items.map(i=>({t:'es',g,w:i.w,ok:i.ok,h:i.h,err:null,given:i.given}))};
+  const sess={ts:Date.now(),mode:'spell',home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-es.t0)/1000)),stars:rep?0:bdayX(starsFor(g==='quiz'?'estest':'es',credit(items))+pbB),
+    items:items.map(i=>({t:'es',g,w:i.w,ok:i.ok,h:i.h,err:null,given:i.given,a:key}))};
   saveSession(sess);
-  es.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(bs),pb:pbB});
+  es.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(bs),pb:pbB,rep});
   S.view='esresults';render();
 }
 function esBadges(){
@@ -2929,7 +3073,7 @@ function esResultsView(){
   <section class="card"><h2>${quiz?'¡Examen completo!':'¡Qué bien!'}</h2>
   <div class="row" style="gap:22px"><div><div class="bigscore">${s.correct}/${s.total}</div><span class="mute">${p}% right</span></div>
   <div><div class="bigscore"><span style="color:var(--gold)">★</span> +${s.stars}</div><span class="mute">stars earned</span></div></div>
-  <p>${msg}</p>${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
+  <p>${msg}</p>${s.rep?`<div class="fb try">${REP_NOTE}</div>`:''}${wins.map(w=>`<div class="fb good">${esc(w)}</div>`).join('')}
   ${missed.length?`<h3>Words to look at again</h3><div class="wchips">${missed.map(i=>{const w=ES_BY[i.w]||{es:i.w,en:'',e:''};return`<button class="wchip" data-act="esay" data-v="${esc(w.es)}"><span class="ee">${esc(w.e)}</span> <b>${esc(w.es)}</b> <span class="mute">${esc(w.en)}</span></button>`}).join('')}</div>`:'<div class="fb good">Every word right. ¡Perfecto!</div>'}
   <div class="row">${missed.length?`<button class="btn" data-act="esagain" data-v="missed">Practice my missed words</button>`:''}<button class="btn ${missed.length?'tint':''}" data-act="esagain" data-v="same">Play again</button><button class="btn tint" data-act="exit">Done</button></div></section>`;
 }
@@ -2945,7 +3089,7 @@ function esView(){
   const mastered=words.filter(w=>wordLevel(st[w.es])==='m').length,c=subjectCounts().es;
   const note=sel==='tricky'?(words.length?'Words that need more practice.':'No tricky words yet. Every activity uses a mix from all the lists until some words need more practice.'):sel==='all'?'A mix from every list. Each activity picks 12 words.':(ES_LISTS.find(l=>l.id===sel).note);
   const chips=words.length?words.map(w=>`<button class="wchip" data-act="esay" data-v="${esc(w.es)}" aria-label="Hear ${esc(w.es)}"><i class="${wordLevel(st[w.es])==='n'?'':wordLevel(st[w.es])}"></i><span class="ee">${esc(w.e)}</span> ${esc(w.es)} <span class="mute">${esc(w.en)}</span></button>`).join(''):'<p class="mute">No tricky words yet. Practice a list first and the words she misses will show up here.</p>';
-  const game=(k,g)=>`<button class="mode ${g.lead?'lead':''}" data-act="esstart" data-v="${k}"><span class="ic">${ICON[g.ic]}</span><span><h3>${g.name}</h3><span class="d">${g.d}</span></span>${ICON.next}</button>`;
+  const game=(k,g)=>`<button class="mode ${g.lead?'lead':''}" data-act="esstart" data-v="${k}"><span class="ic">${ICON[g.ic]}</span><span><h3>${g.name}</h3><span class="d">${g.d}</span>${starTag('es:'+k)}</span>${ICON.next}</button>`;
   return nav('Español')+`${subjBanner('es','Español',esMastered()+' of '+ES_ALL.length+' words mastered')}
   ${esBanner()}
   ${esListChips()}
@@ -3730,7 +3874,7 @@ function prizeCardHtml(){
 }
 
 /* ===== Halloween (October 1 to November 2): free decorations and costume pieces, nothing to earn ===== */
-const halloween=()=>{const d=new Date(),m=d.getMonth();return m===9||(m===10&&d.getDate()<=2)};
+const halloween=()=>{const t=etNow();return t.m===9||(t.m===10&&t.d<=2)};
 if(halloween()&&document.documentElement)document.documentElement.classList.add('hw');
 ITEMS.push(
   {id:'witchhat',slot:'head',name:'Witch hat',at:0,season:'halloween'},
@@ -3766,10 +3910,10 @@ const HW_FACTS=[
   'A giant pumpkin can grow from a tiny seed to a monster in about four months.'
 ];
 function halloweenCard(){
-  const d=new Date(),h=new Date(d.getFullYear(),9,31),n=new Date(d.getFullYear(),d.getMonth(),d.getDate()),left=Math.round((h-n)/86400000);
+  const t=etNow(),left=Math.round(Date.UTC(t.y,9,31)/86400000-t.n);
   const big=left>1?left:left===1?1:left===0?'🎃':'👻';
   const head=left>1?'days until Halloween':left===1?'day until Halloween':left===0?'Happy Halloween, Laila!':'Halloween was a blast!';
-  const fact=HW_FACTS[Math.floor(n/86400000)%HW_FACTS.length];
+  const fact=HW_FACTS[t.n%HW_FACTS.length];
   return`<section class="card hwcard"><div class="hwtop"><b class="hwnum num">${big}</b><div><h3>${head}</h3><span class="mute">Spooky decorations are in your room, and costume pieces are in your closet.</span></div></div>
   <div class="spark"><b>Halloween fun fact</b><p>${esc(fact)}</p></div></section>`;
 }
@@ -3848,7 +3992,7 @@ function progressTab(){
 }
 function logTab(){
   if(!S.sessions.length)return`<section class="card"><p class="mute">No sessions yet.</p></section>`;
-  return`<section class="card"><div class="scroll"><table><thead><tr><th>Date</th><th>Mode</th><th>Score</th><th>Minutes</th><th>Where</th></tr></thead><tbody>${S.sessions.slice(0,60).map(s=>`<tr><td>${new Date(s.ts).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</td><td>${esc(sessName(s))}</td><td class="num">${s.correct}/${s.total} (${pct(s)}%)</td><td class="num">${Math.max(1,Math.round((s.secs||0)/60))}</td><td>${esc(s.home||'')}</td></tr>`).join('')}</tbody></table></div></section>`;
+  return`<section class="card"><div class="scroll"><table><thead><tr><th>Date</th><th>Mode</th><th>Score</th><th>Minutes</th><th>Where</th></tr></thead><tbody>${S.sessions.slice(0,60).map(s=>`<tr><td>${new Date(s.ts).toLocaleString('en-US',{timeZone:'America/New_York',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</td><td>${esc(sessName(s))}</td><td class="num">${s.correct}/${s.total} (${pct(s)}%)</td><td class="num">${Math.max(1,Math.round((s.secs||0)/60))}</td><td>${esc(s.home||'')}</td></tr>`).join('')}</tbody></table></div></section>`;
 }
 function settingsTab(){
   return`<section class="card"><h3>Settings</h3>
@@ -3920,7 +4064,7 @@ function render(){
   const p=document.getElementById('pin');if(p)p.focus({preventScroll:true});
 }
 function finish(){
-  const exam=run.mode==='exam',before=stats().stars,snap=prizeSnap(),pbB=playbookBonus('math');
+  const exam=run.mode==='exam',key=exam?'exam':run.rev?'rev:math':run.skill?'sk:'+run.skill:run.mode,rep=actDone(key),before=stats().stars,snap=prizeSnap(),pbB=rep?0:playbookBonus('math');
   const items=run.qs.map((q,i)=>{
     const st=run.st[i];
     if(exam){
@@ -3930,9 +4074,9 @@ function finish(){
     return{t:q.type,k:q.kind,ok:st.ok,h:st.helped?1:0,err:st.err||null,given:st.given};
   });
   const correct=items.filter(i=>i.ok).length;
-  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-run.t0)/1000)),stars:bdayX(starsFor(exam?'exam':'math',credit(items))+pbB),items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,h:i.h||0,to:i.to||0,err:i.err}))};
+  const sess={ts:Date.now(),mode:run.mode,home:S.home||'',correct,total:items.length,secs:Math.min(7200,Math.round((Date.now()-run.t0)/1000)),stars:rep?0:bdayX(starsFor(exam?'exam':'math',credit(items))+pbB),items:items.map(i=>({t:i.t,k:i.k,ok:i.ok,h:i.h||0,to:i.to||0,err:i.err,a:key}))};
   saveSession(sess);
-  run.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),pb:pbB});S.view='results';render();
+  run.result=Object.assign({},sess,{items,unlocked:prizeNew(snap),stop:journeyNew(before),pb:pbB,rep});S.view='results';render();
 }
 function guidedSubmit(val){
   const q=run.qs[run.i],st=run.st[run.i];
