@@ -2388,6 +2388,7 @@ function homeView(){
   ${bdayCountdown()}
   ${halloween()?halloweenCard():''}
   ${playbookHtml()}
+  ${affirmHtml()}
   ${homeReview()}
   ${calCard()}
   ${counterHtml()}
@@ -2402,7 +2403,6 @@ function homeView(){
   ${fbOn()?`<div class="sect">Just for fun</div><section class="modes">${m('club','football','Sports Club',`Soccer rules and American football teams. Bonus prizes inside!`)}</section>`:''}
   ${last?`<p class="mute" style="padding-inline:6px">Last activity: ${esc(sessName(last))}, ${last.correct} of ${last.total} on ${fmtDate(last.ts)}.</p>`:''}
   <section class="spark"><b>Professor's fact of the day</b><p>${esc(fact)}</p></section>
-  ${affirmHtml()}
   ${tabbar('home')}`;
 }
 
