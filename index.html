@@ -413,21 +413,29 @@ const TYPES={
   mulC:{label:'Times 6, 7, 8 and 9',op:'×',gen(){const a=pick([6,7,8,9]),b=ri(2,10);return pick([[a,b],[b,a]])}},
   mulD:{label:'Mixed times facts',op:'×',gen(){return Math.random()<.12?[pick([0,1]),ri(0,10)]:[ri(2,10),ri(2,10)]}},
   mul10:{label:'Times multiples of 10',op:'×',gen(){const a=ri(2,9),b=ri(1,9)*10;return pick([[a,b],[b,a]])}},
+  mulE:{label:'Times 0, 1, 5 and 10',op:'×',gen(){const a=pick([0,1,5,10]),b=ri(0,10);return pick([[a,b],[b,a]])}},
+  divA:{label:'Divide by 1, 2, 5 and 10',op:'÷',gen(){const d=pick([1,2,5,10]);return[d*ri(0,10),d]}},
+  divB:{label:'Divide by 3 and 4',op:'÷',gen(){const d=pick([3,4]);return[d*ri(1,10),d]}},
+  divC:{label:'Divide by 6, 7, 8 and 9',op:'÷',gen(){const d=pick([6,7,8,9]);return[d*ri(1,10),d]}},
+  divD:{label:'Mixed division facts',op:'÷',gen(){if(Math.random()<.12)return pick([[0,ri(1,10)],[ri(1,10),1]]);const d=ri(2,10);return[d*ri(1,10),d]}},
   mulmiss:{label:'Missing factor',op:'?',gen(){return[0,0]}},
-  mulword:{label:'Equal groups word problems',op:'?',gen(){return[0,0]}}
+  mulword:{label:'Equal groups word problems',op:'?',gen(){return[0,0]}},
+  divmiss:{label:'Missing number (division)',op:'?',gen(){return[0,0]}},
+  divword:{label:'Sharing and grouping problems',op:'?',gen(){return[0,0]}}
 };
 const TYPE_KEYS=Object.keys(TYPES);
 const GROUPS=[
   {k:'sub',label:'Subtraction',types:['sub2','sub3o','sub3t','sub3b','subz','sub32']},
   {k:'add',label:'Addition',types:['add3']},
-  {k:'mul',label:'Multiplication',types:['mulA','mulB','mulC','mulD','mul10','mulmiss','mulword']},
+  {k:'mul',label:'Multiplication',types:['mulE','mulA','mulB','mulC','mulD','mul10','mulmiss','mulword']},
+  {k:'div',label:'Division',types:['divA','divB','divC','divD','divmiss','divword']},
   {k:'word',label:'Word problems',types:['word']},
   {k:'miss',label:'Missing number',types:['miss']}
 ];
-const SKILL_SECTIONS=[['Subtraction',GROUPS[0].types],['Addition',GROUPS[1].types],['Multiplication',GROUPS[2].types],['Problem solving',['word','miss']]];
-const opSym=op=>op==='-'?'−':op==='×'?'×':'+';
-const wordish=q=>q.type==='word'||q.type==='mulword';
-const missish=q=>q.type==='miss'||q.type==='mulmiss';
+const SKILL_SECTIONS=[['Subtraction',GROUPS[0].types],['Addition',GROUPS[1].types],['Multiplication',GROUPS[2].types],['Division',GROUPS[3].types],['Problem solving',['word','miss']]];
+const opSym=op=>op==='-'?'−':op==='×'?'×':op==='÷'?'÷':'+';
+const wordish=q=>q.type==='word'||q.type==='mulword'||q.type==='divword';
+const missish=q=>q.type==='miss'||q.type==='mulmiss'||q.type==='divmiss';
 const MULW=[
   (a,b,n)=>`${n} has ${a} bags with ${b} apples in each bag. How many apples does ${n} have in all?`,
   (a,b)=>`There are ${a} rows of chairs with ${b} chairs in each row. How many chairs are there?`,
@@ -447,6 +455,13 @@ const ADDW=[
   (a,b)=>`A bakery made ${a} muffins in the morning and ${b} muffins in the afternoon. How many muffins did it make?`,
   (a,b)=>`The zoo had ${a} visitors on Saturday and ${b} visitors on Sunday. How many visitors came in all?`
 ];
+const DIVW=[
+  (a,b,n)=>`${n} shares ${a} stickers equally among ${b} friends. How many stickers does each friend get?`,
+  (a,b)=>`${a} players split into ${b} equal teams. How many players are on each team?`,
+  (a,b,n)=>`${n} puts ${a} crayons into ${b} equal groups. How many crayons are in each group?`,
+  (a,b,n)=>`${n} has ${a} pencils and puts ${b} pencils in each box. How many boxes does ${n} fill?`,
+  (a,b)=>`A bakery packs ${a} muffins with ${b} muffins in each tray. How many trays does it fill?`
+];
 const smallerBigger=q=>{const x=dg(q.a),y=dg(q.b);return[0,1,2].reduce((s,i)=>s+Math.abs(x[i]-y[i])*10**i,0)};
 const forgotReduce=q=>{const x=dg(q.a),y=dg(q.b);return[0,1,2].reduce((s,i)=>s+(x[i]+(x[i]<y[i]?10:0)-y[i])*10**i,0)};
 const noCarry=q=>{const x=dg(q.a),y=dg(q.b);return[0,1,2].reduce((s,i)=>s+((x[i]+y[i])%10)*10**i,0)};
@@ -464,9 +479,26 @@ function makeMul(type,fmt,lv){
   q.choices=shuffle([ans,...ds]);
   return q;
 }
+/* division: a is the number being divided, b is what it is divided by, quo is the answer to a ÷ b */
+function makeDiv(type,fmt,lv){
+  lv=lv==null?1:lv;
+  const n=pick(NAMES);
+  let a,b,quo,ans,text,form=null,grp=false;
+  if(type==='divmiss'||type==='divword'){
+    b=lv===0?ri(2,5):lv===2?ri(6,10):ri(2,10);quo=lv===0?ri(1,6):lv===2?ri(5,10):ri(1,10);a=b*quo;
+    if(type==='divword'){const wi=ri(0,DIVW.length-1);grp=wi>=3;ans=quo;text=DIVW[wi](a,b,n)}
+    else{form=pick(['dv','dd']);if(form==='dv'){ans=b;text=`${a} ÷ ? = ${quo}`}else{ans=a;text=`? ÷ ${b} = ${quo}`}}
+  }else{[a,b]=genAt(type,lv);quo=a/b;ans=quo;text=`${a} ÷ ${b} = ?`}
+  const q={type,kind:type,op:'÷',a,b,quo,ans,text,fmt,form,grp,lv};
+  const pool=type==='divmiss'?[ans+1,ans-1,ans+2,ans-2,a,b,quo,a+b]:[ans+1,ans-1,b,ans+2,a-b,ans-2,a+b,ans+3];
+  const ds=[...new Set(pool.filter(v=>v>=0&&v<=1000&&v!==ans))].slice(0,3);
+  q.choices=shuffle([ans,...ds]);
+  return q;
+}
 function makeQ(type,fmt,lv){
   lv=lv==null?1:lv;
   if(type==='mulmiss'||type==='mulword'||TYPES[type].op==='×')return makeMul(type,fmt,lv);
+  if(type==='divmiss'||type==='divword'||TYPES[type].op==='÷')return makeDiv(type,fmt,lv);
   const SUBK=['sub2','sub3o','sub3t','sub3b','subz','sub32'];
   let t=type,form=null,a,b;
   if(type==='word')t=pick([...SUBK,'add3','add3']);
@@ -498,16 +530,23 @@ function classify(q,g){
     }
     return[1,10,100].includes(Math.abs(v-q.ans))?'slip':'other';
   }
+  if(q.op==='÷'){
+    if(q.type==='divmiss')return[q.a,q.b,q.quo].includes(v)?'swap':[1,10].includes(Math.abs(v-q.ans))?'slip':'other';
+    if(q.a===0||q.b===1||q.a===q.b)return'rule';
+    if(v===q.b)return'swap';
+    if(v===q.a-q.b||v===q.a+q.b||v===q.a*q.b)return'wrongop';
+    return Math.abs(v-q.ans)===1?'slip':'other';
+  }
   if(q.op==='-'){const sb=smallerBigger(q),fr=forgotReduce(q);if(v===sb&&v===fr)return'regroup';if(v===sb)return'smaller';if(v===fr)return'reduce'}
   else if(v===noCarry(q))return'carry';
   if([1,10,100].includes(Math.abs(v-q.ans)))return'slip';
   return'other';
 }
-const ERR_LABEL={regroup:'Regrouping step went wrong (smaller-from-bigger or forgot to take 1 away)',smaller:'Subtracted the smaller digit from the bigger one',reduce:'Regrouped, but forgot to take 1 away from the next place',carry:'Forgot to carry when adding',slip:'Off by one fact (1, 10 or 100 away)',wrongop:'Used the wrong operation (added or subtracted instead)',neighbor:'Skip counting was one group too many or too few',zeros:'Lost or added a zero',blank:'Left blank',other:'Other mistakes'};
+const ERR_LABEL={regroup:'Regrouping step went wrong (smaller-from-bigger or forgot to take 1 away)',smaller:'Subtracted the smaller digit from the bigger one',reduce:'Regrouped, but forgot to take 1 away from the next place',carry:'Forgot to carry when adding',slip:'Off by one fact (1, 10 or 100 away)',wrongop:'Used the wrong operation (added or subtracted instead)',neighbor:'Skip counting was one group too many or too few',swap:'Gave a number from the problem instead of the answer',rule:'Mixed up the 0 and 1 rules in division (0 divided by a number is 0, a number divided by 1 stays the same, a number divided by itself is 1)',zeros:'Lost or added a zero',blank:'Left blank',other:'Other mistakes'};
 const PLACE=['ones','tens','hundreds'],ONE=['one','ten','hundred'];
 function steps(q){
   const s=coreSteps(q);
-  if(!q.form||q.op==='×')return s;
+  if(!q.form||q.op==='×'||q.op==='÷')return s;
   const intro=q.form==='start'?`Think: ? − ${q.b} = ${q.a}, so add: ${q.a} + ${q.b}.`:q.form==='addend'?`Think: ${q.b} + ? = ${q.a}, so subtract: ${q.a} − ${q.b}.`:`Think: ${q.a} − ? = ${q.b}, so subtract: ${q.a} − ${q.b}.`;
   return[intro,...s];
 }
@@ -539,10 +578,40 @@ function mulSteps(q,hint){
   if(!hint)out.push(`So ${a} × ${b} = ${q.ans}.`);
   return out;
 }
-const hintSteps=q=>q.op==='×'?mulSteps(q,true):steps(q).slice(0,-1);
-const arrayHtml=q=>q.op==='×'&&q.type!=='mulmiss'&&q.type!=='mul10'&&q.a>0&&q.b>0&&q.a<=10&&q.b<=10?`<div class="arr" style="grid-template-columns:repeat(${q.b},14px)" role="img" aria-label="${q.a} rows of ${q.b}">${'<i></i>'.repeat(q.a*q.b)}</div><p class="mute">${q.a} rows of ${q.b}</p>`:'';
+/* hint=true leaves out the final number so a hint helps without giving the answer away */
+function divSteps(q,hint){
+  const{a,b,quo}=q,out=[];
+  if(q.type==='divmiss'){
+    if(q.form==='dd'){
+      out.push(`Think: ? ÷ ${b} = ${quo}. Turn it around: ${b} × ${quo} = ?`);
+      const cs=[];for(let k=1;k<=quo;k++)cs.push(b*k);
+      out.push(`Count by ${b}s, ${quo} times: `+(hint?cs.slice(0,-1).join(', ')+', ...':cs.join(', ')+'.'));
+      if(!hint)out.push(`${b} × ${quo} = ${a}, so ? = ${a}.`,`Check: ${a} ÷ ${b} = ${quo}.`);
+    }else{
+      out.push(`Think: ${a} ÷ ? = ${quo}. Turn it around: ${quo} × ? = ${a}.`);
+      const cs=[];for(let k=1;k<=b;k++)cs.push(quo*k);
+      out.push(`Count by ${quo}s until you reach ${a}: `+(hint?cs.slice(0,2).join(', ')+', ...':cs.join(', ')+'.'));
+      if(!hint)out.push(`You counted ${b} numbers, so ? = ${b}.`,`Check: ${a} ÷ ${b} = ${quo}.`);
+    }
+    return out;
+  }
+  out.push(q.type==='divword'?(q.grp?`Count how many groups of ${b} fit in ${a}: that is ${a} ÷ ${b}.`:`Share ${a} equally into ${b} groups: that is ${a} ÷ ${b}.`):`Think: ${b} × ? = ${a}.`);
+  if(a===0)out.push(`0 shared into any number of groups leaves 0 in each group.`);
+  else if(b===1)out.push(`Dividing by 1 means 1 group, so the number stays the same.`);
+  else if(a===b)out.push(`Any number divided by itself is 1.`);
+  else{
+    const cs=[];for(let k=1;k<=quo;k++)cs.push(b*k);
+    out.push(`Count by ${b}s until you reach ${a}: `+(hint?cs.slice(0,-1).join(', ')+', ...':cs.join(', ')+'.'));
+    if(!hint)out.push(`You counted ${quo} numbers, so ${a} ÷ ${b} = ${quo}.`);
+  }
+  if(!hint)out.push(`So ${a} ÷ ${b} = ${quo}. Check: ${b} × ${quo} = ${a}.`);
+  return out;
+}
+const hintSteps=q=>q.op==='×'?mulSteps(q,true):q.op==='÷'?divSteps(q,true):steps(q).slice(0,-1);
+const arrayHtml=q=>q.op==='÷'&&q.type!=='divmiss'&&q.a>0&&q.a<=100&&q.b<=10?`<div class="arr" style="grid-template-columns:repeat(${q.b},14px)" role="img" aria-label="${q.a} dots in rows of ${q.b}">${'<i></i>'.repeat(q.a)}</div><p class="mute">${q.a} dots in rows of ${q.b}. How many rows?</p>`:q.op==='×'&&q.type!=='mulmiss'&&q.type!=='mul10'&&q.a>0&&q.b>0&&q.a<=10&&q.b<=10?`<div class="arr" style="grid-template-columns:repeat(${q.b},14px)" role="img" aria-label="${q.a} rows of ${q.b}">${'<i></i>'.repeat(q.a*q.b)}</div><p class="mute">${q.a} rows of ${q.b}</p>`:'';
 function coreSteps(q){
   if(q.op==='×')return mulSteps(q);
+  if(q.op==='÷')return divSteps(q);
   const t=dg(q.a),y=dg(q.b),out=[],nd=String(q.a).length;
   if(q.op==='-'){
     for(let i=0;i<nd;i++){
@@ -633,7 +702,7 @@ const cleanNum=v=>Number.isFinite(v)?v:0;
 function cleanProfile(p){
   const known=GROUPS.map(g=>g.k);
   const lists=(Array.isArray(p.lists)?p.lists:[]).slice(0,10).map(l=>l&&typeof l==='object'?{id:String(l.id||'').replace(/[^\w-]/g,'').slice(0,24),name:cleanTxt(l.name,40),note:'Your own list',words:(Array.isArray(l.words)?l.words:[]).filter(w=>typeof w==='string'&&/^[a-z]{3,14}$/.test(w)).slice(0,20)}:null).filter(l=>l&&l.id&&l.name&&l.words.length>=3);
-  return{avatar:safeVal(p.avatar,0),topics:(Array.isArray(p.topics)?p.topics:[]).filter(x=>known.includes(x)).slice(0,5),splist:SAFE_ID.test(String(p.splist))?String(p.splist):'',lists,updated:cleanNum(p.updated)};
+  return{avatar:safeVal(p.avatar,0),topics:(Array.isArray(p.topics)?p.topics:[]).filter(x=>known.includes(x)).slice(0,GROUPS.length),splist:SAFE_ID.test(String(p.splist))?String(p.splist):'',lists,updated:cleanNum(p.updated)};
 }
 const SESS_MODES=['smart','guided','exam','spell','nfl','soc','geo'];
 function cleanSession(id,d){
@@ -736,7 +805,7 @@ function m3(b,l,r,key){
 const pCore=d=>({avatar:d.avatar,topics:d.topics,splist:d.splist,lists:d.lists});
 function adoptProfile(p){
   if(p.avatar&&Object.keys(p.avatar).length)store.set('lmath.avatar',p.avatar);
-  if(Array.isArray(p.topics)&&p.topics.length){S.topics=p.topics.slice(0,5);store.set('lmath.topics',S.topics)}
+  if(Array.isArray(p.topics)&&p.topics.length){S.topics=p.topics.slice(0,GROUPS.length);store.set('lmath.topics',S.topics)}
   if(p.splist){S.splist=p.splist;store.set('lmath.splist',p.splist)}
   store.set('lmath.lists',(p.lists||[]).slice(0,10));
 }
@@ -996,7 +1065,7 @@ function prizeSnap(){const env=prizeEnv();return new Set(prizeList().filter(p=>p
 function prizeNew(snap){const env=prizeEnv();return prizeList().filter(p=>!snap.has(p.key)&&prizeUnlocked(p.x,env)).map(p=>p.name)}
 
 /* ---------- run setup ---------- */
-const PRIOR={sub2:3,sub3o:3,sub3t:3,sub3b:3,subz:3,sub32:3,add3:1,word:1.5,miss:1.5,mulA:2,mulB:2,mulC:2,mulD:2,mul10:2,mulmiss:1.5,mulword:1.5};
+const PRIOR={sub2:3,sub3o:3,sub3t:3,sub3b:3,subz:3,sub32:3,add3:1,word:1.5,miss:1.5,mulA:2,mulB:2,mulC:2,mulD:2,mul10:2,mulE:2,mulmiss:1.5,mulword:1.5,divA:2.5,divB:2.5,divC:2.5,divD:2.5,divmiss:1.5,divword:1.5};
 const WEIGHT={sub3b:2,sub3t:2,word:2};
 function activeTypes(){
   const on=GROUPS.filter(g=>S.topics.includes(g.k)).flatMap(g=>g.types);
@@ -2119,7 +2188,12 @@ const LVFIT={
   mulB:(a,b,L)=>L===0?a*b<=16:a*b>=28,
   mulC:(a,b,L)=>L===0?a*b<=36:a*b>=63,
   mulD:(a,b,L)=>L===0?a*b<=24:a*b>=48,
-  mul10:(a,b,L)=>L===0?(a<=5&&b<=30&&a*b<=150):(Math.min(a,b)>=6&&Math.max(a,b)>=60)
+  mul10:(a,b,L)=>L===0?(a<=5&&b<=30&&a*b<=150):(Math.min(a,b)>=6&&Math.max(a,b)>=60),
+  mulE:(a,b,L)=>L===0?a*b<=20:a*b>=40,
+  divA:(a,b,L)=>L===0?a<=20:a>=50,
+  divB:(a,b,L)=>L===0?a<=20:a>=28,
+  divC:(a,b,L)=>L===0?a<=36:a>=63,
+  divD:(a,b,L)=>L===0?a<=24:a>=48
 };
 function genAt(t,lv){
   const f=LVFIT[t];
@@ -2274,7 +2348,7 @@ function learnHtml(l){
 /* ---------- read aloud for every question ---------- */
 function mathSpeech(q){
   let s=q.text;
-  if(!wordish(q))s=s.replace(/[−×+=?]/g,c=>({'−':' minus ','×':' times ','+':' plus ','=':' equals ','?':' what number '})[c]);
+  if(!wordish(q))s=s.replace(/[−×÷+=?]/g,c=>({'−':' minus ','×':' times ','÷':' divided by ','+':' plus ','=':' equals ','?':' what number '})[c]);
   if(q.fmt==='mc')s+='. The choices are '+q.choices.join(', ')+'.';
   return s.replace(/\s+/g,' ').trim();
 }
@@ -2395,7 +2469,7 @@ function homeView(){
   ${prizeCardHtml()}
   <div class="sect">Pick a subject</div>
   <section class="modes">
-    ${m('math','math','Math',lastMath?`Last time: ${lastMath.correct} of ${lastMath.total} right on ${fmtDate(lastMath.ts)}`:'Pick a skill or play a mix. Add, subtract and multiply.',true)}
+    ${m('math','math','Math',lastMath?`Last time: ${lastMath.correct} of ${lastMath.total} right on ${fmtDate(lastMath.ts)}`:'Pick a skill or play a mix. Add, subtract, multiply and divide.',true)}
     ${m('spell','spell','Spelling',`${esc(cur.name)}: ${mastered} of ${cur.words.length} words mastered`)}
     ${m('es','es','Español',`${esMastered()} of ${ES_ALL.length} words mastered. Pays the most stars.`,false)}
     ${m('geo','globe','Geography',`${geoInfo().st.length} of 50 state capitals mastered. Florida spotlight inside.`)}
@@ -2417,7 +2491,7 @@ function mathView(){
   <div class="sect">Practice one skill</div>
   ${SKILL_SECTIONS.map(([t,ks])=>`<div class="sect" style="padding-top:0;color:var(--accent)">${t}</div><section class="skills">${ks.map(skill).join('')}</section>`).join('')}
   <div class="sect">Mixed practice</div>
-  <section class="card"><h3>What should the mix include?</h3><div class="chips">${chips}</div><p class="mute">Smart Practice, Guided Practice and the Practice Exam use these topics. School tests so far are add and subtract, so multiplication starts off.</p></section>
+  <section class="card"><h3>What should the mix include?</h3><div class="chips">${chips}</div><p class="mute">Smart Practice, Guided Practice and the Practice Exam use these topics. Turn on Multiplication and Division to practice for the times-facts test.</p></section>
   <section class="modes">
     ${m('smart','rocket','Smart Practice','10 questions picked just for you. Hints help.',true)}
     ${m('guided','ball','Guided Practice','10 questions with hints and a second try.')}
@@ -2468,7 +2542,7 @@ function answerArea(q,st,exam,val,locked){
 }
 const qLabel=q=>wordish(q)?`${q.a} ${opSym(q.op)} ${q.b} = ${q.ans}`:q.text.replace('?',q.ans);
 function qHtml(q,exam){
-  if(!exam&&!wordish(q)&&!missish(q))return`<div class="stack" role="img" aria-label="${esc(q.text)}"><div>${pv(q.a)}</div><div><span>${opSym(q.op)}</span><span>${pv(q.b)}</span></div></div><p class="mute num">${esc(q.text)}</p>`;
+  if(!exam&&!wordish(q)&&!missish(q)&&q.op!=='÷')return`<div class="stack" role="img" aria-label="${esc(q.text)}"><div>${pv(q.a)}</div><div><span>${opSym(q.op)}</span><span>${pv(q.b)}</span></div></div><p class="mute num">${esc(q.text)}</p>`;
   return`<p class="qtext ${wordish(q)?'word':''}">${esc(q.text)}</p>`;
 }
 function raceTrack(r,f){
