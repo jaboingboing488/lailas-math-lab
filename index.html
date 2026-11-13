@@ -284,6 +284,8 @@ textarea.txt{font:inherit;padding:12px 14px;border:0;border-radius:14px;backgrou
 .tabbar>div{gap:2px}.tab{font-size:.66rem}
 .roombox{border-radius:22px;overflow:hidden;box-shadow:var(--shadow);background:#FBE3EC;line-height:0}
 .roomsvg{display:block;width:100%;height:auto}
+svg.n64{opacity:0}
+canvas.n64c{position:absolute;pointer-events:none;image-rendering:auto;filter:saturate(1.18) contrast(1.07)}
 .roomsvg .hot{cursor:pointer}
 .sw{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:7px;vertical-align:-1px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
 .esban{border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;background:linear-gradient(140deg,var(--hero1),var(--hero2));color:#fff;box-shadow:var(--shadow)}
@@ -1379,7 +1381,7 @@ function avatarSvg(c){
   if(c.extra.includes('candybucket'))ex+=`<g transform="translate(98 114)"><path d="M-12-9Q0-24 12-9" stroke="#1A1020" stroke-width="2" fill="none"/><circle cx="-4" cy="-10" r="3" fill="#FF7BAF"/><circle cx="3" cy="-12" r="3" fill="#FFD24D"/><path d="M5-8L9-12L11-8Z" fill="#58D68D"/><path d="M-13-6Q-15 6-8 12Q0 15 8 12Q15 6 13-6Q0-10-13-6Z" fill="${rg('pb','#FFA23A','#C8520A')}" stroke="#8A3A00" stroke-width=".8"/><path d="M-7-1L-4-4L-3 0ZM7-1L4-4L3 0Z" fill="#2A1630"/><path d="M-6 5Q0 9 6 5L4 3L2 5L0 3L-2 5L-4 3Z" fill="#2A1630"/><path d="M-9-6Q-11 2-8 8" stroke="#fff" stroke-width="1.2" fill="none" opacity=".4"/></g>`;
   c.extra.forEach(id=>{if(PRZ.extra[id])ex+=PRZ.extra[id](X)});
   if(c._parts)return{D:D.join(''),back,top,head,topD,fringe,face,ex,hd};
-  return`<svg viewBox="0 0 120 130" width="100%" height="100%" role="img" aria-label="Laila's avatar"><defs>${D.join('')}</defs>${back}${top}${head}${topD}${fringe}${face}${ex}${hd}</svg>`;
+  return`<svg viewBox="0 0 120 130" class="n64" width="100%" height="100%" role="img" aria-label="Laila's avatar"><defs>${D.join('')}</defs>${back}${top}${head}${topD}${fringe}${face}${ex}${hd}</svg>`;
 }
 /* ===== 365 prizes: new closet art. Each one is drawn from a shared kit so they all look like one family. ===== */
 const PRZ={top:{},head:{},extra:{}};
@@ -3697,7 +3699,7 @@ function bodySvg(c){
   const skirt=`<path d="M27 128.6L19 158Q60 165 101 158L93 128.6Z" fill="url(#bsl${K})"/><path d="M40 130L34.5 160M53 131L51.6 162M67 131L68.4 162M80 130L85.5 160" stroke="${cb}" stroke-width="1.6" opacity=".3"/><path d="M19.4 156.4Q60 163.4 100.6 156.4" stroke="${darken(cb,.18)}" stroke-width="2.6" fill="none"/><path d="M27 129.2H93" stroke="${darken(cb,.2)}" stroke-width="2.4" opacity=".7"/><path d="M27 128.6L19 158Q60 165 101 158L93 128.6Z" fill="url(#bts)"/>`;
   const leg=x=>`<rect x="${x-6}" y="150" width="12" height="42" rx="5" fill="${skin}"/><path d="M${x+2.5} 160V180" stroke="${shade}" stroke-width="2.4" opacity=".28" stroke-linecap="round"/><rect x="${x-6.6}" y="180" width="13.2" height="12" rx="3" fill="#fff"/><path d="M${x-6.6} 183.6H${x+6.6}" stroke="${hs[1]}" stroke-width="1.8"/>`;
   const shoe=(a,b)=>{const m=(a+b)/2;return`<rect x="${a}" y="190" width="${b-a}" height="13" rx="6" fill="url(#bsn)" stroke="#B9B4C4" stroke-width=".8"/><rect x="${a}" y="198.4" width="${b-a}" height="4.6" rx="2.3" fill="${hs[1]}"/><path d="M${m-5} 192.6l6 1.6M${m-4} 191l6 1.6" stroke="#B9B4C4" stroke-width="1" stroke-linecap="round"/>`};
-  return`<svg viewBox="0 0 120 204" width="100%" height="100%" role="img" aria-label="Laila's avatar"><defs>${P.D}${defs}</defs>${P.back}${leg(49)}${leg(71)}${shoe(36,60)}${shoe(60,84)}${skirt}${torso}${arm(-1)}${arm(1)}${P.head}${P.topD}${P.fringe}${P.face}${P.ex}${P.hd}</svg>`;
+  return`<svg viewBox="0 0 120 204" class="n64" width="100%" height="100%" role="img" aria-label="Laila's avatar"><defs>${P.D}${defs}</defs>${P.back}${leg(49)}${leg(71)}${shoe(36,60)}${shoe(60,84)}${skirt}${torso}${arm(-1)}${arm(1)}${P.head}${P.topD}${P.fringe}${P.face}${P.ex}${P.hd}</svg>`;
 }
 const HOOKS=[O('none','Empty hook',0),O('backpack','Backpack',0),O('soccerbag','Soccer bag','soc1'),O('robe','Wizard robe',100),O('jersey','Game day jersey',70)];
 const WALLDECO=[O('clock','Wall clock',20),O('pennants','Pennant banner',75),O('lights','Fairy lights',50)];
@@ -3916,7 +3918,7 @@ function roomSvg(R,av){
   g+=hot('bed',`<rect x="118" y="176" width="188" height="70" rx="14" fill="${sh.fill}" stroke="rgba(0,0,0,.12)"/><rect x="118" y="176" width="188" height="70" rx="14" fill="url(#qlt)"/><rect x="118" y="176" width="188" height="15" rx="7" fill="#fff" opacity=".92"/><path d="M126 192Q212 200 298 192" stroke="rgba(0,0,0,.12)" stroke-width="2" fill="none"/><path d="M150 201Q154 222 148 240M212 203V243M274 201Q270 222 276 240" stroke="rgba(0,0,0,.08)" stroke-width="2" fill="none"/><rect x="116" y="240" width="192" height="14" rx="4" fill="url(#frg)"/><rect x="116" y="240" width="192" height="3" rx="1.5" fill="#fff" opacity=".35"/><rect x="122" y="252" width="8" height="8" fill="${dark(frame)}"/><rect x="294" y="252" width="8" height="8" fill="${dark(frame)}"/>${dec?`<g transform="translate(262 206)">${dec}</g>`:''}`);
   g+=bdayRoom();
   g+=`<rect x="-124" width="604" height="330" fill="url(#vig)" pointer-events="none"/>`;
-  return`<svg class="roomsvg" viewBox="-124 0 604 330" role="img" aria-label="Laila's bedroom">${g}</svg>`;
+  return`<svg class="roomsvg n64" viewBox="-124 0 604 330" role="img" aria-label="Laila's bedroom">${g}</svg>`;
 }
 function roomPanel(area,R,ctx){
   const out=ROOM_G.filter(g=>g.area===area).map(g=>{
@@ -4497,6 +4499,56 @@ function themeClass(){
   if((S.view==='nqrun'&&nq&&nq.sport==='geo')||(S.view==='fbres'&&fbres&&fbres.sport==='geo'))return'th-geo';
   return THEME_OF[S.view]?'th-'+THEME_OF[S.view]:'';
 }
+/* ---------- Nintendo 64 look for the room and the avatar ----------
+   Each picture is drawn again on a small pixel grid (a few art units per pixel, about the console's 240 pixel width),
+   its colors are cut to 5 bits per channel with the console's ordered dither, and it is stretched back up with the soft
+   bilinear filter. The real vector picture stays on the page, invisible, so every tap target in the room still works. */
+const N64={cache:new Map()},BAYER=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+function n64Low(svg,lw,lh,done,fail){
+  const key=lw+'x'+lh+svg.outerHTML,hit=N64.cache.get(key);
+  if(hit)return done(hit);
+  const c=svg.cloneNode(true);c.setAttribute('width',lw);c.setAttribute('height',lh);c.removeAttribute('class');c.removeAttribute('style');
+  const img=new Image();
+  img.onload=()=>{
+    try{
+      const cv=document.createElement('canvas');cv.width=lw;cv.height=lh;
+      const x=cv.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0,lw,lh);
+      const im=x.getImageData(0,0,lw,lh),d=im.data,st=255/31;
+      for(let y=0;y<lh;y++)for(let i=0;i<lw;i++){
+        const o=(y*lw+i)*4,t=(BAYER[(y&3)*4+(i&3)]/16-.47)*st;
+        for(let k=0;k<3;k++)d[o+k]=Math.max(0,Math.min(255,Math.round((d[o+k]+t)/st)*st));
+      }
+      x.putImageData(im,0,0);
+      if(N64.cache.size>60)N64.cache.delete(N64.cache.keys().next().value);
+      N64.cache.set(key,cv);done(cv);
+    }catch(e){fail()}
+  };
+  img.onerror=fail;
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(c));
+}
+function n64Place(svg,low){
+  if(!svg.isConnected)return;
+  const p=svg.parentElement,r=svg.getBoundingClientRect();
+  if(!p||r.width<4)return;
+  if(getComputedStyle(p).position==='static')p.style.position='relative';
+  const pr=p.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1);
+  let cv=svg.nextElementSibling;
+  if(!cv||!cv.classList.contains('n64c')){cv=document.createElement('canvas');cv.className='n64c';svg.after(cv)}
+  cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);
+  cv.style.left=(r.left-pr.left-p.clientLeft+p.scrollLeft)+'px';cv.style.top=(r.top-pr.top-p.clientTop+p.scrollTop)+'px';
+  cv.style.width=r.width+'px';cv.style.height=r.height+'px';
+  const x=cv.getContext('2d');x.imageSmoothingEnabled=true;x.imageSmoothingQuality='low';x.clearRect(0,0,cv.width,cv.height);x.drawImage(low,0,0,cv.width,cv.height);
+}
+function n64Pass(){
+  document.querySelectorAll('svg.n64').forEach(svg=>{
+    if(svg.parentElement&&svg.parentElement.closest('svg'))return;
+    const vb=svg.viewBox&&svg.viewBox.baseVal;
+    if(!vb||!vb.width){svg.style.opacity=1;return}
+    const lw=Math.max(16,Math.round(vb.width/(svg.classList.contains('roomsvg')?2.6:1.7))),lh=Math.max(8,Math.round(lw*vb.height/vb.width));
+    n64Low(svg,lw,lh,low=>n64Place(svg,low),()=>{svg.style.opacity=1});
+  });
+}
+let n64T=0;window.addEventListener('resize',()=>{clearTimeout(n64T);n64T=setTimeout(n64Pass,150)});
 function render(){
   let h;
   try{h=buildView()}
@@ -4511,6 +4563,7 @@ function render(){
   const a=document.getElementById('ans')||document.getElementById('spin')||document.getElementById('esin');
   if(a&&!a.disabled)a.focus({preventScroll:true});
   const p=document.getElementById('pin');if(p)p.focus({preventScroll:true});
+  n64Pass();
   autoRead();
 }
 function finish(){
