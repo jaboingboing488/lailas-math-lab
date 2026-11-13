@@ -2,6 +2,7 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#7A1220">
 <meta name="robots" content="noindex,nofollow">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/":"./vendor/addons/"}}</script>
 <meta name="description" content="Practice math, spelling, sports and geography.">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -286,6 +287,8 @@ textarea.txt{font:inherit;padding:12px 14px;border:0;border-radius:14px;backgrou
 .roomsvg{display:block;width:100%;height:auto}
 svg.n64{opacity:0}
 canvas.n64c{position:absolute;pointer-events:none}
+.roombox.is3d .roomsvg,.roombox.is3d canvas.n64c{display:none}
+canvas.room3d{display:block;width:100%;height:auto;touch-action:manipulation;cursor:pointer}
 .roomsvg .hot{cursor:pointer}
 .sw{display:inline-block;width:13px;height:13px;border-radius:50%;margin-right:7px;vertical-align:-1px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
 .esban{border-radius:20px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;background:linear-gradient(140deg,var(--hero1),var(--hero2));color:#fff;box-shadow:var(--shadow)}
@@ -1162,6 +1165,7 @@ function mixHex(a,b,k){const p=x=>[1,3,5].map(i=>parseInt(x.slice(i,i+2),16)),A=
 const lighten=(h,k)=>mixHex(h,'#FFFFFF',k),darken=(h,k)=>mixHex(h,'#000000',k);
 const CURLY=['curly','curls3a','curls3b','coils3c','curlpuffs','curlpony','twistout','knots'];
 function avatarSvg(c){
+  const AVJ=JSON.stringify(c,(k,v)=>k==='room'||k==='_parts'?undefined:v).replace(/&/g,'&amp;').replace(/'/g,'&#39;');
   if(isBirthday()&&!c._nobday)c=Object.assign({},c,{head:'bdayhat'});
   const skin=SKIN[c.skin]||SKIN[1],hair=HAIR[c.hair]||HAIR[1],out=OUTFIT[c.outfit]||OUTFIT[0];
   let back='';
@@ -1381,7 +1385,7 @@ function avatarSvg(c){
   if(c.extra.includes('candybucket'))ex+=`<g transform="translate(98 114)"><path d="M-12-9Q0-24 12-9" stroke="#1A1020" stroke-width="2" fill="none"/><circle cx="-4" cy="-10" r="3" fill="#FF7BAF"/><circle cx="3" cy="-12" r="3" fill="#FFD24D"/><path d="M5-8L9-12L11-8Z" fill="#58D68D"/><path d="M-13-6Q-15 6-8 12Q0 15 8 12Q15 6 13-6Q0-10-13-6Z" fill="${rg('pb','#FFA23A','#C8520A')}" stroke="#8A3A00" stroke-width=".8"/><path d="M-7-1L-4-4L-3 0ZM7-1L4-4L3 0Z" fill="#2A1630"/><path d="M-6 5Q0 9 6 5L4 3L2 5L0 3L-2 5L-4 3Z" fill="#2A1630"/><path d="M-9-6Q-11 2-8 8" stroke="#fff" stroke-width="1.2" fill="none" opacity=".4"/></g>`;
   c.extra.forEach(id=>{if(PRZ.extra[id])ex+=PRZ.extra[id](X)});
   if(c._parts)return{D:D.join(''),back,top,head,topD,fringe,face,ex,hd};
-  return`<svg viewBox="0 0 120 130" class="n64" width="100%" height="100%" role="img" aria-label="Laila's avatar"><defs>${D.join('')}</defs>${back}${top}${head}${topD}${fringe}${face}${ex}${hd}</svg>`;
+  return`<svg viewBox="0 0 120 130" class="n64" data-av='${AVJ}' width="100%" height="100%" role="img" aria-label="Laila's avatar"><defs>${D.join('')}</defs>${back}${top}${head}${topD}${fringe}${face}${ex}${hd}</svg>`;
 }
 /* ===== 365 prizes: new closet art. Each one is drawn from a shared kit so they all look like one family. ===== */
 const PRZ={top:{},head:{},extra:{}};
@@ -3699,7 +3703,21 @@ function bodySvg(c){
   const skirt=`<path d="M27 128.6L19 158Q60 165 101 158L93 128.6Z" fill="url(#bsl${K})"/><path d="M40 130L34.5 160M53 131L51.6 162M67 131L68.4 162M80 130L85.5 160" stroke="${cb}" stroke-width="1.6" opacity=".3"/><path d="M19.4 156.4Q60 163.4 100.6 156.4" stroke="${darken(cb,.18)}" stroke-width="2.6" fill="none"/><path d="M27 129.2H93" stroke="${darken(cb,.2)}" stroke-width="2.4" opacity=".7"/><path d="M27 128.6L19 158Q60 165 101 158L93 128.6Z" fill="url(#bts)"/>`;
   const leg=x=>`<rect x="${x-6}" y="150" width="12" height="42" rx="5" fill="${skin}"/><path d="M${x+2.5} 160V180" stroke="${shade}" stroke-width="2.4" opacity=".28" stroke-linecap="round"/><rect x="${x-6.6}" y="180" width="13.2" height="12" rx="3" fill="#fff"/><path d="M${x-6.6} 183.6H${x+6.6}" stroke="${hs[1]}" stroke-width="1.8"/>`;
   const shoe=(a,b)=>{const m=(a+b)/2;return`<rect x="${a}" y="190" width="${b-a}" height="13" rx="6" fill="url(#bsn)" stroke="#B9B4C4" stroke-width=".8"/><rect x="${a}" y="198.4" width="${b-a}" height="4.6" rx="2.3" fill="${hs[1]}"/><path d="M${m-5} 192.6l6 1.6M${m-4} 191l6 1.6" stroke="#B9B4C4" stroke-width="1" stroke-linecap="round"/>`};
-  return`<svg viewBox="0 0 120 204" class="n64" width="100%" height="100%" role="img" aria-label="Laila's avatar"><defs>${P.D}${defs}</defs>${P.back}${leg(49)}${leg(71)}${shoe(36,60)}${shoe(60,84)}${skirt}${torso}${arm(-1)}${arm(1)}${P.head}${P.topD}${P.fringe}${P.face}${P.ex}${P.hd}</svg>`;
+  return`<svg viewBox="0 0 120 204" class="n64" data-av='${JSON.stringify(c,(k,v)=>k==="room"||k==="_parts"?undefined:v).replace(/&/g,"&amp;").replace(/'/g,"&#39;")}' width="100%" height="100%" role="img" aria-label="Laila's avatar"><defs>${P.D}${defs}</defs>${P.back}${leg(49)}${leg(71)}${shoe(36,60)}${shoe(60,84)}${skirt}${torso}${arm(-1)}${arm(1)}${P.head}${P.topD}${P.fringe}${P.face}${P.ex}${P.hd}</svg>`;
+}
+/* everything the 3D avatar needs: colors, hair style, and the 2D art for the face, chest and accessories, which the 3D model wears as decals */
+function avatarSpec(c){
+  const skin=SKIN[c.skin]||SKIN[1],hair=HAIR[c.hair]||HAIR[1],P=avatarSvg(Object.assign({},c,{_parts:1}));
+  let ca='#7B5CD6',cb='#4A3590';
+  const f=P.top.match(/fill="([^"]+)"/);
+  if(f){
+    const u=f[1].match(/^url\(#([^)]+)\)$/);
+    if(u){const g=P.D.match(new RegExp('id="'+u[1]+'"[^>]*><stop offset="0" stop-color="(#[0-9a-fA-F]{6})"/><stop offset="1" stop-color="(#[0-9a-fA-F]{6})"'));if(g){ca=g[1];cb=g[2]}}
+    else if(/^#[0-9a-f]{6}$/i.test(f[1])){ca=f[1];cb=darken(f[1],.25)}
+  }
+  const doc=(vb,w,h,inner)=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${w}" height="${h}"><defs>${P.D}</defs>${inner}</svg>`;
+  return{skin,hair,style:c.style,ca,cb,long:['robe','gamehoodie','brickhoodie','jacket','labcoat','poncho','astronaut','champcape'].includes(c.top),
+    face:(w,h)=>doc('32 31 56 62',w,h,P.fringe+P.face),top:(w,h)=>doc('27 91 66 40',w,h,P.top+P.topD),acc:(w,h)=>doc('0 0 120 204',w,h,P.ex+P.hd)};
 }
 const HOOKS=[O('none','Empty hook',0),O('backpack','Backpack',0),O('soccerbag','Soccer bag','soc1'),O('robe','Wizard robe',100),O('jersey','Game day jersey',70)];
 const WALLDECO=[O('clock','Wall clock',20),O('pennants','Pennant banner',75),O('lights','Fairy lights',50)];
@@ -3747,9 +3765,13 @@ function patFill(o,id,hs){
   const inner={stripes:`<rect width="7" height="14" fill="${b}"/>`,dots:`<circle cx="7" cy="7" r="2.6" fill="${b}"/>`,checks:`<rect width="7" height="7" fill="${b}"/><rect x="7" y="7" width="7" height="7" fill="${b}"/>`,stars:star(7,7,3.8,b),hearts:`<path d="M7 11C2 7.5 3 4 5.2 4C6.3 4 7 4.8 7 5.5C7 4.8 7.7 4 8.8 4C11 4 12 7.5 7 11Z" fill="${b}"/>`,cloud:`<circle cx="5" cy="8" r="3" fill="${b}"/><circle cx="9" cy="7" r="3.4" fill="${b}"/>`,scales:`<path d="M0 10Q7 2 14 10M-7 3Q0-5 7 3M7 3Q14-5 21 3" stroke="${b}" stroke-width="1.6" fill="none"/>`,studs:`<circle cx="7" cy="7" r="3.4" fill="${b}"/><circle cx="7" cy="7" r="1.5" fill="${a}" opacity=".4"/>`,...PATX(b,a)}[p]||'';
   return{defs:`<pattern id="${id}" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="${a}"/>${inner}</pattern>`,fill:`url(#${id})`};
 }
-function roomSvg(R,av){
+function roomSvg(R,av,LAYS){
   const hs=houseOf(av),by=(arr,id)=>arr.find(o=>o.id===id)||arr[0];
   const hot=(a,inner)=>`<g class="hot" data-act="roomarea" data-v="${a}">${inner}</g>`;
+  /* LAYS: when given, the room is not drawn. Its decorations are collected by layer instead, for the 3D room (see room3d.js). F is furniture, which the 3D room builds itself. */
+  const F=(a,inner)=>LAYS?'':hot(a,inner);
+  const I=(k,a,inner)=>{if(LAYS){LAYS[k]=(LAYS[k]||'')+inner;return''}return hot(a,inner)};
+  const addL=(k,t)=>{if(LAYS){LAYS[k]=(LAYS[k]||'')+t;return''}return t};
   const sh=patFill(by(SHEETS,R.sheets),'shp',hs),cu=patFill(by(CURTAINS,R.curtains),'cup',hs);
   const wall=by(WALLS,R.wallcol).sw,frame=by(FRAMES,R.frame).sw,deskC=by(DESKS,R.deskcol).sw,dresC=by(DRESSERS,R.dcol).sw;
   const dark=c=>c==='#F4F1FA'?'#D9D3EA':'rgba(0,0,0,.18)';
@@ -3796,7 +3818,7 @@ function roomSvg(R,av){
     e+=`<rect x="${NX}" y="199" width="${NW}" height="8" fill="#fff" opacity=".92"/><rect x="${NX}" y="206" width="${NW}" height="3" fill="#000" opacity=".14"/>`;
     g+=e;
   }
-  if(halloween())g+=hwBack();
+  if(halloween())g+=addL('wall',hwBack());
   /* window, view, curtains */
   const vw=R.view,WX=160,WW=84,WM=WX+WW/2;
   let view=`<rect x="${WX}" y="34" width="${WW}" height="90" fill="${vw==='day'?'url(#skyd)':vw==='sunset'?'url(#skys)':vw==='night'?'#1B2250':'#E4EEF6'}"/>`;
@@ -3806,10 +3828,10 @@ function roomSvg(R,av){
   if(vw==='snow')view+=`<rect x="${WX}" y="106" width="${WW}" height="18" fill="#fff"/>`+[[174,50],[192,66],[212,46],[230,78],[182,88],[206,92]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="2.2" fill="#fff"/>`).join('');
   if(vw==='sea')view+=`<rect x="${WX}" y="34" width="${WW}" height="90" fill="#2FA6B8"/><rect x="${WX}" y="104" width="${WW}" height="20" fill="#E8D3A0"/><path d="M172 104Q168 90 174 80M176 104Q182 92 178 84" stroke="#2E8A4F" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M200 64Q208 56 216 64Q208 72 200 64ZM216 64L222 59V69Z" fill="#FF9AC9"/><path d="M184 50Q190 44 196 50Q190 56 184 50ZM196 50L200 46V54Z" fill="#FFD24D"/><circle cx="226" cy="46" r="2.4" fill="none" stroke="#fff"/><circle cx="230" cy="56" r="1.6" fill="none" stroke="#fff"/><circle cx="214" cy="90" r="2" fill="none" stroke="#fff"/>`;
   if(VIEWX[vw])view=VIEWX[vw];
-  g+=hot('window',view+`<rect x="${WX}" y="34" width="${WW}" height="90" fill="none" stroke="#fff" stroke-width="5"/><path d="M${WM} 34V124M${WX} 79H${WX+WW}" stroke="#fff" stroke-width="3"/><rect x="152" y="124" width="100" height="6" rx="2" fill="#fff"/><rect x="152" y="129" width="100" height="3" rx="1" fill="#000" opacity=".12"/><path d="M164 34L172 124M214 34L206 124" stroke="#fff" stroke-width="5" opacity=".14"/><path d="M144 28H260" stroke="#8A6B4A" stroke-width="4" stroke-linecap="round"/><circle cx="144" cy="28" r="3.4" fill="#E3B94F"/><circle cx="260" cy="28" r="3.4" fill="#E3B94F"/><path d="M148 31H172Q168 82 172 134H148Z" fill="${cu.fill}" stroke="rgba(0,0,0,.12)"/><path d="M232 31H256V134H232Q236 82 232 31Z" fill="${cu.fill}" stroke="rgba(0,0,0,.12)"/><path d="M148 96Q160 100 172 96M232 96Q244 100 256 96" stroke="rgba(0,0,0,.14)" stroke-width="3" fill="none"/>`);
+  g+=I('win','window',view+`<rect x="${WX}" y="34" width="${WW}" height="90" fill="none" stroke="#fff" stroke-width="5"/><path d="M${WM} 34V124M${WX} 79H${WX+WW}" stroke="#fff" stroke-width="3"/><rect x="152" y="124" width="100" height="6" rx="2" fill="#fff"/><rect x="152" y="129" width="100" height="3" rx="1" fill="#000" opacity=".12"/><path d="M164 34L172 124M214 34L206 124" stroke="#fff" stroke-width="5" opacity=".14"/><path d="M144 28H260" stroke="#8A6B4A" stroke-width="4" stroke-linecap="round"/><circle cx="144" cy="28" r="3.4" fill="#E3B94F"/><circle cx="260" cy="28" r="3.4" fill="#E3B94F"/><path d="M148 31H172Q168 82 172 134H148Z" fill="${cu.fill}" stroke="rgba(0,0,0,.12)"/><path d="M232 31H256V134H232Q236 82 232 31Z" fill="${cu.fill}" stroke="rgba(0,0,0,.12)"/><path d="M148 96Q160 100 172 96M232 96Q244 100 256 96" stroke="rgba(0,0,0,.14)" stroke-width="3" fill="none"/>`);
   /* posters */
   const POSPOS=[[18,24,40,56],[290,24,52,73],[378,26,40,56],[-112,22,40,56],[-64,22,40,56]];
-  g+=hot('walls',R.posters.map((id,i)=>{if(!id)return'';const o=id==='mine'?minePoster(R.mine):POSTERS.find(p=>p.id===id);if(!o)return'';const q=POSPOS[i];
+  g+=I('wall','walls',R.posters.map((id,i)=>{if(!id)return'';const o=id==='mine'?minePoster(R.mine):POSTERS.find(p=>p.id===id);if(!o)return'';const q=POSPOS[i];
     return`<g transform="translate(${q[0]} ${q[1]}) scale(${q[2]/40} ${q[3]/56})"><rect x="1.6" y="2.6" width="40" height="56" rx="2" fill="#000" opacity=".16"/><rect width="40" height="56" rx="2" fill="${o.bg}" stroke="#fff" stroke-width="2.5"/>${o.art}<path d="M0 0H26L0 34Z" fill="#fff" opacity=".1"/></g>`}).join(''));
   /* wall decorations and hanger */
   let deco='';
@@ -3817,8 +3839,8 @@ function roomSvg(R,av){
   if(R.walldeco.includes('clock'))deco+=`<circle cx="80" cy="100" r="11" fill="#fff" stroke="#8A6B4A" stroke-width="3"/><path d="M80 100V92M80 100L85 102" stroke="#2A1630" stroke-width="2" stroke-linecap="round"/>`;
   if(R.walldeco.includes('pennants'))deco+=`<path d="M336 100Q406 118 478 100" stroke="#6B5A3A" fill="none"/>`+[344,366,388,410,432,454].map((x,i)=>`<path d="M${x} ${106+Math.sin(i)*3}l9 0l-4.5 14Z" fill="${['#B8283A','#E3B94F','#2B4590','#2E8A4F','#B8283A','#E3B94F'][i]}"/>`).join('');
   deco+=decoExtra(R)+decoExtra2(R);
-  g+=hot('walls',deco);
-  g+=roomCal();
+  g+=I('wall','walls',deco);
+  g+=addL('wall',roomCal());
   const hk=R.hook,oc=OUTFIT[av.outfit]||OUTFIT[0];
   let hang='';
   if(hk==='backpack')hang=`<path d="M118 70C118 56 134 56 134 70" stroke="#6B3E1E" stroke-width="2.6" fill="none" stroke-linecap="round"/><ellipse cx="127" cy="111" rx="17" ry="3" fill="#000" opacity=".12"/><rect x="111" y="66" width="30" height="43" rx="11" fill="url(#pbp)" stroke="#B3236B" stroke-width=".8"/><rect x="114" y="87" width="24" height="17" rx="5" fill="url(#pbq)" stroke="#B3236B" stroke-width=".8"/><path d="M118 95H134" stroke="#fff" stroke-width="1.6" opacity=".7" stroke-linecap="round"/><path d="M115 77H137" stroke="#fff" stroke-width="2" opacity=".75"/><circle cx="126" cy="77" r="2.2" fill="url(#gld)"/><path d="M115 73Q120 69 128 70" stroke="#fff" stroke-width="1.4" fill="none" opacity=".55" stroke-linecap="round"/>`;
@@ -3827,7 +3849,7 @@ function roomSvg(R,av){
   if(hk==='jersey')hang=`<path d="M112 72L120 70Q126 78 132 70L140 72L146 84L138 88L138 112L114 112L114 88L106 84Z" fill="#14284B"/><path d="M122 74V112M130 74V112" stroke="#fff" stroke-width="2.2" opacity=".8"/><text x="126" y="102" text-anchor="middle" font-size="12" font-weight="800" fill="#fff" style="font-family:Inter,system-ui,sans-serif">42</text>`;
   if(hk==='flagbelt')hang=`<path d="M112 68Q126 80 140 68V74Q126 86 112 74Z" fill="#2A2F4A"/><rect x="123" y="75" width="7" height="5" rx="1" fill="#E3B94F"/><path d="M114 76L112 94H119L119 80Z" fill="#E5484D"/><path d="M121 80L121 98H128L128 82Z" fill="#FFD24D"/><path d="M130 82L132 96H139L137 78Z" fill="#4C9BD6"/>`;
   if(HANGX[hk])hang=HANGX[hk]();
-  g+=hot('walls',`<rect x="104" y="62" width="44" height="7" rx="3" fill="#8A6B4A"/><circle cx="112" cy="65.5" r="2.4" fill="#E3B94F"/><circle cx="140" cy="65.5" r="2.4" fill="#E3B94F"/>${hang}`);
+  g+=I('wall','walls',`<rect x="104" y="62" width="44" height="7" rx="3" fill="#8A6B4A"/><circle cx="112" cy="65.5" r="2.4" fill="#E3B94F"/><circle cx="140" cy="65.5" r="2.4" fill="#E3B94F"/>${hang}`);
   /* rug (drawn in a squashed circle so it looks flat on the floor) */
   const rugOf=id=>{const rc=by(RUGS,id).sw;return{
     round:`<circle r="100" fill="${rc}"/><circle r="72" fill="#fff" opacity=".35"/>`,
@@ -3840,7 +3862,7 @@ function roomSvg(R,av){
     soccer:`<circle r="100" fill="#fff" stroke="#222" stroke-width="6"/><polygon points="0,-34 32,-10 20,28 -20,28 -32,-10" fill="#222"/><path d="M0 -34V-98M32 -10L96 -30M20 28L58 80M-20 28L-58 80M-32 -10L-96 -30" stroke="#222" stroke-width="6"/>`
   ,...RUGX}[id]||''};
   const rugShape=rugOf(R.rug);
-  g+=hot('rug',`<g transform="translate(212 281) scale(1.2 .27)">${rugShape}</g>`);
+  if(LAYS)LAYS.rug=rugShape;else g+=hot('rug',`<g transform="translate(212 281) scale(1.2 .27)">${rugShape}</g>`);
   /* dresser */
   const dtopOf=list=>{
   let dtop='';
@@ -3853,7 +3875,7 @@ function roomSvg(R,av){
   return dtop};
   const dtop=dtopOf(R.dtop);
   g+=`<ellipse cx="56" cy="222" rx="60" ry="6" fill="#000" opacity=".17"/>`;
-  g+=hot('dresser',`<rect x="12" y="214" width="6" height="10" fill="#6B3E1E"/><rect x="94" y="214" width="6" height="10" fill="#6B3E1E"/><rect x="8" y="152" width="96" height="64" rx="5" fill="url(#drg)" stroke="rgba(0,0,0,.14)"/><rect x="8" y="152" width="96" height="6" rx="3" fill="#fff" opacity=".5"/>${[[161,16],[180,15],[198,15]].map(d=>`<rect x="13" y="${d[0]}" width="86" height="${d[1]}" rx="3" fill="rgba(255,255,255,.2)" stroke="${dark(dresC)}" stroke-width="1.2"/><rect x="48" y="${d[0]+d[1]/2-2}" width="16" height="3.8" rx="1.9" fill="url(#gld)"/>`).join('')}${dtop}`);
+  g+=F('dresser',`<rect x="12" y="214" width="6" height="10" fill="#6B3E1E"/><rect x="94" y="214" width="6" height="10" fill="#6B3E1E"/><rect x="8" y="152" width="96" height="64" rx="5" fill="url(#drg)" stroke="rgba(0,0,0,.14)"/><rect x="8" y="152" width="96" height="6" rx="3" fill="#fff" opacity=".5"/>${[[161,16],[180,15],[198,15]].map(d=>`<rect x="13" y="${d[0]}" width="86" height="${d[1]}" rx="3" fill="rgba(255,255,255,.2)" stroke="${dark(dresC)}" stroke-width="1.2"/><rect x="48" y="${d[0]+d[1]/2-2}" width="16" height="3.8" rx="1.9" fill="url(#gld)"/>`).join('')}`)+I('dtop','dresser',dtop);
   /* desk */
   const dk=[285,328,370];
   const lamp={lamp:`<rect x="-9" y="-4" width="18" height="4" rx="2" fill="#555"/><path d="M0-4V-26L11-36" stroke="#555" stroke-width="2.6" fill="none"/><path d="M5-40L24-35L14-26Z" fill="#E3B94F"/>`,
@@ -3872,41 +3894,41 @@ function roomSvg(R,av){
     trophy:`<path d="M-9-28H9V-18Q9-10 0-8Q-9-10-9-18Z" fill="#E3B94F" stroke="#A8741A"/><path d="M-9-25H-14Q-14-17-8-16M9-25H14Q14-17 8-16" fill="none" stroke="#A8741A" stroke-width="1.8"/><rect x="-2" y="-8" width="4" height="5" fill="#C8955E"/><rect x="-8" y="-4" width="16" height="4" rx="1" fill="#6B3E1E"/>`  ,...DRIGHTX};
   const right=RIGHTM[R.dright];
   g+=`<ellipse cx="408" cy="219" rx="76" ry="6" fill="#000" opacity=".16"/>`;
-  g+=hot('desk',`<g transform="translate(80 0)">${[266,380].map(x=>`<rect x="${x}" y="160" width="9" height="54" rx="1.5" fill="${darken(deskC,.22)}"/><rect x="${x}" y="160" width="3" height="54" fill="#fff" opacity=".22"/><rect x="${x+6.4}" y="160" width="2.6" height="54" fill="#000" opacity=".16"/><rect x="${x-1.5}" y="210" width="12" height="4.5" rx="1.5" fill="${darken(deskC,.4)}"/>`).join('')}<rect x="274" y="196" width="106" height="4" fill="${darken(deskC,.3)}"/><rect x="332" y="161" width="46" height="40" rx="3" fill="${darken(deskC,.16)}" stroke="${darken(deskC,.36)}" stroke-width="1"/>${[[165,16],[183,15]].map(d=>`<rect x="335" y="${d[0]}" width="40" height="${d[1]}" rx="2" fill="${deskC}" stroke="${darken(deskC,.34)}" stroke-width="1"/><rect x="337" y="${d[0]+2}" width="36" height="${d[1]-4}" rx="1.4" fill="none" stroke="#fff" stroke-width=".8" opacity=".3"/><rect x="346" y="${d[0]+d[1]/2-1.6}" width="18" height="3.2" rx="1.6" fill="url(#gld)"/>`).join('')}<rect x="258" y="150" width="138" height="11" rx="3" fill="url(#dkg)"/><rect x="258" y="150" width="138" height="3" rx="1.5" fill="#fff" opacity=".4"/><rect x="258" y="159" width="138" height="2" rx="1" fill="#000" opacity=".18"/><rect x="262" y="161" width="130" height="5" fill="#000" opacity=".14"/><g transform="translate(${dk[0]} 150)">${lamp}</g><g transform="translate(${dk[1]} 150)">${mid}</g><g transform="translate(${dk[2]} 150)">${right}</g></g>`);
+  g+=F('desk',`<g transform="translate(80 0)">${[266,380].map(x=>`<rect x="${x}" y="160" width="9" height="54" rx="1.5" fill="${darken(deskC,.22)}"/><rect x="${x}" y="160" width="3" height="54" fill="#fff" opacity=".22"/><rect x="${x+6.4}" y="160" width="2.6" height="54" fill="#000" opacity=".16"/><rect x="${x-1.5}" y="210" width="12" height="4.5" rx="1.5" fill="${darken(deskC,.4)}"/>`).join('')}<rect x="274" y="196" width="106" height="4" fill="${darken(deskC,.3)}"/><rect x="332" y="161" width="46" height="40" rx="3" fill="${darken(deskC,.16)}" stroke="${darken(deskC,.36)}" stroke-width="1"/>${[[165,16],[183,15]].map(d=>`<rect x="335" y="${d[0]}" width="40" height="${d[1]}" rx="2" fill="${deskC}" stroke="${darken(deskC,.34)}" stroke-width="1"/><rect x="337" y="${d[0]+2}" width="36" height="${d[1]-4}" rx="1.4" fill="none" stroke="#fff" stroke-width=".8" opacity=".3"/><rect x="346" y="${d[0]+d[1]/2-1.6}" width="18" height="3.2" rx="1.6" fill="url(#gld)"/>`).join('')}<rect x="258" y="150" width="138" height="11" rx="3" fill="url(#dkg)"/><rect x="258" y="150" width="138" height="3" rx="1.5" fill="#fff" opacity=".4"/><rect x="258" y="159" width="138" height="2" rx="1" fill="#000" opacity=".18"/><rect x="262" y="161" width="130" height="5" fill="#000" opacity=".14"/></g>`)+I('desk','desk',`<g transform="translate(80 0)"><g transform="translate(${dk[0]} 150)">${lamp}</g><g transform="translate(${dk[1]} 150)">${mid}</g><g transform="translate(${dk[2]} 150)">${right}</g></g>`);
   /* telescope */
-  if(R.windec.includes('scope'))g+=hot('window',`<g transform="translate(10 0)"><path d="M196 168L176 214M196 168L198 216M196 168L220 214" stroke="#6B3E1E" stroke-width="3" stroke-linecap="round"/><g transform="translate(196 168) rotate(32)"><rect x="-6" y="-48" width="12" height="54" rx="4" fill="#2B4590"/><rect x="-7" y="-30" width="14" height="5" fill="#E3B94F"/><rect x="-4" y="-56" width="8" height="10" rx="2" fill="#555"/></g></g>`);
-  g+=windExtra(R);
+  if(R.windec.includes('scope'))g+=I('flr','window',`<g transform="translate(10 0)"><path d="M196 168L176 214M196 168L198 216M196 168L220 214" stroke="#6B3E1E" stroke-width="3" stroke-linecap="round"/><g transform="translate(196 168) rotate(32)"><rect x="-6" y="-48" width="12" height="54" rx="4" fill="#2B4590"/><rect x="-7" y="-30" width="14" height="5" fill="#E3B94F"/><rect x="-4" y="-56" width="8" height="10" rx="2" fill="#555"/></g></g>`);
+  g+=addL('flr',windExtra(R));
   /* globe and other floor things */
-  if(R.floorx.includes('globe'))g+=hot('floor',`<g transform="translate(82 0)"><path d="M240 214V196" stroke="#6B3E1E" stroke-width="3"/><ellipse cx="240" cy="214" rx="11" ry="3.5" fill="#6B3E1E"/><circle cx="240" cy="182" r="16" fill="#4C9BD6"/><path d="M230 176Q236 170 242 176Q240 184 234 184ZM244 188Q250 186 252 192Q248 196 244 194Z" fill="#7CCB8A"/><path d="M226 182Q240 196 254 182" stroke="#fff" stroke-width=".8" fill="none" opacity=".6"/></g>`);
-  if(R.floorx.includes('bigplant'))g+=hot('floor',`<g transform="translate(-70 0)"><rect x="94" y="230" width="22" height="22" rx="3" fill="#C8643A"/><path d="M105 230Q90 212 88 196M105 230Q104 208 104 190M105 230Q120 212 124 198M105 230Q96 220 80 218M105 230Q116 218 130 214" stroke="#2E8A4F" stroke-width="5" fill="none" stroke-linecap="round"/></g>`);
-  if(R.floorx.includes('ball'))g+=hot('floor',`<g transform="translate(132 288)"><circle r="9" fill="#fff" stroke="#222" stroke-width="1.4"/><polygon points="0,-3.6 3.4,-1.1 2.1,2.9 -2.1,2.9 -3.4,-1.1" fill="#222"/></g>`);
-  if(R.floorx.includes('beanbag'))g+=hot('floor',`<g transform="translate(60 0)"><path d="M340 286Q336 252 366 244Q396 252 398 286Z" fill="${accent}"/><path d="M356 250Q366 258 376 250" stroke="rgba(0,0,0,.2)" stroke-width="2" fill="none"/></g>`);
-  g+=hot('floor',floorExtra(R)+floorExtra2(R));
+  if(R.floorx.includes('globe'))g+=I('flr','floor',`<g transform="translate(82 0)"><path d="M240 214V196" stroke="#6B3E1E" stroke-width="3"/><ellipse cx="240" cy="214" rx="11" ry="3.5" fill="#6B3E1E"/><circle cx="240" cy="182" r="16" fill="#4C9BD6"/><path d="M230 176Q236 170 242 176Q240 184 234 184ZM244 188Q250 186 252 192Q248 196 244 194Z" fill="#7CCB8A"/><path d="M226 182Q240 196 254 182" stroke="#fff" stroke-width=".8" fill="none" opacity=".6"/></g>`);
+  if(R.floorx.includes('bigplant'))g+=I('flr','floor',`<g transform="translate(-70 0)"><rect x="94" y="230" width="22" height="22" rx="3" fill="#C8643A"/><path d="M105 230Q90 212 88 196M105 230Q104 208 104 190M105 230Q120 212 124 198M105 230Q96 220 80 218M105 230Q116 218 130 214" stroke="#2E8A4F" stroke-width="5" fill="none" stroke-linecap="round"/></g>`);
+  if(R.floorx.includes('ball'))g+=I('flr','floor',`<g transform="translate(132 288)"><circle r="9" fill="#fff" stroke="#222" stroke-width="1.4"/><polygon points="0,-3.6 3.4,-1.1 2.1,2.9 -2.1,2.9 -3.4,-1.1" fill="#222"/></g>`);
+  if(R.floorx.includes('beanbag'))g+=I('flr','floor',`<g transform="translate(60 0)"><path d="M340 286Q336 252 366 244Q396 252 398 286Z" fill="${accent}"/><path d="M356 250Q366 258 376 250" stroke="rgba(0,0,0,.2)" stroke-width="2" fill="none"/></g>`);
+  g+=I('flr','floor',floorExtra(R)+floorExtra2(R));
   const lbOf=id=>{let lb='';
   if(id==='basket')lb=`<path d="M310 244H346L342 284H314Z" fill="#C8955E"/><path d="M312 256H344M313 268H343" stroke="#A8763F" stroke-width="2"/><path d="M314 244Q324 232 332 244Q340 234 346 244Z" fill="${accent}"/>`;
   if(id==='hamperp')lb=`<rect x="312" y="244" width="32" height="40" rx="6" fill="#F29BBB"/><rect x="309" y="238" width="38" height="9" rx="4" fill="#EE86AA"/><path d="M318 256V280M328 256V280M338 256V280" stroke="#fff" stroke-width="1.4" opacity=".5"/>`;
   if(id==='hamperstar')lb=`<rect x="312" y="244" width="32" height="40" rx="6" fill="#8E5CFF"/><rect x="309" y="238" width="38" height="9" rx="4" fill="#6B4FB5"/>${star(328,265,9,'#FFD24D')}`;
   if(id==='net')lb=`<path d="M312 246H344L350 284H306Z" fill="#fff" opacity=".85" stroke="#14284B" stroke-width="2"/><path d="M312 258L344 278M344 258L312 278M308 270H348" stroke="#14284B" stroke-width="1" opacity=".5"/><circle cx="328" cy="262" r="6" fill="#222" opacity=".25"/>`;
   return lb};
-  g+=hot('floor',`<g transform="translate(-244 0)">${lbOf(R.laundry)}</g>`);
+  g+=I('flr','floor',`<g transform="translate(-244 0)">${lbOf(R.laundry)}</g>`);
   /* the nook: two more poster spots, two shelves, a small rug and a second bin. These hold the same prizes she can win for the rest of the room. */
   {
     const plank=(x1,x2,y)=>`<rect x="${x1+2}" y="${y+2}" width="${x2-x1}" height="6" rx="2" fill="#000" opacity=".14"/><rect x="${x1}" y="${y}" width="${x2-x1}" height="6" rx="2" fill="#B98A57" stroke="rgba(0,0,0,.2)"/><rect x="${x1}" y="${y}" width="${x2-x1}" height="2" rx="1" fill="#fff" opacity=".4"/><path d="M${x1+8} ${y+6}V${y+17}L${x1+20} ${y+6}M${x2-8} ${y+6}V${y+17}L${x2-20} ${y+6}" stroke="#7A5530" stroke-width="2.4" fill="none" stroke-linejoin="round"/>`;
     const at=(art,x,y)=>art?`<g transform="translate(${x} ${y})">${art}</g>`:'';
-    g+=hot('nook',plank(-112,-12,118)+at(R.ushelfM!=='none'?MIDM[R.ushelfM]:'',-82,118)+at(R.ushelfR!=='none'?RIGHTM[R.ushelfR]:'',-38,118));
-    g+=hot('nook',plank(-112,-12,186)+`<g transform="translate(-120 34)">${dtopOf(R.shelf)}</g>`);
-    if(R.rug2&&R.rug2!=='none')g+=hot('nook',`<ellipse cx="-62" cy="312" rx="54" ry="10" fill="#000" opacity=".12"/><g transform="translate(-62 308) scale(.5 .12)">${rugOf(R.rug2)}</g>`);
-    if(R.laundry2&&R.laundry2!=='none')g+=hot('nook',`<g transform="translate(-400 8)">${lbOf(R.laundry2)}</g>`);
+    g+=I('nook','nook',plank(-112,-12,118)+at(R.ushelfM!=='none'?MIDM[R.ushelfM]:'',-82,118)+at(R.ushelfR!=='none'?RIGHTM[R.ushelfR]:'',-38,118));
+    g+=I('nook','nook',plank(-112,-12,186)+`<g transform="translate(-120 34)">${dtopOf(R.shelf)}</g>`);
+    if(R.rug2&&R.rug2!=='none')g+=I('nook','nook',`<ellipse cx="-62" cy="312" rx="54" ry="10" fill="#000" opacity=".12"/><g transform="translate(-62 308) scale(.5 .12)">${rugOf(R.rug2)}</g>`);
+    if(R.laundry2&&R.laundry2!=='none')g+=I('nook','nook',`<g transform="translate(-400 8)">${lbOf(R.laundry2)}</g>`);
   }
-  if(halloween())g+=hwFront();
+  if(halloween())g+=addL('flr',hwFront());
   /* bed */
   const ac=accent;
   let pil=`<rect x="147" y="153" width="54" height="34" rx="14" fill="#000" opacity=".1"/><rect x="215" y="153" width="54" height="34" rx="14" fill="#000" opacity=".1"/><rect x="146" y="150" width="54" height="34" rx="14" fill="url(#pil)" stroke="#D8D1EA"/><rect x="214" y="150" width="54" height="34" rx="14" fill="url(#pil)" stroke="#D8D1EA"/><path d="M156 164Q173 158 190 164M224 164Q241 158 258 164" stroke="#C9C0E0" stroke-width="1.4" fill="none" stroke-linecap="round"/>`;
   g+=`<ellipse cx="212" cy="262" rx="112" ry="9" fill="#000" opacity=".2"/>`;
-  g+=hot('bed',`<rect x="124" y="114" width="176" height="104" rx="12" fill="url(#frg)"/><rect x="132" y="122" width="160" height="62" rx="8" fill="${dark(frame)}"/><rect x="132" y="122" width="160" height="6" rx="3" fill="#fff" opacity=".2"/><path d="M185 128V184M239 128V184" stroke="#fff" stroke-width="1.2" opacity=".14"/>${pil}`);
+  g+=F('bed',`<rect x="124" y="114" width="176" height="104" rx="12" fill="url(#frg)"/><rect x="132" y="122" width="160" height="62" rx="8" fill="${dark(frame)}"/><rect x="132" y="122" width="160" height="6" rx="3" fill="#fff" opacity=".2"/><path d="M185 128V184M239 128V184" stroke="#fff" stroke-width="1.2" opacity=".14"/>${pil}`);
   /* Laila standing on the floor beside the bed */
   g+=`<ellipse cx="350" cy="291" rx="35" ry="5.2" fill="#000" opacity=".22"/>`;
-  g+=hot('closet',bodySvg(av).replace('width="100%" height="100%"','x="312.5" y="164.5" width="75" height="127.5"'));
+  g+=F('closet',bodySvg(av).replace('width="100%" height="100%"','x="312.5" y="164.5" width="75" height="127.5"'));
   let dec='';
   const pr=R.pillows;
   if(pr==='heart')dec=`<path d="M0 12C-22 -6-12 -22 0 -12C12-22 22 -6 0 12Z" fill="${ac}"/>`;
@@ -3915,8 +3937,9 @@ function roomSvg(R,av){
   if(pr==='moon')dec=`<circle r="15" fill="${ac}"/><circle cx="7" cy="-4" r="12" fill="url(#shp)" opacity="0"/><path d="M-3-12A13 13 0 1 0 12 6A10 10 0 0 1-3-12Z" fill="#fff" opacity=".6"/>`;
   if(pr==='owl')dec=`<rect x="-14" y="-14" width="28" height="28" rx="10" fill="#B9A38A"/><circle cx="-6" cy="-3" r="5" fill="#fff"/><circle cx="6" cy="-3" r="5" fill="#fff"/><circle cx="-6" cy="-3" r="2" fill="#2A1630"/><circle cx="6" cy="-3" r="2" fill="#2A1630"/><path d="M-2 4L0 8L2 4Z" fill="#E8832A"/>`;
   if(!dec)dec=pillowExtra(pr,ac);
-  g+=hot('bed',`<rect x="118" y="176" width="188" height="70" rx="14" fill="${sh.fill}" stroke="rgba(0,0,0,.12)"/><rect x="118" y="176" width="188" height="70" rx="14" fill="url(#qlt)"/><rect x="118" y="176" width="188" height="15" rx="7" fill="#fff" opacity=".92"/><path d="M126 192Q212 200 298 192" stroke="rgba(0,0,0,.12)" stroke-width="2" fill="none"/><path d="M150 201Q154 222 148 240M212 203V243M274 201Q270 222 276 240" stroke="rgba(0,0,0,.08)" stroke-width="2" fill="none"/><rect x="116" y="240" width="192" height="14" rx="4" fill="url(#frg)"/><rect x="116" y="240" width="192" height="3" rx="1.5" fill="#fff" opacity=".35"/><rect x="122" y="252" width="8" height="8" fill="${dark(frame)}"/><rect x="294" y="252" width="8" height="8" fill="${dark(frame)}"/>${dec?`<g transform="translate(262 206)">${dec}</g>`:''}`);
-  g+=bdayRoom();
+  if(LAYS)LAYS.dec=dec;else g+=hot('bed',`<rect x="118" y="176" width="188" height="70" rx="14" fill="${sh.fill}" stroke="rgba(0,0,0,.12)"/><rect x="118" y="176" width="188" height="70" rx="14" fill="url(#qlt)"/><rect x="118" y="176" width="188" height="15" rx="7" fill="#fff" opacity=".92"/><path d="M126 192Q212 200 298 192" stroke="rgba(0,0,0,.12)" stroke-width="2" fill="none"/><path d="M150 201Q154 222 148 240M212 203V243M274 201Q270 222 276 240" stroke="rgba(0,0,0,.08)" stroke-width="2" fill="none"/><rect x="116" y="240" width="192" height="14" rx="4" fill="url(#frg)"/><rect x="116" y="240" width="192" height="3" rx="1.5" fill="#fff" opacity=".35"/><rect x="122" y="252" width="8" height="8" fill="${dark(frame)}"/><rect x="294" y="252" width="8" height="8" fill="${dark(frame)}"/>${dec?`<g transform="translate(262 206)">${dec}</g>`:''}`);
+  g+=addL('flr',bdayRoom());
+  if(LAYS){LAYS.defs=g.slice(0,g.indexOf('</defs>')+7);LAYS.meta={wall,frame,deskC,dresC,accent,pillow:R.pillows,view:R.view,sheet:`<defs>${sh.defs}</defs><rect width="188" height="70" fill="${sh.fill}"/>`};return LAYS}
   g+=`<rect x="-124" width="604" height="330" fill="url(#vig)" pointer-events="none"/>`;
   return`<svg class="roomsvg n64" viewBox="-124 0 604 330" role="img" aria-label="Laila's bedroom">${g}</svg>`;
 }
@@ -4573,12 +4596,29 @@ function n64Place(svg,low){
   cv.style.width=r.width+'px';cv.style.height=r.height+'px';
   cv.getContext('2d').drawImage(low,0,0);
 }
+let L3=null,L3p=null;
+function lab3d(){return L3p||(L3p=import('./room3d.js').then(m=>{L3=m.webglOk?m:false;if(L3)setTimeout(()=>{n64Pass();room3dPass()},0);return L3}).catch(e=>{console.warn('3D unavailable',e);L3=false;return false}))}
+function room3dPass(){
+  const box=document.querySelector('.roombox');
+  if(!box){if(L3)L3.unmountRoom();return}
+  if(!L3)return;
+  if(L3.attachRoom(box))box.classList.add('is3d');
+  const av=getAv(),lay=roomSvg(getRoom(av),av,{});
+  L3.mountRoom(box,{layers:lay,meta:lay.meta,avatar:avatarSpec(av)},a=>{S.roomArea=a;render()}).then(()=>box.classList.add('is3d')).catch(e=>{console.error(e);box.classList.remove('is3d');const f=box.querySelector('svg.roomsvg');if(f)f.style.opacity=1});
+}
 function n64Pass(){
   const dpr=Math.min(2,window.devicePixelRatio||1);
+  if(L3===null)lab3d();
   document.querySelectorAll('svg.n64').forEach(svg=>{
     if(svg.parentElement&&svg.parentElement.closest('svg'))return;
     const r=svg.getBoundingClientRect();
     if(r.width<4||r.height<4){svg.style.opacity=1;return}
+    if(L3&&svg.dataset.av){
+      const vb=svg.viewBox.baseVal,W=Math.round(r.width*dpr),H=Math.round(r.height*dpr);
+      try{L3.avatarPortrait(avatarSpec(JSON.parse(svg.dataset.av)),[vb.x,vb.y,vb.width,vb.height],W,H).then(c=>n64Place(svg,c)).catch(()=>{svg.style.opacity=1})}catch(e){svg.style.opacity=1}
+      return;
+    }
+    if(svg.classList.contains('roomsvg')&&L3)return;
     n64Low(svg,Math.round(r.width*dpr),Math.round(r.height*dpr),low=>n64Place(svg,low),()=>{svg.style.opacity=1});
   });
 }
@@ -4598,6 +4638,7 @@ function render(){
   if(a&&!a.disabled)a.focus({preventScroll:true});
   const p=document.getElementById('pin');if(p)p.focus({preventScroll:true});
   n64Pass();
+  room3dPass();
   autoRead();
 }
 function finish(){
