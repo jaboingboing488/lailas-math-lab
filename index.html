@@ -4504,6 +4504,28 @@ function themeClass(){
    its colors are cut to 5 bits per channel with the console's ordered dither, and it is stretched back up with the soft
    bilinear filter. The real vector picture stays on the page, invisible, so every tap target in the room still works. */
 const N64={cache:new Map()},BAYER=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+/* low-poly shading: the picture is cut into flat triangles, each a little lighter or darker (light from the upper left), like a model with flat-shaded faces. A room gets a ceiling, side walls and a darker front floor so it reads as a box. */
+function n64Poly(x,lw,lh,room){
+  const g=room?11:4.5,amp=room?.075:.11,h=(i,j,t)=>{let n=Math.sin(i*127.1+j*311.7+t*74.7)*43758.5453;return(n-Math.floor(n))*2-1};
+  x.save();x.globalCompositeOperation='source-atop';
+  for(let j=0;j*g<lh;j++)for(let i=0;i*g<lw;i++){
+    const x0=i*g,y0=j*g;
+    [[[x0,y0],[x0+g,y0],[x0,y0+g]],[[x0+g,y0],[x0+g,y0+g],[x0,y0+g]]].forEach((t,k)=>{
+      const cx=(t[0][0]+t[1][0]+t[2][0])/3/lw,cy=(t[0][1]+t[1][1]+t[2][1])/3/lh;
+      const v=h(i,j,k)*amp-(cx-.5)*(room?.1:.34)-(cy-.5)*(room?.06:.12);
+      x.fillStyle=v>0?'rgba(255,255,255,'+Math.min(.5,v).toFixed(3)+')':'rgba(20,0,40,'+Math.min(.5,-v).toFixed(3)+')';
+      x.beginPath();x.moveTo(t[0][0],t[0][1]);x.lineTo(t[1][0],t[1][1]);x.lineTo(t[2][0],t[2][1]);x.closePath();x.fill();
+    });
+  }
+  x.restore();
+  if(room){
+    const poly=(pts,f)=>{x.fillStyle=f;x.beginPath();pts.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.closePath();x.fill()};
+    poly([[0,0],[lw,0],[lw*.94,lh*.075],[lw*.06,lh*.075]],'rgba(70,35,80,.42)');
+    poly([[0,0],[lw*.06,lh*.075],[lw*.06,lh*.9],[0,lh]],'rgba(70,35,80,.34)');
+    poly([[lw,0],[lw*.94,lh*.075],[lw*.94,lh*.9],[lw,lh]],'rgba(70,35,80,.34)');
+    poly([[0,lh],[lw*.06,lh*.9],[lw*.94,lh*.9],[lw,lh]],'rgba(60,30,40,.3)');
+  }
+}
 function n64Low(svg,lw,lh,done,fail){
   const key=lw+'x'+lh+svg.outerHTML,hit=N64.cache.get(key);
   if(hit)return done(hit);
@@ -4513,6 +4535,7 @@ function n64Low(svg,lw,lh,done,fail){
     try{
       const cv=document.createElement('canvas');cv.width=lw;cv.height=lh;
       const x=cv.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0,lw,lh);
+      n64Poly(x,lw,lh,svg.classList.contains('roomsvg'));
       const im=x.getImageData(0,0,lw,lh),d=im.data,st=255/31;
       for(let y=0;y<lh;y++)for(let i=0;i<lw;i++){
         const o=(y*lw+i)*4,t=(BAYER[(y&3)*4+(i&3)]/16-.47)*st;
