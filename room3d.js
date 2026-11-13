@@ -488,7 +488,6 @@ const FLOOR3D={
     for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),k=1+.05*Math.sin(x*5+z*3)*Math.cos(y*4);p.setXYZ(i,x*k,Math.max(-.62,y*k),z*k)}
     geo.computeVertexNormals();
     const m=new THREE.Mesh(geo,M.cloth(o.accent||'#F29BBB',.92));m.scale.set(30,26,27);m.position.y=16.5;g.add(m);
-    const seam=new THREE.Mesh(new THREE.TorusGeometry(20,.7,6,40,Math.PI),M.cloth(o.accent||'#F29BBB',.8));seam.scale.set(1.2,.9,1);seam.rotation.x=Math.PI/2.4;seam.position.set(0,36,2);g.add(seam);
     return g},
 };
 function placeFloor(model,x,yb,area){
