@@ -1567,7 +1567,8 @@ setInterval(()=>{
 const UNIT3=[
   {id:'u3w1',date:'2026-10-21',name:'Test: Wednesday, October 21',note:'Words with ar and or',words:['alarm','author','carnivore','carton','charted','dormant','forgotten','import','march','ornament','pardon','report']},
   {id:'u3w2',date:'2026-10-28',name:'Test: Wednesday, October 28',note:'Words with er, ir and ur',words:['caterpillar','circus','dangerous','jersey','nerve','occur','return','serve','stir','summer','thirteen','turtle']},
-  {id:'u3w3',date:'2026-11-04',name:'Test: Wednesday, November 4',note:'Mixed spelling patterns',words:['after','button','challenge','collect','elbow','forgive','hunger','lesson','mention','problematic','projection','suddenly']}
+  {id:'u3w3',date:'2026-11-04',name:'Test: Wednesday, November 4',note:'Mixed spelling patterns',words:['after','button','challenge','collect','elbow','forgive','hunger','lesson','mention','problematic','projection','suddenly']},
+  {id:'u4w1',date:'2026-11-18',name:'Test: Wednesday, November 18',note:'Mixed spelling patterns',words:['because','fiber','open','receive','decreasing','future','patient','remove','demand','locate','potatoes','unit']}
 ];
 const SENT={
   alarm:'The loud alarm woke everyone up at seven o\'clock.',author:'My favorite author wrote a book about a brave dog.',carnivore:'A lion is a carnivore because it eats meat.',
@@ -1581,7 +1582,11 @@ const SENT={
   after:'We play soccer after school.',button:'I sewed a new button on my coat.',challenge:'Learning to ride a bike was a big challenge.',
   collect:'I collect shells every time we visit the beach.',elbow:'She bumped her elbow on the desk.',forgive:'Please forgive me for being late.',
   hunger:'Hunger made my stomach growl.',lesson:'Today\'s math lesson was about subtraction.',mention:'Did she mention what time the game starts?',
-  problematic:'A leaky boat is problematic.',projection:'The projection on the wall showed a map of space.',suddenly:'Suddenly, the lights went out.'
+  problematic:'A leaky boat is problematic.',projection:'The projection on the wall showed a map of space.',suddenly:'Suddenly, the lights went out.',
+  because:'I wore my raincoat because it was pouring outside.',fiber:'Apples and beans have fiber, which is good for your body.',open:'Please open the window to let in some fresh air.',
+  receive:'I hope to receive a letter from my cousin this week.',decreasing:'The number of cookies on the plate kept decreasing.',future:'In the future, I want to be a scientist.',
+  patient:'Be patient and wait for your turn on the swing.',remove:'Remove your muddy shoes before you come inside.',demand:'There is a big demand for tickets to the show.',
+  locate:'Can you locate our state on the map?',potatoes:'We mashed the potatoes for dinner.',unit:'Our class just finished the unit on plants.'
 };
 /* Fourth-grade words from the Harry Potter books. They appear on November 4 if no new list of her own has been added. */
 const HP_LISTS=[
@@ -1623,6 +1628,8 @@ function hpOn(){
 }
 /* the day after the last test, switch her from the old lists to the first Hogwarts list (once) */
 function hpAuto(){
+  /* new school list for the November 18 test: select it once, until the day after the test */
+  if(!store.get('lmath.u4Picked',false)&&dayKey(Date.now())<'2026-11-19'){store.set('lmath.u4Picked',true);S.splist='u4w1';store.set('lmath.splist','u4w1');touchProfile();return}
   if(!hpOn()||dayKey(Date.now())<'2026-11-05'||store.get('lmath.hpPicked',false))return;
   store.set('lmath.hpPicked',true);
   if(/^u3w/.test(S.splist)){S.splist='hp1';store.set('lmath.splist','hp1');touchProfile()}
